@@ -53,6 +53,6 @@ See the [build guide](../../docs/BUILD_GUIDE.md) and [user guide](../../docs/USE
 
 ## Resumed completion candidate
 
-Build3 adds expiry-aware monitoring display, readable history summaries and gap-safe power-state observations, charging/source and recovery-failure alerts, and explicit prerequisites for unavailable thermal/one-time controls. The integrated software suite passes130 tests. It remains a local candidate; [v1 acceptance](../../docs/V1_ACCEPTANCE.md) records open hardware, GUI, performance and distribution gates.
+Build3 adds expiry-aware monitoring display, readable history summaries and gap-safe power-state observations, charging/source and recovery-failure alerts, and explicit prerequisites for unavailable thermal/one-time controls. Build4 adds direct menu Apply80% and immediate release of acquired instance-lock ownership despite inherited descriptors; the integrated software suite passes131 tests. It remains a local candidate; [v1 acceptance](../../docs/V1_ACCEPTANCE.md) records open hardware, GUI, performance and distribution gates.
 
 A separate `statbatt-hardware-probe` executable is read-only and accepts no arguments. Its [target metadata result](../../docs/research/SMC_READ_ONLY_QUALIFICATION.md) is not charging support. No privileged helper or hardware write was added.

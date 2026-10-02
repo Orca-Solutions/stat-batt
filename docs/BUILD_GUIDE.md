@@ -26,7 +26,7 @@ codesign --verify --deep --strict apps/statbatt/dist/StatBatt.app
 open apps/statbatt/dist/StatBatt.app
 ```
 
-The scripts resolve their app directory automatically. Caches are generated in `apps/statbatt/.build/`; the app bundle is generated in `apps/statbatt/dist/`. Both are ignored by Git. The app-completion branch software suite has 130 tests; the earlier foundation checkpoint has102. Test success establishes software contracts, not charging behavior on hardware.
+The scripts resolve their app directory automatically. Caches are generated in `apps/statbatt/.build/`; the app bundle is generated in `apps/statbatt/dist/`. Both are ignored by Git. The app-completion branch software suite has 131 tests; the earlier foundation checkpoint has102. Test success establishes software contracts, not charging behavior on hardware.
 
 The bundle is locally ad-hoc signed, not a notarized public release. Quit an older running StatBatt instance from its menu before opening a rebuilt bundle; closing its window leaves monitoring running. Settings → About StatBatt identifies version `0.1.0 (4)` on the menu-convenience candidate. Do not run charging actions as a build verification step.
 

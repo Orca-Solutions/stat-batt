@@ -5,7 +5,8 @@
 - Added a direct **Apply 80% limit** menu-panel button after trusted setup, using the existing guarded action.
 - Shared request eligibility between menu, Charging view and dispatch; sleep, concurrency, qualification and recovery restrictions remain enforced.
 - Added inline request/unconfirmed/recovery messages; confirmations remain historical and return to100% remains manual.
-- Product design consultant audited the actual menu flow; live app-path qualification remains pending.
+- Fixed inherited-descriptor instance-lock lifetime; a deterministic regression failed before repair and passed afterward.
+- Product design consultant audited the actual menu flow;131 integrated tests and local release packaging/signature pass. Live app-path qualification remains pending.
 
 ## 0.1.0 build3 completion increment — 2026-10-02
 

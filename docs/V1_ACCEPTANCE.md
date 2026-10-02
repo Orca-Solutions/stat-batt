@@ -10,6 +10,7 @@ Owner requested a team to finish the original v1. The isolated app branch is `co
 - Native confirmations are labeled historical user observations. Missing custom one-shot and temperature-control surfaces explicitly state their unmet prerequisites and stay disabled.
 - A standalone, closed read-only hardware diagnostic reports source/layout/denial facts. [Target results](research/SMC_READ_ONLY_QUALIFICATION.md) prove no mutating backend.
 - Integrated software regression suite, release packaging, signature and final independent recheck are recorded in [implementation status](IMPLEMENTATION_STATUS.md) and [working record](../WORKING_RECORD.md).
+- The direct ready-state menu action and inherited-lock-lifetime repair have [independent review evidence](handoffs/2026-10-02-menu-convenience-review.md):131 tests, build4 packaging/signature, and no remaining material finding within that increment.
 
 ## Acceptance still open
 
