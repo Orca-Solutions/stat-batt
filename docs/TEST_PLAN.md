@@ -1,6 +1,6 @@
 # Verification and compatibility plan
 
-Established 2026-10-01. Software tests, the read-only probe, and one authorized native80% setter/readback with100% restoration ran October2; app-path, cutoff and lifecycle checks below remain future checks. See IMPLEMENTATION_STATUS.md and WORKING_RECORD.md for executed evidence. Hardware proof is distinct from compilation, policy simulation, source inspection, and repository claims.
+Established 2026-10-01. Software tests, the read-only probe, the first native80% setter lab, and a separately authorized owner-assisted build4 menu Apply/visible confirmation/normal-reopen/manual100% return ran October2. Electrical cutoff, abnormal lifecycle and other pending checks remain future work. See IMPLEMENTATION_STATUS.md and WORKING_RECORD.md for executed evidence. Hardware proof is distinct from compilation, policy simulation, source inspection, and repository claims.
 
 ## Requirement-to-evidence map
 
@@ -39,7 +39,7 @@ Property checks: active adapter inhibition implies verified capability, fresh ba
 
 | Model/chip | OS/build | Firmware | Native limit | Charge hold retaining AC | Adapter inhibit/discharge | Sleep/recovery | Status |
 |---|---|---|---|---|---|---|---|
-| Mac16,13 / arm64 |27.0.1/26A434|mBoot-20457.1.29|80% setter/readback passed;100% baseline restored; cutoff untested|Energiza detects unsupported; our backend untested|Energiza detects variant2; writes untested|Untested|Native lab Oct2: bounded setting proof only; app integration and lifecycle unqualified |
+| Mac16,13 / arm64 |27.0.1/26A434|mBoot-20457.1.29|80% setter and owner-assisted menu Apply/readback/manual100% return passed; cutoff untested|Energiza detects unsupported; our backend untested|Energiza detects variant2; writes untested|Normal quit/reopen persisted confirmation with no replay observed; independent pre-restart library completion, sleep/crash/reboot untested|Build4 bounded app-flow proof Oct2; no full-v1/backend acceptance |
 
 Add separate rows for every tested Mac/firmware/OS tuple. Repository reports on other models belong in research, not this local verification registry. USB-C, MagSafe, powered display/dock, low-power adapter, and battery-only are separate test configurations. A passing M5 Air cannot establish M1–M5 coverage. Intel is out of V1.
 
@@ -56,3 +56,6 @@ Archive source revision, toolchain, signing identity/team IDs (no secrets), comp
 ## Implemented native increment evidence
 
 The native suite uses injected nonhardware transports and closed subprocess fixtures. It verifies target/trust/baseline/conflict admission, UUID replacement/ambiguity, durable pre-dispatch intent, no replay across restart, journal failure gating, single-account lock and file permission/symlink checks. Timeout, cancellation and overflow receipts require observed child termination; SIGTERM-ignoring fixtures assert the owned child is absent at receipt. Recovery requires an explicit finished/stopped declaration before recording100%. This does not prove the Shortcuts library action stopped or establish effective cutoff/lifecycle behavior. See handoffs/2026-10-02-native-limit-review.md for independent recheck.
+
+
+Owner-assisted menu-flow qualification and limitations are recorded in [research/NATIVE_APP_FLOW_RESULT.md](research/NATIVE_APP_FLOW_RESULT.md). Owner-visible settings are distinct from journal confirmations; no independent native getter or physical cutoff trace is claimed.

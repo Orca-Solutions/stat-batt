@@ -28,7 +28,7 @@ To include the running app's native-workflow state, export from StatBatt. The st
 
 ## Apple 80% workflow
 
-This is a target-specific development workflow. Its bounded setter/readback lab passed; end-to-end app, cutoff, and lifecycle acceptance remain pending. Monitoring does not require this setup, and setup alone does not change charging.
+This is a target-specific development workflow. Its bounded setter/readback lab and owner-assisted menu Apply/confirmation/normal-reopen/manual100% return passed; electrical cutoff and abnormal lifecycle acceptance remain pending. Monitoring does not require this setup, and setup alone does not change charging. See the [app-flow evidence](research/NATIVE_APP_FLOW_RESULT.md).
 
 The current 80% setter qualification is **Mac16,13 / arm64 / macOS 27.0.1 / build 26A434 / firmware mBoot-20457.1.29**. A different fingerprint disables native setup and Apply; a successful build does not qualify another Mac.
 

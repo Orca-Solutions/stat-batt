@@ -26,3 +26,6 @@ At the lab checkpoint, StatBatt had no native coordinator. The later owner-appro
 ## Later setup artifact
 
 After the owner approved the mutable-shortcut trust exception, the owned empty artifact was repurposed into **StatBatt — Apple Limit 80**, containing exactly one visually inspected Apple80% action. Read-only identifier listing found it exactly once. It was saved without running; earlier lab results remain tied to the executed lab operation, not an invented live app test.
+
+
+A later separately authorized owner-assisted build4 menu flow is now complete; see [NATIVE_APP_FLOW_RESULT](NATIVE_APP_FLOW_RESULT.md). The historical creation/saved-without-running statements above describe their earlier checkpoints, not the later execution.

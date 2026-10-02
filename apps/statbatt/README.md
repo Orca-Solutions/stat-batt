@@ -2,7 +2,7 @@
 
 A native Apple silicon macOS menu bar battery app. The first local implementation provides live monitoring, details, seven-day history, CSV exports, settings, opt-in notifications, and redacted capability diagnostics.
 
-**Apple80% limiting now has a trusted-shortcut setup and app flow on the qualified local target.** Custom charge bands, discharge cutoffs, thermal control and a privileged helper remain unavailable. The native setter/readback lab passed; end-to-end app interaction, cutoff and lifecycle checks are still pending. This is not the completed v1 Energiza replacement.
+**Apple80% limiting now has a trusted-shortcut setup and direct menu action on the qualified local target.** The owner-assisted menu Apply/visible confirmation/normal-reopen/manual100% return passed; [evidence and scope](../../docs/research/NATIVE_APP_FLOW_RESULT.md). Custom charge bands, discharge cutoffs, thermal control and a privileged helper remain unavailable. Electrical cutoff and abnormal lifecycle checks are still pending. This is not the completed v1 Energiza replacement.
 
 ## Build and run
 

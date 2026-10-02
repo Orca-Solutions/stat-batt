@@ -6,7 +6,8 @@
 - Shared request eligibility between menu, Charging view and dispatch; sleep, concurrency, qualification and recovery restrictions remain enforced.
 - Added inline request/unconfirmed/recovery messages; confirmations remain historical and return to100% remains manual.
 - Fixed inherited-descriptor instance-lock lifetime; a deterministic regression failed before repair and passed afterward.
-- Product design consultant audited the actual menu flow;131 integrated tests and local release packaging/signature pass. Live app-path qualification remains pending.
+- Product design consultant audited the actual menu flow;131 integrated tests and local release packaging/signature pass. Bounded live app-path evidence is recorded below.
+- Subsequently completed the separately authorized owner-assisted menu80% Apply/visible confirmation/normal-reopen/manual100% return. Journal records restoredUserConfirmed100; no replay observed on this normal restart. Cutoff, abnormal lifecycle and full-v1 acceptance remain open.
 
 ## 0.1.0 build3 completion increment — 2026-10-02
 

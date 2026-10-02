@@ -11,12 +11,13 @@ Owner requested a team to finish the original v1. The isolated app branch is `co
 - A standalone, closed read-only hardware diagnostic reports source/layout/denial facts. [Target results](research/SMC_READ_ONLY_QUALIFICATION.md) prove no mutating backend.
 - Integrated software regression suite, release packaging, signature and final independent recheck are recorded in [implementation status](IMPLEMENTATION_STATUS.md) and [working record](../WORKING_RECORD.md).
 - The direct ready-state menu action and inherited-lock-lifetime repair have [independent review evidence](handoffs/2026-10-02-menu-convenience-review.md):131 tests, build4 packaging/signature, and no remaining material finding within that increment.
+- The [owner-assisted menu flow](research/NATIVE_APP_FLOW_RESULT.md) passed one80% request, visible user confirmation, preserved request/history across normal quit/reopen with no replay observed, and permanently restored100% recorded in the app. This is bounded app-path qualification on the exact tuple.
 
 ## Acceptance still open
 
 | Area | Remaining evidence or decision |
 |---|---|
-| Native limit | Real app setup → Apply 80% → visible confirmation → restart/no replay → manual 100% return; see the follow-up in LAB_PROTOCOL |
+| Native limit | Bounded owner-assisted menu flow passed; electrical cutoff/current, independent pre-restart library completion, abnormal crash/sleep/reboot and broader targets remain unverified |
 | Custom charge hold | No working inspected backend retaining external power; full acceptance gap |
 | Discharge and thermal control | CHIE read access is insufficient; write/owned restoration/reserve/sleep/crash safety unverified; no experiment ready |
 | Monitoring and UX | Physical source transitions, synchronized sensors, keyboard/VoiceOver, both appearances/scaling, real notification permission/delivery and prolonged retention/sleep |
@@ -25,8 +26,8 @@ Owner requested a team to finish the original v1. The isolated app branch is `co
 
 The current candidate is useful, tested local software. It is not full v1 acceptance, a verified Energiza replacement, or a public app release. The owner has not accepted dropping custom controls. Keep those criteria open unless explicitly changed.
 
-Native desktop binding still fails for StatBatt, and Activity Monitor's displayed process identity disagrees with the read-only process check. That prevents trustworthy automated GUI/restart/hardware-flow evidence. The owner separately authorized the native app-path test on October 2, 2026 and will assist with the UI; visible baseline and app-identity checks remain prerequisites. No checkboxes or confirmations may be fabricated.
+Native desktop binding still fails for StatBatt, and earlier Activity Monitor identity disagreed with the process check. Therefore the completed flow uses owner-operated UI observations plus verified candidate/process and journal evidence, not an automated GUI pass. Setup, visible80%, saved historical confirmation after reopening and permanent100% return were reported by the owner and corroborated where the journal can do so. No confirmation was fabricated. The finished/stopped declaration was recorded during restoration; independent pre-restart library completion was not reported.
 
 The owner asked for a scope recommendation. The team's recommendation is to keep full-v1 criteria open and treat monitoring plus native80% control as a preview milestone. This recommendation does not change the accepted scope.
 
-The follow-up preparation encountered an apparent shortcut-library execution during inspection; subsequent native settings showed80%. Permanent100% restoration was performed and reopened, with owner confirmation pending. This incident is recorded in LAB_PROTOCOL and does not qualify StatBatt's app-path Apply, restart or restoration flow.
+The follow-up preparation encountered an apparent shortcut-library execution during inspection; subsequent native settings showed80%. Permanent100% restoration was performed and reopened, then the owner confirmed the100% baseline before the menu test. This incident is recorded in LAB_PROTOCOL and remains separate from the later successful owner-assisted app path.
