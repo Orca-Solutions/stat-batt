@@ -42,16 +42,7 @@ struct MenuPanel: View {
             }
             BatteryHeader(store: store, compact: true)
             Divider()
-            VStack(alignment: .leading, spacing: 6) {
-                Label(store.nativePresentation.phase == .confirmed ? "Apple 80% setting last confirmed by you" : "Apple limit setup & charging controls", systemImage: "info.circle").font(.subheadline.weight(.medium))
-                Text(store.nativePresentation.phase == .recoveryRequired || store.nativePresentation.phase == .awaitingConfirmation
-                     ? "Review the Apple limit in Charging. Custom hold and discharge remain unavailable."
-                     : store.nativePresentation.phase == .confirmed
-                        ? "StatBatt cannot read the current Apple limit. Review or restore it in Charging."
-                        : "Configure Apple limiting in Charging. Custom hold and discharge are untested.")
-                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                Button("Charging settings…") { show(.charging) }
-            }
+            nativeLimitActions
             HStack {
                 Button("Charge to full once") {}.disabled(true)
                 Button("Discharge to…") {}.disabled(true)
@@ -74,6 +65,54 @@ struct MenuPanel: View {
             }
         }.padding(20).frame(width: 380)
     }
+
+    @ViewBuilder private var nativeLimitActions: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            switch store.nativePresentation.phase {
+            case .ready:
+                Label("Apple charge limit", systemImage: "slider.horizontal.3")
+                    .font(.subheadline.weight(.medium))
+                Button("Apply 80% limit") { store.applyNativeLimit80() }
+                    .disabled(!store.canApplyNativeLimit80)
+                    .help("Runs your trusted Apple shortcut once; confirm the limit in Battery settings")
+                Text("Uses your trusted shortcut. Reinspect it if edited. Returning to 100% is manual in Battery settings.")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            case .applying:
+                HStack {
+                    ProgressView().controlSize(.small)
+                    Text("Requesting an 80% limit…")
+                }
+                Text("The setting has not been confirmed.")
+                    .font(.caption).foregroundStyle(.secondary)
+            case .awaitingConfirmation:
+                Label("Request completed · setting unconfirmed", systemImage: "questionmark.circle")
+                    .font(.subheadline.weight(.medium))
+                Text("Open Charging to check Battery settings and record what you see.")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            case .confirmed:
+                Label("Apple 80% setting last confirmed by you", systemImage: "checkmark.circle")
+                    .font(.subheadline.weight(.medium))
+                Text("StatBatt cannot read the current Apple limit. Review or restore it in Charging.")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            case .recoveryRequired:
+                Label("Review and restore the Apple limit", systemImage: "exclamationmark.triangle")
+                    .font(.subheadline.weight(.medium))
+                Text("Open Charging for instructions before another request.")
+                    .font(.caption).foregroundStyle(.secondary)
+            case .setup, .unavailable:
+                Label("Apple limit setup & charging controls", systemImage: "info.circle")
+                    .font(.subheadline.weight(.medium))
+                Text("Configure Apple limiting in Charging. Custom hold and discharge are untested.")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+            if let message = store.nativePresentation.message, !message.isEmpty {
+                Label(message, systemImage: "info.circle")
+                    .font(.caption).fixedSize(horizontal: false, vertical: true)
+            }
+            Button("Charging settings…") { show(.charging) }
+        }
+    }
+
     private func show(_ tab: DashboardTab) {
         store.selectedDashboardTab = tab
         openWindow(id: "dashboard")
@@ -230,6 +269,7 @@ struct ChargingView: View {
                 Text("Apple limiting delegates charging to macOS. Custom hold and discharge need separate verification on this Mac.")
                     .foregroundStyle(.secondary)
                 NativeLimitView(presentation: store.nativePresentation,
+                    requestEnabled: store.canApplyNativeLimit80,
                     onOpenShortcuts: { store.openNativeShortcutSetup() },
                     onOpenBatterySettings: { store.openBatterySettings() },
                     onConfigure: { store.configureNativeLimit(inspected: $0, baselineConfirmed: $1, controllersStopped: $2) },

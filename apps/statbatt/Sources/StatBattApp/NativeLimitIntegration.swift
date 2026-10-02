@@ -79,11 +79,14 @@ extension AppStore {
         }
     }
 
+    var canApplyNativeLimit80: Bool {
+        nativeCoordinator != nil && !nativeTaskInProgress && !sleeping &&
+            nativePresentation.phase == .ready && nativePresentation.deviceQualified &&
+            nativePresentation.shortcutDiscovered && nativePresentation.conflictingControllerResolved
+    }
+
     func applyNativeLimit80() {
-        guard let coordinator = nativeCoordinator, !nativeTaskInProgress, !sleeping,
-              nativePresentation.phase == .ready,
-              nativePresentation.deviceQualified && nativePresentation.shortcutDiscovered &&
-              nativePresentation.conflictingControllerResolved else { return }
+        guard canApplyNativeLimit80, let coordinator = nativeCoordinator else { return }
         nativeTaskInProgress = true
         nativePresentation.phase = .applying
         nativePresentation.canForgetSetup = false

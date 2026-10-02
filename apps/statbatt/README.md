@@ -30,13 +30,13 @@ Local settings/history live in `~/Library/Application Support/StatBatt`. History
 
 ## Native Apple limit setup
 
-After rebuilding, quit StatBatt from its menu-bar menu and reopen `apps/statbatt/dist/StatBatt.app`; closing the Details window does not quit the old process. Settings → About StatBatt identifies this candidate as **0.1.0 (3)**.
+After rebuilding, quit StatBatt from its menu-bar menu and reopen `apps/statbatt/dist/StatBatt.app`; closing the Details window does not quit the old process. Settings → About StatBatt identifies this candidate as **0.1.0 (4)**.
 
 Open **Charging settings…**. A shortcut named **StatBatt — Apple Limit 80** must contain exactly one Apple **Set Battery Charge Limit** action set to80%. On the owner's development machine this is already prepared under the exact app name **StatBatt — Apple Limit 80**; inspect it before recording setup. Other user shortcuts were not edited.
 
 Record the three setup declarations: inspected/trusted shortcut, Battery settings visibly showing the100% return baseline, and other charge-management apps stopped. StatBatt binds the shortcut's UUID, rejects missing/ambiguous/replaced identities and checks the known Energiza controller. It cannot detect every later action/parameter edit or exclude every external controller; the owner approved this trust model.
 
-**Apply 80% limit** invokes the trusted shortcut from the app; manual shortcut execution is not the ordinary flow. Completion remains unverified until you check Battery settings and explicitly confirm80%. To return, first verify the shortcut finished or stop it in Shortcuts, then manually restore100% in Battery settings and record both declarations. A timeout/crash can leave an unknown result, which blocks another request. Killing the CLI does not prove that the underlying Shortcuts action stopped.
+After setup, **Apply 80% limit** is available directly in the menu panel and in Charging. Both use the same guarded action to invoke the trusted shortcut; manual shortcut execution is not the ordinary flow. Completion remains unverified until you check Battery settings and explicitly confirm80%. To return, first verify the shortcut finished or stop it in Shortcuts, then manually restore100% in Battery settings and record both declarations. A timeout/crash can leave an unknown result, which blocks another request. Killing the CLI does not prove that the underlying Shortcuts action stopped.
 
 The setting is delegated to macOS and persists after app exit. There is no lower threshold, expiry, automatic restoration or guarantee of a precise electrical cutoff. Only80% on Mac16,13 / arm64 / macOS27.0.1 build26A434 / mBoot-20457.1.29 is qualified by the bounded setter lab. A different fingerprint disables Apply. New runtime hardware experiments are not performed by startup or tests.
 

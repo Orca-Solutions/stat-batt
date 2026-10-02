@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.0 build4 menu convenience increment — 2026-10-02
+
+- Added a direct **Apply 80% limit** menu-panel button after trusted setup, using the existing guarded action.
+- Shared request eligibility between menu, Charging view and dispatch; sleep, concurrency, qualification and recovery restrictions remain enforced.
+- Added inline request/unconfirmed/recovery messages; confirmations remain historical and return to100% remains manual.
+- Product design consultant audited the actual menu flow; live app-path qualification remains pending.
+
 ## 0.1.0 build3 completion increment — 2026-10-02
 
 - Added60-second monitor display expiry, quality/finite-value checks and localized measurements.

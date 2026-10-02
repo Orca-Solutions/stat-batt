@@ -24,6 +24,7 @@ struct NativeLimitPresentation: Equatable {
 
 struct NativeLimitView: View {
     let presentation: NativeLimitPresentation
+    let requestEnabled: Bool
     let onOpenShortcuts: () -> Void
     let onOpenBatterySettings: () -> Void
     let onConfigure: (Bool, Bool, Bool) -> Void
@@ -193,7 +194,6 @@ struct NativeLimitView: View {
     }
 
     private var canApply: Bool {
-        presentation.phase == .ready && presentation.shortcutDiscovered &&
-            presentation.deviceQualified && presentation.conflictingControllerResolved
+        requestEnabled
     }
 }

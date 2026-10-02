@@ -1,6 +1,6 @@
 # V1 completion candidate — October 2, 2026
 
-Owner requested a team to finish the original v1. The isolated app branch is `codex/app-v1-completion`; current local candidate is 0.1.0 (3). Product design, platform investigation, software hardening and a fresh-context reviewer consulted. Same model family; no different-model review is claimed.
+Owner requested a team to finish the original v1. The isolated app branch is `codex/app-v1-completion`; current local candidate is 0.1.0 (4), adding the direct menu Apply button the owner requested. Product design, platform investigation, software hardening and a fresh-context reviewer consulted. Same model family; no different-model review is claimed.
 
 ## Candidate evidence
 
