@@ -29,6 +29,7 @@ extension AppStore {
             } catch {
                 nativePresentation = NativeLimitPresentation(phase: .unavailable,
                     message: "Native setup is unavailable. Another StatBatt instance may own it, or its recovery record cannot be read. Monitoring continues.")
+                notifyNativeFailure(id: "nativeInitialization", message: "Charging setup is unavailable. Open StatBatt to review the recovery record or another running instance.")
             }
         }
     }
@@ -159,6 +160,13 @@ extension AppStore {
                 (state.phase == .ready || state.phase == .restoredUserConfirmed100))
         if !state.journalHealthy {
             nativePresentation.message = "The recovery record could not be saved. Check or stop the shortcut and restore 100% in Battery settings. Resolve local storage and restart StatBatt before recording recovery."
+        }
+        if let failure = state.lastError {
+            notifyNativeFailure(id: "native:\(failure.rawValue)", message: state.requiresManualRecovery || !state.journalHealthy
+                ? "Charging recovery needs your attention. Check or stop the shortcut, then verify and restore 100% in Battery settings."
+                : "Charging setup or request could not proceed. Open StatBatt for details.")
+        } else {
+            clearNativeFailureNotification()
         }
     }
 }

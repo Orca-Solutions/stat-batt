@@ -7,6 +7,7 @@ let package = Package(
     products: [
         .executable(name: "StatBatt", targets: ["StatBattApp"]),
         .executable(name: "statbatt-diagnostics", targets: ["StatBattDiagnostics"]),
+        .executable(name: "statbatt-hardware-probe", targets: ["StatBattHardwareProbeCommand"]),
         .library(name: "StatBattDomain", targets: ["StatBattDomain"]),
         .library(name: "StatBattNativeLimit", targets: ["StatBattNativeLimit"]),
         .library(name: "StatBattControlProtocol", targets: ["StatBattControlProtocol"])
@@ -15,6 +16,9 @@ let package = Package(
         .target(name: "StatBattDomain"),
         .target(name: "StatBattControlProtocol", dependencies: ["StatBattDomain"]),
         .target(name: "StatBattTelemetry", dependencies: ["StatBattDomain"], linkerSettings: [.linkedFramework("IOKit")]),
+        .target(name: "CStatBattSMCReadOnly", linkerSettings: [.linkedFramework("IOKit")]),
+        .target(name: "StatBattHardwareProbe", dependencies: ["CStatBattSMCReadOnly", "StatBattDomain"]),
+        .executableTarget(name: "StatBattHardwareProbeCommand", dependencies: ["StatBattHardwareProbe", "StatBattTelemetry"]),
         .target(name: "StatBattNativeLimit", dependencies: ["StatBattDomain"]),
         .systemLibrary(name: "CSQLite"),
         .target(name: "StatBattPersistence", dependencies: ["StatBattDomain", "CSQLite"]),
@@ -24,6 +28,7 @@ let package = Package(
         .testTarget(name: "StatBattNativeLimitTests", dependencies: ["StatBattNativeLimit", "StatBattDomain"]),
         .testTarget(name: "StatBattControlProtocolTests", dependencies: ["StatBattControlProtocol", "StatBattDomain"]),
         .testTarget(name: "StatBattPersistenceTests", dependencies: ["StatBattPersistence", "StatBattDomain"]),
-        .testTarget(name: "StatBattTelemetryTests", dependencies: ["StatBattTelemetry", "StatBattDomain"])
+        .testTarget(name: "StatBattTelemetryTests", dependencies: ["StatBattTelemetry", "StatBattDomain"]),
+        .testTarget(name: "StatBattHardwareProbeTests", dependencies: ["StatBattHardwareProbe", "StatBattDomain"])
     ]
 )

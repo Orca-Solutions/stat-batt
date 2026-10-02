@@ -22,8 +22,11 @@ struct PreferencesView: View {
             Section("Notifications") {
                 Toggle("Allow battery notifications", isOn: Binding(get: { store.preferences.notificationsEnabled }, set: store.enableNotifications))
                 Text(store.notificationStatus).font(.caption).foregroundStyle(.secondary)
-                Toggle("Charging transitions", isOn: $store.preferences.notifyChargingTransitions).disabled(!store.preferences.notificationsEnabled)
+                Toggle("Charging and power-source transitions", isOn: $store.preferences.notifyChargingTransitions).disabled(!store.preferences.notificationsEnabled)
                 Toggle("Temperature threshold", isOn: $store.preferences.notifyTemperature).disabled(!store.preferences.notificationsEnabled)
+                Toggle("Charging setup and recovery failures", isOn: $store.preferences.notifyFailures).disabled(!store.preferences.notificationsEnabled)
+                Text("Failure alerts tell you when a native request needs attention or manual recovery. They do not restore the Apple charge limit.")
+                    .font(.caption).foregroundStyle(.secondary)
                 Stepper("Low battery: \(Int(store.preferences.lowBatteryThresholdPercent))%", value: $store.preferences.lowBatteryThresholdPercent, in: 1...50, step: 1)
                 Stepper("High temperature: \(Int(store.displayTemperature(store.preferences.highTemperatureThresholdCelsius).rounded())) \(store.temperatureSuffix)",
                         value: Binding(get: { store.displayTemperature(store.preferences.highTemperatureThresholdCelsius) },
