@@ -1,0 +1,16 @@
+# Agent tooling and operating documents: the code is public, the method is not.
+/.claude
+CLAUDE.md
+HANDOFF_TEMPLATES.md
+SOFTWARE_OPERATING_GUIDE.md
+
+# Common
+.DS_Store
+node_modules/
+.env
+.env.*
+!.env.example
+.build/
+.swiftpm/
+DerivedData/
+dist/
