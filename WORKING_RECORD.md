@@ -195,3 +195,12 @@ Native GUI binding still fails. Finder and Activity Monitor are accessible, but 
 
 
 Final fresh-context review rechecked c4596ddd4046005f2147fd24df4298ea7f4214bd versus01178b9 and resolved V1R-01/02/03 with no remaining blocking/material finding within this increment. Reviewer inspected root130-test/build evidence and live read-only report, independently computed exact pinned ABI layout, and ran no hardware/build/edit. Review disposition is docs/handoffs/2026-10-02-v1-completion-review.md. Tracked Markdown audit passes125 local links across38 files before this final handoff addition; final link/whitespace/scope checks follow. Owner has pending questions for the separately authorized native app80%/100% flow with manual assistance and whether to keep original v1 acceptance open or explicitly accept a reduced scope. No response or reduced acceptance is assumed.
+
+### Authorized native app-path follow-up — preparation only
+
+- Owner explicitly authorized one build3 app-path Apple80% apply, visible verification, restart without replay, and manual permanent100% restoration/verification. This is separate from the completed first lab test; no adapter write or helper installation is authorized.
+- Candidate source4455ae3eb8779e3e4f7c16967eacfdb92b2d0ff5, build0.1.0(3), binarySHA2569ec6d842954bf1d7ea17d3238c4caf56273bf5ebe383a5143cde5633c8062448 identified before execution.
+- Read-only native UI inspection currently shows Battery settings charge-limit slider100%, optimized charging on, and shortcut editor UUID167E2AAB-4EDC-4195-8B33-271EBEE9619E with exactly one visible Set charge limit action at80%. No shortcut was run and no setting changed during preparation.
+- Read-only process check shows the older checkout app still running. StatBatt desktop binding again failed with native pipe closed; owner assistance requested to quit it before verifying exit and launching the identified candidate. No ambiguous process was killed.
+- Draft app PR3 created and attached: https://github.com/Orca-Solutions/stat-batt/pull/3. Software acceptance remains open. Recommendation is to retain full-v1 criteria and use the monitoring/native80% increment as a preview milestone; owner has not approved a scope reduction.
+- Final documentation audit:39 tracked Markdown files,128 local links,zero missing targets; whitespace check passed. Live test remains unexecuted pending owner UI assistance.

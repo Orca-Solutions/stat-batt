@@ -26,9 +26,9 @@ Adapter inhibition additionally requires physical restoration, sleep/cancel/time
 
 Record only nonidentifying model/architecture, OS/build, firmware, source revision/toolchain, operation, allowed target, acknowledged/observed phases, restore result, latency, safety events, and scope. Exclude hardware serials, user names, home paths, authorization data, and raw dictionaries. Update TEST_PLAN compatibility matrix only for tests actually executed.
 
-## Proposed app-path follow-up — not yet authorized or executed
+## Authorized app-path follow-up — not yet executed
 
-The prior one-time native80% lab authorization is complete. This separate follow-up needs explicit owner authorization because it changes Apple's setting again. Use the reviewed 0.1.0 (3) candidate on the same exact tuple; record the source revision and binary hash before execution. This is supported user-level Apple limiting, not a privileged hardware test.
+The prior one-time native80% lab authorization is complete. On October 2, 2026 the owner separately authorized this app-path test: apply80% once, verify, restart without replay, and manually restore/verify the original100% setting. Execution is pending the visible baseline and app-identity checks below. Use the reviewed 0.1.0 (3) candidate on the same exact tuple; record the source revision and binary hash before execution. This is supported user-level Apple limiting, not a privileged hardware test.
 
 1. Quit the older StatBatt from its menu. Confirm no instance or shortcut request remains, then launch the identified build3. If process identity cannot be established through the automation tools, the owner operates the app and provides visible/text confirmation; do not kill an ambiguous process.
 2. Reinspect the existing trusted fixed80% shortcut and confirm Battery settings visibly shows the original100% return baseline. Confirm other controllers are stopped. If any condition is unclear, do not apply.

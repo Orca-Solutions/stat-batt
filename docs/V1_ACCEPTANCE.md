@@ -24,4 +24,6 @@ Owner requested a team to finish the original v1. The isolated app branch is `co
 
 The current candidate is useful, tested local software. It is not full v1 acceptance, a verified Energiza replacement, or a public app release. The owner has not accepted dropping custom controls. Keep those criteria open unless explicitly changed.
 
-Native desktop binding still fails for StatBatt, and Activity Monitor's displayed process identity disagrees with the read-only process check. That prevents trustworthy automated GUI/restart/hardware-flow evidence. The owner can perform the concrete native flow once its separate setting-change authorization and baseline are confirmed; no checkboxes or confirmations may be fabricated.
+Native desktop binding still fails for StatBatt, and Activity Monitor's displayed process identity disagrees with the read-only process check. That prevents trustworthy automated GUI/restart/hardware-flow evidence. The owner separately authorized the native app-path test on October 2, 2026 and will assist with the UI; visible baseline and app-identity checks remain prerequisites. No checkboxes or confirmations may be fabricated.
+
+The owner asked for a scope recommendation. The team's recommendation is to keep full-v1 criteria open and treat monitoring plus native80% control as a preview milestone. This recommendation does not change the accepted scope.
