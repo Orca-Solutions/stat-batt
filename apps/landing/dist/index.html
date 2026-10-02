@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#143d30">
+  <meta name="description" content="Meet StatBatt, a native macOS menu bar app for battery readings, seven-day history, and local exports. Built for Apple silicon. Currently in development.">
+  <title>StatBatt — A clearer picture of your battery</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23143d30'/%3E%3Crect x='7' y='10' width='17' height='12' rx='3' fill='none' stroke='%2375e3a7' stroke-width='2'/%3E%3Cpath d='M26 14v4M11 14v4m4-4v4m4-4v4' stroke='%2375e3a7' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="#" aria-label="StatBatt home">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="6" y="10" width="18" height="12" rx="3"/><path d="M27 14v4M10 14v4m5-4v4m5-4v4"/></svg></span>
+        <span>StatBatt<span class="brand-period">.</span></span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="#inside">The app</a>
+        <a href="#questions">Questions</a>
+        <a class="nav-status" href="#status">In development</a>
+      </nav>
+    </header>
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="small-battery" aria-hidden="true"></span> A little more insight. Right in your menu bar.</p>
+          <h1 id="hero-title">Your battery.<br>A clearer<br><span>picture.</span></h1>
+          <p class="hero-description">Know what’s powering your day. Live battery readings, useful history, and the details that matter — in a native Mac app.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#inside">Explore StatBatt</a>
+            <a class="text-link" href="#status">See what’s available</a>
+          </div>
+          <p class="hero-note">Built for Apple silicon MacBooks <span aria-hidden="true">·</span> In local development</p>
+        </div>
+        <div class="hero-visual">
+          <img class="hero-art" src="assets/battery-sculpture.jpg" width="1254" height="1254" alt="An emerald glass battery sculpture wrapped in a flowing metallic ribbon." fetchpriority="high">
+          <div class="app-preview" aria-label="Illustrative StatBatt panel with sample values">
+            <div class="preview-header"><span class="preview-name">StatBatt</span><span class="monitor-label">MONITOR</span></div>
+            <div class="preview-charge">
+              <svg class="preview-battery" viewBox="0 0 48 32" aria-hidden="true"><rect x="2" y="5" width="39" height="22" rx="5"/><path d="M45 12v8"/><rect class="battery-fill" x="6" y="9" width="27" height="14" rx="2"/></svg>
+              <div><strong>78<span>%</span></strong><span class="power-label">On battery power</span></div>
+            </div>
+            <div class="charge-track" aria-hidden="true"><span></span></div>
+            <div class="preview-stats"><div><span>Temp.</span><strong>~31 °C</strong></div><div><span>Est. health</span><strong>~94%</strong></div><div><span>Cycles</span><strong>182</strong></div></div>
+            <div class="preview-footer"><span>Details</span><span>History</span><span>Settings</span></div>
+            <p class="sample-label">Illustrative preview · sample values</p>
+          </div>
+          <span class="art-caption">A small app. A little peace of mind.</span>
+        </div>
+      </section>
+      <div class="at-a-glance" aria-label="StatBatt highlights">
+        <div><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></svg><span>Native to your Mac</span></div>
+        <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4 6v6c0 4 8 9 8 9s8-5 8-9V6Z"/><path d="m8 12 3 3 5-6"/></svg><span>Your history stays local</span></div>
+        <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5v15h16M8 15l4-5 4 3 4-7"/></svg><span>Seven days of perspective</span></div>
+      </div>
+      <section class="inside section-space" id="inside" aria-labelledby="inside-title">
+        <div class="section-intro">
+          <p class="eyebrow">LESS GUESSWORK</p>
+          <h2 id="inside-title">The essentials.<br>One glance away.</h2>
+          <p>Start with the percentage. Stay for the bigger picture. StatBatt brings your battery’s story into focus without getting in your way.</p>
+          <div class="history-mini" aria-label="Illustrative battery history chart, sample charge declining from 91 to 78 percent">
+            <div><span>BATTERY HISTORY</span><span>7 DAYS</span></div>
+            <svg viewBox="0 0 360 110" role="img" aria-label="Sample battery charge history"><defs><linearGradient id="chart-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#65cd94" stop-opacity=".25"/><stop offset="1" stop-color="#65cd94" stop-opacity="0"/></linearGradient></defs><path class="chart-grid" d="M0 20H360M0 55H360M0 90H360"/><path fill="url(#chart-fill)" d="M0 28 30 30 57 38 85 45 100 44 124 50 147 57 169 56 190 66 208 72 230 70 251 77 270 82 293 80 315 86 337 85 360 90V110H0Z"/><path class="chart-line" d="m0 28 30 2 27 8 28 7 15-1 24 6 23 7 22-1 21 10 18 6 22-2 21 7 19 5 23-2 22 6 22-1 23 5"/></svg>
+            <p>Illustrative history · sample values</p>
+          </div>
+        </div>
+        <div class="feature-list">
+          <article class="feature"><span class="feature-number">01</span><div><h3>A quick read on your day</h3><p>Check charge, power source, and charging state from your menu bar. Open Details for the readings your Mac makes available, with estimates clearly marked.</p><span class="feature-tag">Live monitoring</span></div></article>
+          <article class="feature"><span class="feature-number">02</span><div><h3>See the pattern, not just the percent</h3><p>Look back over seven days of one-minute summaries. Sleep gaps stay visible. Export a CSV when you want to take a closer look.</p><span class="feature-tag">History & exports</span></div></article>
+          <article class="feature"><span class="feature-number">03</span><div><h3>A utility that minds its business</h3><p>A native interface, local history, and alerts you choose to turn on. Pause recording in Settings, or clear your history in History. No cloud account needed.</p><span class="feature-tag">Local by design</span></div></article>
+        </div>
+      </section>
+      <section class="development" id="status" aria-labelledby="status-title">
+        <div class="development-heading"><p class="eyebrow">WHERE WE ARE TODAY</p><span class="version-label">LOCAL BUILD · 0.1.0</span></div>
+        <div class="development-grid">
+          <div><h2 id="status-title">Small beginnings.<br>Clear intentions.</h2><p class="development-intro">Monitoring is implemented locally. Charging support is still being qualified. Here’s an honest look at the current build.</p></div>
+          <div class="status-details">
+            <div class="status-row"><span class="status-label available">Implemented locally</span><h3>Your battery, in view</h3><p>Live monitoring, seven-day history, CSV exports, settings, and opt-in alerts. Readings vary by Mac; unavailable values are shown as unavailable.</p></div>
+            <div class="status-row"><span class="status-label qualifying">Being qualified</span><h3>Apple’s 80% charge limit</h3><p>A trusted-shortcut workflow is integrated for one qualified Mac and macOS target. The setting lab passed; end-to-end app, cutoff, and lifecycle checks are still pending. Confirmation and returning to 100% are manual.</p></div>
+            <div class="status-row"><span class="status-label planned">Not available yet</span><h3>Custom charging controls</h3><p>Custom charge bands, discharge cutoffs, and temperature-based charging control remain unavailable. There is no public download yet.</p></div>
+          </div>
+        </div>
+      </section>
+      <section class="questions section-space" id="questions" aria-labelledby="questions-title">
+        <div class="section-intro"><p class="eyebrow">A FEW GOOD QUESTIONS</p><h2 id="questions-title">The finer details.</h2><p>A little context before StatBatt finds a place in your menu bar.</p></div>
+        <div class="faq-list">
+          <details><summary>Can I download StatBatt?<span class="plus" aria-hidden="true"></span></summary><p>StatBatt is currently a local development build. A signed and notarized public release is not available. This page introduces the app and its current progress.</p></details>
+          <details><summary>Which Macs is it being built for?<span class="plus" aria-hidden="true"></span></summary><p>Apple silicon MacBooks. The app targets macOS 15 or later, but current qualification covers one Apple silicon device on macOS 27.0.1. Older macOS versions, other devices, and Intel Macs have not been qualified.</p></details>
+          <details><summary>Does StatBatt control charging?<span class="plus" aria-hidden="true"></span></summary><p>The current build includes a trusted Apple 80% shortcut setup and app workflow on an exact qualified target. Full app and charging-behavior checks are pending. It does not offer custom thresholds, intentional discharge, or automatic temperature protection. The Apple limit persists after quitting; restoring 100% requires a manual change in Battery settings.</p></details>
+          <details><summary>Where does my battery history go?<span class="plus" aria-hidden="true"></span></summary><p>It stays on your Mac. StatBatt keeps seven days of one-minute summaries in local storage. You can pause recording, export a CSV, or clear the history from the app. The current build has no cloud account or analytics service.</p></details>
+          <details><summary>Are health and temperature readings exact?<span class="plus" aria-hidden="true"></span></summary><p>Health and battery temperature are estimates when available, not a battery diagnosis. Advanced readings depend on the device and macOS version. StatBatt labels estimates and missing readings so you can tell what your Mac is actually reporting.</p></details>
+        </div>
+      </section>
+      <section class="closing" aria-label="StatBatt closing statement"><span class="closing-mark" aria-hidden="true">S<span>▰</span>B</span><h2>A little clarity.<br>Every day.</h2><p>Battery insight, with a Mac state of mind.</p><a class="button button-primary" href="#inside">Take a closer look</a></section>
+    </main>
+    <footer class="site-footer"><a class="brand footer-brand" href="#">StatBatt<span class="brand-period">.</span></a><p>Made for Mac. Built with care.</p><span>© 2026 StatBatt</span></footer>
+  </div>
+</body>
+</html>
