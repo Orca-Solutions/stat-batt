@@ -24,7 +24,7 @@ Journal timestamps (UTC): request `2026-10-02T22:28:02.270Z`; owner80% confirmat
 
 The restart comparison supports no replay in this observed normal quit/reopen: the saved operation and timestamps were unchanged and the owner did not request another apply. It is not continuous subprocess tracing or a crash/sleep/reboot test. Return to100% was performed through Apple's settings by the owner, not an automatic StatBatt restoration.
 
-Protocol chronology limit: the separate prior-shortcut-finished/stopped declaration was recorded during restoration, not before restart. Reopening occurred after app confirmation and observed CLI completion; independent pre-restart library completion was not reported. Do not infer that earlier declaration from the later restoration record. The preparation packet's earlier timestamp denotes preparation, not completed-flow capture.
+Protocol chronology limit: the separate prior-shortcut-finished/stopped declaration was recorded during restoration, not before restart. After app confirmation, a read-only pre-quit process check found the original app process and no outstanding shortcut CLI. That absence is not an independent observation of library completion; no pre-restart library-finished declaration was reported. Do not infer that earlier declaration from the later restoration record. The preparation packet's earlier timestamp denotes preparation, not completed-flow capture.
 
 ## Boundaries
 
