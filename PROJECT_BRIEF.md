@@ -25,7 +25,7 @@ No Intel support in V1, private entitlement bypass, SIP changes, kernel extensio
 - User confirmed Apple silicon on 2026-10-01. October 2 read-only diagnostic identified Mac16,13 and firmware mBoot-20457.1.29.
 - Read-only host checks found macOS 27.0.1 / 26A434, arm64, Xcode 27.0 / 27A266a. These are environment observations, not hardware control evidence.
 - Existing Energiza helper reports both charge-control variants unsupported while detecting adapter disconnection variant 2. See [failure analysis](docs/research/ENERGIZA_FAILURE.md).
-- Free-first local development. Developer Program entitlement, distribution budget, and final open-source license have not been established.
+- Free-first local development. The owner selected a proprietary Orca Solutions license. Developer Program entitlement, distribution budget, and a production signing identity have not been established.
 - Owner approved implementation of the populated v1 spec and plan on October 2, 2026, then explicitly requested a team pursuant to project guidance. Proceed with local software implementation of the agreed flows; hardware writes, helper installation, spending, publication and release remain separate gates.
 
 ## Permissions and next decision
@@ -35,3 +35,7 @@ No purchases, publication, deployment, helper installation, or unrestricted hard
 ## Monorepo and landing follow-up — 2026-10-02
 
 The owner subsequently authorized organizing the native app and landing page into `apps/statbatt/` and `apps/landing/`, retaining shared `docs/`, coordinating with the app chat, verifying relocated builds/tests, and committing the landing work. This supersedes the prior local commit gate for the requested checkpoint, organization, and landing commits. The authenticated owner GitHub account is `jfricano` (ID44284799); repository-local commit attribution uses Jason Fricano and that account's private GitHub noreply address. The existing repository is preserved. No GitHub remote has been selected or configured. The owner plans a GitHub PR and deployment next; no push, PR, hosting operation, or native release is performed by the local organization work. Hardware and full v1 acceptance gates remain unchanged. Current commands and project entry points are in the root [README](README.md) and [monorepo notes](docs/MONOREPO.md).
+
+## Organization repository and documentation follow-up — 2026-10-02
+
+The owner explicitly authorized configuring the GitHub remote under Orca Solutions, selecting a proprietary license, pushing the setup/landing work, and opening a PR for landing rollout. The organization was verified as `Orca-Solutions`, named Orca Solutions. A new private [Orca-Solutions/stat-batt](https://github.com/Orca-Solutions/stat-batt) repository was created and configured as `origin`. The initial `main` base uses the existing pre-move app checkpoint; `codex/monorepo-landing` contains the monorepo, landing page, [proprietary license](LICENSE), [build/deployment guide](docs/BUILD_GUIDE.md), and [user guide](docs/USER_GUIDE.md). This authorization supersedes the earlier remote/source-publication gate for this private repository and PR. PR merge, hosting selection/production rollout, app release acceptance, spending, helper installation, and hardware experiments are not performed by repository setup.

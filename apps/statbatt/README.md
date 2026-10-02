@@ -47,4 +47,6 @@ The setting is delegated to macOS and persists after app exit. There is no lower
 - [Specification](../../docs/SPEC.md), [architecture](../../docs/ARCHITECTURE.md), [API](../../docs/API.md), and [document index](../../docs/README.md): agreed build contract.
 - [Working record](../../WORKING_RECORD.md): current evidence, review, and remaining work.
 
-SwiftPM modules separate domain policy, telemetry, local storage, control contracts, diagnostics, and native UI. Control contract tests use synthetic inputs and do not certify hardware or production XPC authentication. No third-party package code was copied; SQLite is supplied by macOS. Product license, signing identity, remote, and release acceptance remain owner decisions before redistribution.
+SwiftPM modules separate domain policy, telemetry, local storage, control contracts, diagnostics, and native UI. Control contract tests use synthetic inputs and do not certify hardware or production XPC authentication. No third-party package code was copied; SQLite is supplied by macOS. StatBatt is [proprietary to Orca Solutions](../../LICENSE). Signing identity and release acceptance remain owner decisions before redistribution.
+
+See the [build guide](../../docs/BUILD_GUIDE.md) and [user guide](../../docs/USER_GUIDE.md) for current instructions.
