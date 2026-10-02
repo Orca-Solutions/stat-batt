@@ -32,6 +32,7 @@ Foundation established October 1; owner authorized implementation October 2, 202
 | [research/ENERGIZA_FAILURE.md](research/ENERGIZA_FAILURE.md) | Understand the supplied log and diagnosis limits |
 | [research/NATIVE_SHORTCUT_TRUST.md](research/NATIVE_SHORTCUT_TRUST.md) | Inspect supported native transport and the owner-approved mutable-workflow trust disposition |
 | [research/NATIVE_APP_FLOW_RESULT.md](research/NATIVE_APP_FLOW_RESULT.md) | Read the completed owner-assisted menu80%/normal-reopen/manual100% result and exact scope |
+| [research/RESOURCE_OBSERVATION.md](research/RESOURCE_OBSERVATION.md) | Read build4 ordinary-session and closed-window CPU/RSS measurements and their limits |
 | [research/NATIVE_LIMIT_LAB.md](research/NATIVE_LIMIT_LAB.md) | Read the executed80% native setting test,100% restoration, and proof limits |
 | [research/MACOS27_TELEMETRY.md](research/MACOS27_TELEMETRY.md) | Read exact-device nested telemetry evidence and coconutBattery comparison limits |
 | [research/MACOS_PLATFORM.md](research/MACOS_PLATFORM.md) | Evaluate public/native/private control surfaces and hardware proof |

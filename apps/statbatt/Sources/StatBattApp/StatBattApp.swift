@@ -9,8 +9,9 @@ struct StatBattApplication: App {
         MenuBarExtra {
             MenuPanel(store: store)
         } label: {
-            Label(store.menuText, systemImage: store.symbol)
-                .accessibilityLabel(store.menuAccessibilityLabel)
+            StatusItemLabel(text: store.menuText, symbol: store.symbol,
+                            accessibilityDescription: store.menuAccessibilityLabel)
+                .equatable()
         }
         .menuBarExtraStyle(.window)
         Window("StatBatt", id: "dashboard") {
@@ -26,6 +27,17 @@ struct StatBattApplication: App {
                 SettingsCommand(store: store)
             }
         }
+    }
+}
+
+private struct StatusItemLabel: View, Equatable {
+    let text: String
+    let symbol: String
+    let accessibilityDescription: String
+
+    var body: some View {
+        Label(text, systemImage: symbol)
+            .accessibilityLabel(accessibilityDescription)
     }
 }
 

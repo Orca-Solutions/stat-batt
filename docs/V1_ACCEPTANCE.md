@@ -21,7 +21,7 @@ Owner requested a team to finish the original v1. The isolated app branch is `co
 | Custom charge hold | No working inspected backend retaining external power; full acceptance gap |
 | Discharge and thermal control | CHIE read access is insufficient; write/owned restoration/reserve/sleep/crash safety unverified; no experiment ready |
 | Monitoring and UX | Physical source transitions, synchronized sensors, keyboard/VoiceOver, both appearances/scaling, real notification permission/delivery and prolonged retention/sleep |
-| Performance | Ten-minute ordinary-session observation0.79% CPU/104.05MiB peak RSS, no sockets observed; idle/UI state and sampling interference prevent budget qualification. [Evidence](research/RESOURCE_OBSERVATION.md); controlled-idle check pending |
+| Performance | Owner-confirmed closed-window600.043-second run:1.4716% CPU exceeds0.5% target; peakRSS63.8976MB meets100MB target. No sockets observed in snapshots. CPU attribution is in progress; [evidence and measurement limits](research/RESOURCE_OBSERVATION.md) |
 | Distribution | No valid local code-signing identity found. Developer ID/notarization and clean-machine install/update/remove are unrun; no spending or release authorized |
 
 The current candidate is useful, tested local software. It is not full v1 acceptance, a verified Energiza replacement, or a public app release. The owner has not accepted dropping custom controls. Keep those criteria open unless explicitly changed.
