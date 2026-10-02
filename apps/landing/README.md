@@ -16,12 +16,15 @@ Open `http://127.0.0.1:4187/`. No package installation or build step is required
 
 - `dist/index.html`: content, navigation, metadata, and illustrative product panel.
 - `dist/styles.css`: responsive layout, theme, focus states, and reduced-motion behavior.
+- `dist/compare.html` and `dist/comparison.css`: side-by-side StatBatt, coconutBattery, and Energiza comparison, official evidence links, and mobile table layout.
 - `dist/assets/battery-sculpture.jpg`: original AI-generated hero artwork; see `ART_DIRECTION.md` for provenance and the generation prompt.
 - App panel and chart values are synthetic and visibly labeled. They are website illustrations, not app screenshots or live telemetry.
 - Claims reflect the current development build. The Apple 80% path remains subject to the documented exact-target qualification and pending end-to-end checks; no public download is implied.
 
-The owner authorized the private [Orca-Solutions/stat-batt](https://github.com/Orca-Solutions/stat-batt) remote and a setup/landing PR. Source and original project assets are [proprietary to Orca Solutions](../../LICENSE). Deployment follows review; no hosting provider or public URL is configured yet, and no app release has been published. Static hosting must serve only `apps/landing/dist/`, never the repository root or native app distribution folder. No install or build command is needed for this page.
+The owner authorized the private [Orca-Solutions/stat-batt](https://github.com/Orca-Solutions/stat-batt) remote and a setup/landing PR. Source and original project assets are [proprietary to Orca Solutions](../../LICENSE). The foundation PR is merged. GitHub Pages is configured at [the project site](https://orca-solutions.github.io/stat-batt/), using the existing main-branch static deployment workflow; no native app release has been published. Static hosting must serve only `apps/landing/dist/`, never the repository root or native app distribution folder. No install or build command is needed for this page.
 
 See the [build and deployment guide](../../docs/BUILD_GUIDE.md) and [user guide](../../docs/USER_GUIDE.md).
 
 Before publishing, recheck the copy against the app's latest implementation and distribution status.
+
+The comparison is a separate change from the foundation PR. Vendor documentation is checked October 2, 2026; it does not constitute live competitor tests. Maintain its claims using the [comparison source notes](../../docs/research/BATTERY_COMPARISON.md). Verify `compare.html` alongside the home route before deployment.

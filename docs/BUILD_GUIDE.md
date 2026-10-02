@@ -11,13 +11,13 @@ gh repo clone Orca-Solutions/stat-batt
 cd stat-batt
 ```
 
-Until the monorepo/landing PR is merged, check out its branch:
+The monorepo and landing foundation is merged. Use the default branch:
 
 ```sh
-git switch codex/monorepo-landing
+git switch main
 ```
 
-The initial `main` contains the original app checkpoint; the PR introduces the monorepo layout. After merge, use `main`. All commands below run from the monorepo root.
+All commands below run from the monorepo root.
 
 ## Native app
 
@@ -56,10 +56,12 @@ python3 -m http.server 4187 --bind 127.0.0.1 --directory apps/landing/dist
 
 Open `http://127.0.0.1:4187/`. If that port already hosts this preview, reuse it. Reload after HTML/CSS changes. Check the hero image, internal navigation, FAQs, and narrow-screen layout. See the [landing README](../apps/landing/README.md) for files and artwork provenance.
 
+For the comparison change, check out `codex/battery-comparison` and open `http://127.0.0.1:4187/compare.html`. Verify the home/Compare header links, all three product columns, source links, mobile table scrolling, and keyboard focus. Its separate PR targets `main`; after it merges, the comparison is available from the default branch.
+
 ## Landing deployment
 
 Merge the reviewed PR before production rollout. Configure a static host to publish **only `apps/landing/dist/`**. No install or build command is required. If a host asks for a project directory, use `apps/landing/` and its `dist/` output directory.
 
-Never publish the monorepo root, native app bundles, `.build/`, repository guidance, or local user data. The website does not require runtime secrets or a database. A hosting provider, public URL, domain, and deployment automation have not yet been selected; repository and PR setup alone do not deploy the site. Recheck product-status copy before rollout. Publishing the landing page does not publish or release the native app.
+Never publish the monorepo root, native app bundles, `.build/`, repository guidance, or local user data. The website does not require runtime secrets or a database. GitHub Pages is configured at [the project site](https://orca-solutions.github.io/stat-batt/). The existing `.github/workflows/static.yml` workflow uploads only `apps/landing/dist/` and deploys on pushes to `main` or a manual workflow dispatch. The foundation deployment workflow succeeded on October 2, 2026. Comparison previews remain local until their PR is merged and that deployment succeeds. Recheck product-status copy before rollout. Publishing the landing page does not publish or release the native app.
 
 For everyday app use, see the [user guide](USER_GUIDE.md). For layout and preserved paths, see [monorepo notes](MONOREPO.md).

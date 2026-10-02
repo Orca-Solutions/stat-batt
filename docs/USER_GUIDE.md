@@ -51,3 +51,5 @@ Closing the dashboard keeps monitoring in the menu bar. **Quit** stops monitorin
 ## Landing page
 
 The landing page introduces the app. **Explore StatBatt** leads to features, **See what’s available** leads to development status, and the Questions section expands answers. Its app panel and chart are labeled sample illustrations; they are not live readings. There is no download, account signup, or waitlist on the current page.
+
+Choose **Compare** in the header for a side-by-side view of StatBatt, coconutBattery, and Energiza. On a small screen, scroll within the labeled comparison table to view all products. Official source links and a checked date identify the basis for the comparison. Development and qualification notes distinguish StatBatt's currently available capabilities from work still pending.
