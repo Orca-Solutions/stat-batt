@@ -93,6 +93,35 @@ private func temporaryDirectory() throws -> URL {
     try second.acquire()
 }
 
+@Test func instanceLockReleaseDoesNotWaitForInheritedDescriptorClosure() throws {
+    let directory = try temporaryDirectory(); defer { try? FileManager.default.removeItem(at: directory) }
+    var first: FileNativeLimitInstanceLock? = try FileNativeLimitInstanceLock(directory: directory)
+    try first?.acquire()
+
+    // Darwin flock(2) gives dup and fork the same shared lock reference. Keep a duplicate
+    // alive to reproduce a spawned child's pre-exec descriptor lifetime deterministically,
+    // without invoking Swift or Foundation in a multithreaded process's post-fork child.
+    let file = directory.appendingPathComponent("native-limit.lock")
+    var fileInfo = stat()
+    try #require(stat(file.path, &fileInfo) == 0)
+    let source = try #require((0..<getdtablesize()).first { candidate in
+        var info = stat()
+        return fstat(candidate, &info) == 0 && info.st_dev == fileInfo.st_dev && info.st_ino == fileInfo.st_ino
+    })
+    let inherited = fcntl(source, F_DUPFD_CLOEXEC, 0)
+    try #require(inherited >= 0)
+    defer { close(inherited) }
+    #expect(fcntl(inherited, F_GETFD) & FD_CLOEXEC != 0)
+
+    let second = try FileNativeLimitInstanceLock(directory: directory)
+    #expect(throws: NativeLimitFailure.anotherInstance) { try second.acquire() }
+    first = nil
+    try second.acquire()
+    #expect(fcntl(inherited, F_GETFD) >= 0)
+    let third = try FileNativeLimitInstanceLock(directory: directory)
+    #expect(throws: NativeLimitFailure.anotherInstance) { try third.acquire() }
+}
+
 @Test func overlyPermissiveJournalDirectoryIsRejected() throws {
     let directory = try temporaryDirectory(); defer { try? FileManager.default.removeItem(at: directory) }
     try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: directory.path)
