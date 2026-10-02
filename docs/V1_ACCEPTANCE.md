@@ -27,3 +27,5 @@ The current candidate is useful, tested local software. It is not full v1 accept
 Native desktop binding still fails for StatBatt, and Activity Monitor's displayed process identity disagrees with the read-only process check. That prevents trustworthy automated GUI/restart/hardware-flow evidence. The owner separately authorized the native app-path test on October 2, 2026 and will assist with the UI; visible baseline and app-identity checks remain prerequisites. No checkboxes or confirmations may be fabricated.
 
 The owner asked for a scope recommendation. The team's recommendation is to keep full-v1 criteria open and treat monitoring plus native80% control as a preview milestone. This recommendation does not change the accepted scope.
+
+The follow-up preparation encountered an apparent shortcut-library execution during inspection; subsequent native settings showed80%. Permanent100% restoration was performed and reopened, with owner confirmation pending. This incident is recorded in LAB_PROTOCOL and does not qualify StatBatt's app-path Apply, restart or restoration flow.

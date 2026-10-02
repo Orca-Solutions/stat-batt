@@ -39,3 +39,9 @@ The prior one-time native80% lab authorization is complete. On October 2, 2026 t
 7. On any failed/unknown outcome, stop further requests, check or stop the shortcut in Shortcuts, manually restore the observed100% baseline and preserve the recovery journal. A killed CLI does not prove that the library action stopped.
 
 No CHIE write, helper installation, forced discharge, temporary native expiry or broader target qualification is included. [V1 acceptance](V1_ACCEPTANCE.md) lists the remaining gates.
+
+### Preparation incident and baseline restoration
+
+The shortcut-library accessibility button was clicked during inspection. Its later selected state exposed a Play action; the earlier click may have executed the Apple80% action. A subsequent Battery settings observation showed80%, contradicting the preparation report that no action had run. This is not app-path qualification and must not be counted as a successful StatBatt Apply test.
+
+After the owner reported battery decline, the shortcut editor showed Run rather than a running/Stop action. The original baseline was restored through Battery settings: slider100% → **Set Limit to 100%** (permanent, not until tomorrow) → Done → reopen Charging detail → visibly100%, optimized charging still on. Settings reported Charging89%, while the command-line power report still said AC attached/not charging89%; owner-visible confirmation is pending because these tool observations disagree. No private adapter-inhibit write was made. Read-only process verification confirmed the older StatBatt had quit. Do not dispatch another limit request until the owner confirms the baseline and the actual candidate identity.
