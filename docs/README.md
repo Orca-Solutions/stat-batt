@@ -38,3 +38,5 @@ Foundation established October 1; owner authorized implementation October 2, 202
 | [../WORKING_RECORD.md](../WORKING_RECORD.md) | Resume work: current state, review, checks and next action |
 
 SPEC.md owns product acceptance IDs. Research tables use their own vendor-parity IDs and do not override the spec's MON/CTL numbering. API.md owns the proposed transport shape. TEST_PLAN.md owns the compatibility matrix; only tested local combinations enter it. Research describes upstream claims separately.
+
+Completion follow-up: [V1_ACCEPTANCE.md](V1_ACCEPTANCE.md) tracks the open acceptance gates; [read-only SMC qualification](research/SMC_READ_ONLY_QUALIFICATION.md) records exact-target metadata without capability promotion.

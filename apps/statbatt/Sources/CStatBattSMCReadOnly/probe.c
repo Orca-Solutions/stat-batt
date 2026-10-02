@@ -107,6 +107,7 @@ SBReadOnlyConnectionObservation sb_smc_read_only_probe(SBReadOnlyKeyObservation 
             row->metadata_return = (uint32_t)IOConnectCallStructMethod(port, 2, request, WIRE_SIZE, response, &received);
             row->metadata_length = (uint32_t)received;
             ++connection.observed_count;
+            if (row->metadata_return == (uint32_t)kIOReturnNotPrivileged) break;
             if (row->metadata_return != 0 || received != WIRE_SIZE) continue;
             row->metadata_result = response[RESULT_OFFSET];
             row->metadata_status = response[STATUS_OFFSET];
@@ -124,6 +125,7 @@ SBReadOnlyConnectionObservation sb_smc_read_only_probe(SBReadOnlyKeyObservation 
             row->read_attempted = 1; received = WIRE_SIZE;
             row->read_return = (uint32_t)IOConnectCallStructMethod(port, 2, request, WIRE_SIZE, response, &received);
             row->read_length = (uint32_t)received;
+            if (row->read_return == (uint32_t)kIOReturnNotPrivileged) break;
             if (row->read_return != 0 || received != WIRE_SIZE) continue;
             row->read_result = response[RESULT_OFFSET]; row->read_status = response[STATUS_OFFSET];
             if (row->read_result != 0) continue;

@@ -25,3 +25,17 @@ Adapter inhibition additionally requires physical restoration, sleep/cancel/time
 ## Evidence to save
 
 Record only nonidentifying model/architecture, OS/build, firmware, source revision/toolchain, operation, allowed target, acknowledged/observed phases, restore result, latency, safety events, and scope. Exclude hardware serials, user names, home paths, authorization data, and raw dictionaries. Update TEST_PLAN compatibility matrix only for tests actually executed.
+
+## Proposed app-path follow-up — not yet authorized or executed
+
+The prior one-time native80% lab authorization is complete. This separate follow-up needs explicit owner authorization because it changes Apple's setting again. Use the reviewed 0.1.0 (3) candidate on the same exact tuple; record the source revision and binary hash before execution. This is supported user-level Apple limiting, not a privileged hardware test.
+
+1. Quit the older StatBatt from its menu. Confirm no instance or shortcut request remains, then launch the identified build3. If process identity cannot be established through the automation tools, the owner operates the app and provides visible/text confirmation; do not kill an ambiguous process.
+2. Reinspect the existing trusted fixed80% shortcut and confirm Battery settings visibly shows the original100% return baseline. Confirm other controllers are stopped. If any condition is unclear, do not apply.
+3. Record the three truthful setup declarations in StatBatt. This step must not change the Apple limit.
+4. Click **Apply 80% limit** once. Record acknowledgement separately from the observed setting. Open Battery settings, verify80%, then record **I see an 80% limit in Battery settings** in StatBatt. No cutoff or discharge inference follows from this observation.
+5. After the prior shortcut has completed or been stopped, quit/reopen StatBatt and inspect the persisted status without applying again. Confirm no replay and historical confirmation language. Do not deliberately crash while a shortcut is running in this first follow-up.
+6. Restore100% permanently in Battery settings (not a temporary until-tomorrow override), reopen settings and verify100%. Record the prior-shortcut finished/stopped and restored100% declarations in StatBatt. Confirm recovery is recorded and repeat Apply is not automatically dispatched.
+7. On any failed/unknown outcome, stop further requests, check or stop the shortcut in Shortcuts, manually restore the observed100% baseline and preserve the recovery journal. A killed CLI does not prove that the library action stopped.
+
+No CHIE write, helper installation, forced discharge, temporary native expiry or broader target qualification is included. [V1 acceptance](V1_ACCEPTANCE.md) lists the remaining gates.

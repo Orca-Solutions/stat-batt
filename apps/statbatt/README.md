@@ -30,7 +30,7 @@ Local settings/history live in `~/Library/Application Support/StatBatt`. History
 
 ## Native Apple limit setup
 
-After rebuilding, quit StatBatt from its menu-bar menu and reopen `apps/statbatt/dist/StatBatt.app`; closing the Details window does not quit the old process. Settings → About StatBatt identifies this candidate as **0.1.0 (2)**.
+After rebuilding, quit StatBatt from its menu-bar menu and reopen `apps/statbatt/dist/StatBatt.app`; closing the Details window does not quit the old process. Settings → About StatBatt identifies this candidate as **0.1.0 (3)**.
 
 Open **Charging settings…**. A shortcut named **StatBatt — Apple Limit 80** must contain exactly one Apple **Set Battery Charge Limit** action set to80%. On the owner's development machine this is already prepared under the exact app name **StatBatt — Apple Limit 80**; inspect it before recording setup. Other user shortcuts were not edited.
 
@@ -47,6 +47,12 @@ The setting is delegated to macOS and persists after app exit. There is no lower
 - [Specification](../../docs/SPEC.md), [architecture](../../docs/ARCHITECTURE.md), [API](../../docs/API.md), and [document index](../../docs/README.md): agreed build contract.
 - [Working record](../../WORKING_RECORD.md): current evidence, review, and remaining work.
 
-SwiftPM modules separate domain policy, telemetry, local storage, control contracts, diagnostics, and native UI. Control contract tests use synthetic inputs and do not certify hardware or production XPC authentication. No third-party package code was copied; SQLite is supplied by macOS. StatBatt is [proprietary to Orca Solutions](../../LICENSE). Signing identity and release acceptance remain owner decisions before redistribution.
+SwiftPM modules separate domain policy, telemetry, local storage, control contracts, diagnostics, and native UI. Control contract tests use synthetic inputs and do not certify hardware or production XPC authentication. The normal app uses macOS frameworks and system SQLite. The standalone read-only probe’s permitted references and notices are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). StatBatt is [proprietary to Orca Solutions](../../LICENSE). Signing identity and release acceptance remain owner decisions before redistribution.
 
 See the [build guide](../../docs/BUILD_GUIDE.md) and [user guide](../../docs/USER_GUIDE.md) for current instructions.
+
+## Resumed completion candidate
+
+Build3 adds expiry-aware monitoring display, readable history summaries and gap-safe power-state observations, charging/source and recovery-failure alerts, and explicit prerequisites for unavailable thermal/one-time controls. The integrated software suite passes130 tests. It remains a local candidate; [v1 acceptance](../../docs/V1_ACCEPTANCE.md) records open hardware, GUI, performance and distribution gates.
+
+A separate `statbatt-hardware-probe` executable is read-only and accepts no arguments. Its [target metadata result](../../docs/research/SMC_READ_ONLY_QUALIFICATION.md) is not charging support. No privileged helper or hardware write was added.

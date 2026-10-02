@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.0 build3 completion increment — 2026-10-02
+
+- Added60-second monitor display expiry, quality/finite-value checks and localized measurements.
+- Added readable chart summaries and gap-safe minute-bucket power-state observations.
+- Preserved pending threshold/recovery notifications through cooldown and sleep; added source transitions and native failures.
+- Clarified historical native confirmation and disabled custom one-time/temperature prerequisites.
+- Added a standalone exact-target, fixed-key read-only SMC probe; no mutation/helper/capability promotion.
+- Fixed three independently reviewed material defects;130 integrated tests pass, release packaging and local signature pass.
+- Native live-flow, custom-backend, accessibility/performance and signed distribution acceptance remain open.
+
 ## 0.1.0 local implementation — 2026-10-02
 
 - Added native menu panel, battery details, capability-specific charging setup, history charts, and settings.

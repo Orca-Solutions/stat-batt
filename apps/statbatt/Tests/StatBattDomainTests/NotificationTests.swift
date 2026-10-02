@@ -104,6 +104,46 @@ final class NotificationTests: XCTestCase {
         XCTAssertTrue(reducer.drain(nowNanoseconds: 100 * second).isEmpty)
     }
 
+    func testSleepRetainsUndeliveredFailureUntilEligibleWakeTickWithoutSpam() {
+        var reducer = enabled()
+        reducer.observe(sample(1, seconds: 1), nowNanoseconds: second)
+        reducer.observe(sample(2, seconds: 2, charging: false), nowNanoseconds: 2 * second)
+        _ = reducer.drain(nowNanoseconds: 2 * second)
+        reducer.observe(sample(3, seconds: 3, percent: 19, charging: false), nowNanoseconds: 3 * second)
+        reducer.recordFailure(id: "unknown", message: "Recovery needs attention.")
+        XCTAssertTrue(reducer.drain(nowNanoseconds: 3 * second).isEmpty)
+        reducer.suspend()
+        reducer.observe(sample(4, seconds: 40, percent: 10, charging: false, source: .battery), nowNanoseconds: 40 * second)
+        reducer.recordFailure(id: "unknown", message: "Recovery needs attention.")
+        XCTAssertTrue(reducer.drain(nowNanoseconds: 40 * second).isEmpty)
+        reducer.observe(sample(5, seconds: 62, percent: 10, charging: false, source: .battery), nowNanoseconds: 62 * second)
+        let alerts = reducer.drain(nowNanoseconds: 62 * second)
+        XCTAssertEqual(alerts.map(\.category), [.failure])
+        XCTAssertEqual(alerts.first?.message, "Recovery needs attention.")
+        reducer.recordFailure(id: "unknown", message: "Recovery needs attention.")
+        reducer.suspend()
+        reducer.observe(sample(6, seconds: 150, percent: 10, charging: false, source: .battery), nowNanoseconds: 150 * second)
+        XCTAssertTrue(reducer.drain(nowNanoseconds: 150 * second).isEmpty)
+    }
+
+    func testMutingOrDisablingClearsSleepingFailureAndResetsDeduplication() {
+        for mutedSettings in [BatteryNotificationSettings(enabled: false),
+                              BatteryNotificationSettings(enabled: true, failures: false)] {
+            var reducer = enabled()
+            reducer.recordFailure(id: "first", message: "First failure.")
+            _ = reducer.drain(nowNanoseconds: second)
+            reducer.recordFailure(id: "unknown", message: "Recovery needs attention.")
+            reducer.suspend()
+            reducer.configure(mutedSettings)
+            reducer.recordFailure(id: "unknown", message: "Recovery needs attention.")
+            XCTAssertTrue(reducer.drain(nowNanoseconds: 100 * second).isEmpty)
+            reducer.configure(.init(enabled: true))
+            XCTAssertTrue(reducer.drain(nowNanoseconds: 100 * second).isEmpty, "Re-enabling cannot replay a muted warning")
+            reducer.recordFailure(id: "unknown", message: "Recovery needs attention.")
+            XCTAssertEqual(reducer.drain(nowNanoseconds: 100 * second).map(\.category), [.failure])
+        }
+    }
+
     func testUnavailableStaleAndFutureSamplesCannotAlertOrBridge() {
         for quality in [ValueQuality.unavailable, .invalid, .stale] {
             var reducer = enabled()

@@ -45,22 +45,11 @@ struct HistoryView: View {
         } message: { Text("This removes local readings and gap records.") }
     }
     private func readings(_ key: KeyPath<HistoryPoint, Double?>, temperature: Bool = false) -> [ChartReading] {
-        let orderedGaps = store.gaps.sorted { $0.start < $1.start }
-        var gapIndex = 0, section = 0
-        var previous: Date?
-        var result: [ChartReading] = []
-        result.reserveCapacity(store.points.count)
-        for point in store.points {
-            guard let value = point[keyPath: key], value.isFinite else { continue }
-            while gapIndex < orderedGaps.count && orderedGaps[gapIndex].start <= point.timestamp {
-                if let previous, orderedGaps[gapIndex].end > previous { section += 1 }
-                gapIndex += 1
-            }
-            if let previous, point.timestamp.timeIntervalSince(previous) > 90 { section += 1 }
-            result.append(ChartReading(date: point.timestamp, value: temperature ? store.displayTemperature(value) : value, segment: String(section)))
-            previous = point.timestamp
+        HistoryTimeline(points: store.points, gaps: store.gaps).readings(key).map { reading in
+            ChartReading(date: reading.timestamp,
+                value: temperature ? store.displayTemperature(reading.value) : reading.value,
+                segment: String(reading.segment))
         }
-        return result
     }
     @ViewBuilder private func chart(title: String, unit: String, values: [ChartReading], fixedScale: Bool = false) -> some View {
         GroupBox(title) {
@@ -113,7 +102,7 @@ struct HistoryView: View {
                     ForEach(Array(observations.suffix(30).reversed())) { observation in
                         VStack(alignment: .leading, spacing: 3) {
                             Text(observation.description).font(.callout)
-                            Text("\(observation.context) · \(observation.timestamp.formatted(date: .abbreviated, time: .shortened))")
+                            Text("\(observation.context.label) · \(observation.timestamp.formatted(date: .abbreviated, time: .shortened))")
                                 .font(.caption).foregroundStyle(.secondary)
                         }.accessibilityElement(children: .combine)
                     }
@@ -123,25 +112,7 @@ struct HistoryView: View {
     }
 
     private var stateObservations: [HistoryStateObservation] {
-        let points = store.points.sorted { $0.timestamp < $1.timestamp }
-        let gaps = store.gaps.sorted { $0.start < $1.start }
-        var result: [HistoryStateObservation] = []
-        var previous: HistoryPoint?
-        var gapIndex = 0
-        for point in points {
-            var afterGap = previous.map { point.timestamp.timeIntervalSince($0.timestamp) > 90 } ?? false
-            while gapIndex < gaps.count && gaps[gapIndex].start <= point.timestamp {
-                if let previous, gaps[gapIndex].end > previous.timestamp { afterGap = true }
-                gapIndex += 1
-            }
-            if previous == nil || afterGap || previous?.source != point.source || previous?.isCharging != point.isCharging {
-                result.append(HistoryStateObservation(timestamp: point.timestamp, source: point.source,
-                    isCharging: point.isCharging,
-                    context: previous == nil ? "Initial recorded state" : afterGap ? "State after gap" : "Observed change"))
-            }
-            previous = point
-        }
-        return result
+        HistoryTimeline(points: store.points, gaps: store.gaps).stateObservations
     }
 }
 private struct ChartReading: Identifiable {
@@ -151,12 +122,7 @@ private struct ChartReading: Identifiable {
     var id: Date { date }
 }
 
-private struct HistoryStateObservation: Identifiable {
-    let timestamp: Date
-    let source: HistoryPowerSource
-    let isCharging: Bool?
-    let context: String
-    var id: Date { timestamp }
+private extension HistoryStateObservation {
     var description: String {
         let sourceText: String
         switch source {
@@ -166,5 +132,16 @@ private struct HistoryStateObservation: Identifiable {
         }
         let chargingText = isCharging.map { $0 ? "Charging" : "Not charging" } ?? "Charging state unavailable"
         return "\(sourceText) · \(chargingText)"
+    }
+}
+
+private extension HistoryStateContext {
+    var label: String {
+        switch self {
+        case .initialState: "Initial recorded state"
+        case .summaryOverlapsGap: "Summary overlaps a recording gap"
+        case .stateAfterGap: "State after gap"
+        case .observedChange: "Observed change"
+        }
     }
 }

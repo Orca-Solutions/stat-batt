@@ -41,19 +41,27 @@ public struct BatteryNotificationReducer: Sendable {
         guard self.settings != settings else { return }
         self.settings = settings
         // Changing thresholds or enabling alerts establishes a new baseline, not a crossing.
-        suspend()
+        reset()
+    }
+
+    /// Sleep invalidates sampled crossings, but an undelivered recovery warning
+    /// remains queued. Its failure ID still prevents repeated polling from spamming.
+    public mutating func suspend() {
+        baseline = nil
+        pending = pending.filter { $0.key == .failure }
+    }
+
+    /// New settings or a new boot discard prior intent and its deduplication state.
+    private mutating func reset() {
+        baseline = nil
+        pending.removeAll()
         activeFailureID = nil
     }
 
-    public mutating func suspend() {
-        baseline = nil
-        pending.removeAll()
-    }
-
     public mutating func observe(_ sample: BatterySnapshot, nowNanoseconds: UInt64) {
-        guard settings.enabled else { suspend(); return }
+        guard settings.enabled else { reset(); return }
         if let old = baseline, old.bootID == sample.bootID, sample.sequence <= old.sequence { return }
-        if let old = baseline, old.bootID != sample.bootID { suspend(); activeFailureID = nil }
+        if let old = baseline, old.bootID != sample.bootID { reset() }
         defer { baseline = sample }
         guard let old = baseline, old.bootID == sample.bootID,
               usable(sample.batteryPresent, nowNanoseconds), sample.batteryPresent.value == true,
