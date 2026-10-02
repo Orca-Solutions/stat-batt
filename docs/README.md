@@ -4,6 +4,9 @@ Foundation established October 1; owner authorized implementation October 2, 202
 
 | Document | Read when |
 |---|---|
+| [BUILD_GUIDE.md](BUILD_GUIDE.md) | Clone, build/test the app, preview the landing page, and prepare its static deployment |
+| [USER_GUIDE.md](USER_GUIDE.md) | Use monitoring, history, settings, native setup/recovery, and landing navigation |
+| [../LICENSE](../LICENSE) | Proprietary terms selected by Orca Solutions |
 | [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) | Inspect implemented acceptance evidence and remaining gates |
 | [LAB_PROTOCOL.md](LAB_PROTOCOL.md) | Review the concrete supervised native-action and later provider experiments |
 | [handoffs/2026-10-02-product-design-review.md](handoffs/2026-10-02-product-design-review.md) | Read product design consultation, integrated corrections, and visual QA limits |
@@ -11,6 +14,9 @@ Foundation established October 1; owner authorized implementation October 2, 202
 | [handoffs/2026-10-02-native-limit-review.md](handoffs/2026-10-02-native-limit-review.md) | Read independent native review, repairs and24 regression tests |
 | [handoffs/2026-10-02-telemetry-review.md](handoffs/2026-10-02-telemetry-review.md) | Read independent review of the macOS27 advanced telemetry adapter |
 | [REPORT.md](REPORT.md) | Start here: findings, recommendation, feasibility and limitations |
+| [../apps/statbatt/README.md](../apps/statbatt/README.md) | Build, run, and inspect the relocated native app |
+| [../apps/landing/README.md](../apps/landing/README.md) | Preview and maintain the isolated landing page |
+| [MONOREPO.md](MONOREPO.md) | App/landing layout, path migration, and independent commands |
 | [../PROJECT_BRIEF.md](../PROJECT_BRIEF.md) | Product intent, scope, acceptance and permissions |
 | [SPEC.md](SPEC.md) | Build behavior, requirement IDs, defaults and capability gates |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Component boundaries, policy/effects, service lifecycle and restoration |
@@ -32,4 +38,3 @@ Foundation established October 1; owner authorized implementation October 2, 202
 | [../WORKING_RECORD.md](../WORKING_RECORD.md) | Resume work: current state, review, checks and next action |
 
 SPEC.md owns product acceptance IDs. Research tables use their own vendor-parity IDs and do not override the spec's MON/CTL numbering. API.md owns the proposed transport shape. TEST_PLAN.md owns the compatibility matrix; only tested local combinations enter it. Research describes upstream claims separately.
-

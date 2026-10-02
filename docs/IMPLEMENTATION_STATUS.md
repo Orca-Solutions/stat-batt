@@ -1,5 +1,7 @@
 # Implementation checkpoint — October 2, 2026
 
+> Monorepo paths: app sources and commands now live in `apps/statbatt/`; historical verification commands below describe their original location. See [current app instructions](../apps/statbatt/README.md).
+
 Owner authorized the agreed v1 implementation and team in the current Codex conversation. This supersedes discovery-only status in the October 1 documents. The implementation remains in progress; hardware lab authorization, helper installation, and release authority were not implied by that approval.
 
 ## What runs
