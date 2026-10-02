@@ -1,6 +1,6 @@
 # V1 completion candidate — October 2, 2026
 
-Owner requested a team to finish the original v1. The isolated app branch is `codex/app-v1-completion`; current local candidate is 0.1.0 (4), adding the direct menu Apply button the owner requested. Product design, platform investigation, software hardening and a fresh-context reviewer consulted. Same model family; no different-model review is claimed.
+Owner requested a team to finish the original v1. The isolated app branch is `codex/app-v1-completion`; the direct menu Apply flow was qualified on 0.1.0 (4). Build5 adds a small independently reviewed menu-label comparison and meets the closed-window resource targets in one measured run; its broader runtime UI/accessibility checks remain open. Product design, platform investigation, software hardening and fresh-context reviewers consulted. Same model family; no different-model review is claimed.
 
 ## Candidate evidence
 
@@ -17,11 +17,11 @@ Owner requested a team to finish the original v1. The isolated app branch is `co
 
 | Area | Remaining evidence or decision |
 |---|---|
-| Native limit | Bounded owner-assisted menu flow passed; electrical cutoff/current, independent pre-restart library completion, abnormal crash/sleep/reboot and broader targets remain unverified |
+| Native limit | Bounded owner-assisted build4 menu flow passed. A later23:05 request remains outcomeUnknown; subsequent Apple settings inspection shows80%, requiring owner reconciliation. Electrical cutoff/current, independent pre-restart library completion, abnormal crash/sleep/reboot and broader targets remain unverified |
 | Custom charge hold | No working inspected backend retaining external power; full acceptance gap |
 | Discharge and thermal control | CHIE read access is insufficient; write/owned restoration/reserve/sleep/crash safety unverified; no experiment ready |
 | Monitoring and UX | Physical source transitions, synchronized sensors, keyboard/VoiceOver, both appearances/scaling, real notification permission/delivery and prolonged retention/sleep |
-| Performance | Owner-confirmed closed-window600.043-second run:1.4716% CPU exceeds0.5% target; peakRSS63.8976MB meets100MB target. No sockets observed in snapshots. CPU attribution is in progress; [evidence and measurement limits](research/RESOURCE_OBSERVATION.md) |
+| Performance | Build5 closed-window600.010-second run meets app targets:0.1583% CPU and79.233024MB peak RSS. Earlier build4 miss is retained; restart/workload differences prevent causal attribution. No sockets observed in snapshots; helper/policy budgets unrun. [Evidence and measurement limits](research/RESOURCE_OBSERVATION.md) |
 | Distribution | No valid local code-signing identity found. Developer ID/notarization and clean-machine install/update/remove are unrun; no spending or release authorized |
 
 The current candidate is useful, tested local software. It is not full v1 acceptance, a verified Energiza replacement, or a public app release. The owner has not accepted dropping custom controls. Keep those criteria open unless explicitly changed.

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0 build5 menu-label comparison — 2026-10-02
+
+- Skip menu label body updates when its text, symbol and accessibility description are unchanged; preserve the same content and actions.
+- Fresh-context source review, release compilation and local signature verification pass. One600-second closed-window run meets app targets at0.1583% CPU/79.233024MB peak RSS; restart/workload differences prevent attributing the improvement solely to this change.
+- Broader runtime/accessibility, original full-v1 and distribution acceptance remain open. Native live-flow evidence remains scoped to build4; a later unconfirmed request requires owner reconciliation.
+
 ## 0.1.0 build4 menu convenience increment — 2026-10-02
 
 - Added a direct **Apply 80% limit** menu-panel button after trusted setup, using the existing guarded action.
