@@ -45,7 +45,16 @@ def process_preflight():
     return bool(lines) and not any(Path(line.strip()).name.lower() in blocked for line in lines)
 
 
-def guardian(stage):
+def inhibition_acknowledged(data):
+    try:
+        report, _ = json.JSONDecoder().raw_decode(data.decode().lstrip())
+        hardware = report.get('hardware', {})
+        return report.get('mode') == 'trialDisconnect' and hardware.get('outcome') == 0 and hardware.get('baselineHex') == '00' and hardware.get('readbackHex') == '08'
+    except (ValueError, UnicodeError, AttributeError):
+        return False
+
+
+def guardian(stage, observe_worker=False):
     # Stage is inherited cwd; no command-line path or payload accepted.
     info = stage.stat()
     if info.st_uid != 0 or info.st_mode & 0o077:
@@ -57,6 +66,8 @@ def guardian(stage):
     sleeper = None
     gate_sent = False
     writer_reaped = True
+    worker_prefix = b''
+    worker_acknowledged = False
     record = {'phase': 'guardianPrepared', 'holdSeconds': HOLD_SECONDS, 'journalErrors': []}
 
     def evidence():
@@ -99,6 +110,12 @@ def guardian(stage):
         evidence()
         record['stopReason'] = 'deadlineOrWorkerExit'
         while time.monotonic() < deadline and worker.poll() is None:
+            if observe_worker and len(worker_prefix) < 16384 and select.select([worker.stdout], [], [], 0)[0]:
+                worker_prefix += os.read(worker.stdout.fileno(), min(4096, 16384 - len(worker_prefix)))
+                if not worker_acknowledged and inhibition_acknowledged(worker_prefix):
+                    worker_acknowledged = True
+                    record.update(phase='inhibitionAcknowledged', inhibitionAcknowledged=True)
+                    evidence()
             if sleeper.poll() is not None:
                 record['stopReason'] = 'sleepAssertionLost'
                 break
@@ -115,7 +132,7 @@ def guardian(stage):
                     worker.kill()
                 stdout, stderr = worker.communicate(timeout=1)
                 writer_reaped = True
-                record.update(workerExit=worker.returncode, workerStdout=stdout.decode(errors='replace'),
+                record.update(workerExit=worker.returncode, workerStdout=(worker_prefix + stdout).decode(errors='replace'),
                               workerStderr=stderr.decode(errors='replace'))
             except Exception as error:
                 writer_reaped = False
@@ -189,6 +206,8 @@ def main():
         raise SystemExit('Administrator identity required; no automatic elevation.')
     if sys.argv[1:] == ['--guardian']:
         return guardian(Path.cwd())
+    if sys.argv[1:] == ['--sleep-guardian']:
+        return guardian(Path.cwd(), observe_worker=True)
     owner_disconnect = sys.argv[1:] == ['--approved-owner-disconnect-trial']
     if (sys.argv[1:] != ['--approved-bounded-trial'] and not owner_disconnect) or not process_preflight():
         raise SystemExit('Explicit mode and stopped controllers required.')

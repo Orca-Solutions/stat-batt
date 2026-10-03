@@ -2,6 +2,7 @@
 import hashlib
 import importlib.util
 import io
+import json
 from pathlib import Path
 import tempfile
 import types
@@ -13,13 +14,21 @@ trial = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(trial)
 
 class GuardianTests(unittest.TestCase):
+    def test_sleep_progress_requires_complete_positive_inhibition_report(self):
+        report = {'mode': 'trialDisconnect', 'hardware': {'outcome': 0, 'baselineHex': '00', 'readbackHex': '08'}}
+        data = json.dumps(report).encode()
+        self.assertFalse(trial.inhibition_acknowledged(data[:-1]))
+        self.assertTrue(trial.inhibition_acknowledged(data + b'\n{"partialTrace"'))
+        report['hardware']['readbackHex'] = '00'
+        self.assertFalse(trial.inhibition_acknowledged(json.dumps(report).encode()))
+
     def test_entry_point_is_closed_before_process_access(self):
         with patch.object(trial.subprocess, 'Popen') as launch:
             with self.assertRaises(SystemExit):
                 trial.main()
             launch.assert_not_called()
 
-    def exercise(self, parent_dies=False, stuck=False, journal_fails=False):
+    def exercise(self, parent_dies=False, stuck=False, journal_fails=False, observe_worker=False):
         events, records = [], []
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
@@ -33,7 +42,9 @@ class GuardianTests(unittest.TestCase):
             sleeper = types.SimpleNamespace(stdin=types.SimpleNamespace(close=lambda: events.append(('sleepRelease', None))),
                 stdout=io.BytesIO(b'READY\n'), stderr=io.BytesIO(), poll=lambda: None,
                 wait=lambda timeout: events.append(('sleepReaped', None)))
-            worker = types.SimpleNamespace(pid=123, stdin=Gate(), stdout=io.BytesIO(b'READY\n'),
+            class WorkerOutput(io.BytesIO):
+                def fileno(self): return 99
+            worker = types.SimpleNamespace(pid=123, stdin=Gate(), stdout=WorkerOutput(b'READY\n'),
                 stderr=io.BytesIO(), returncode=-9, poll=lambda: None,
                 kill=lambda: events.append(('kill', None)))
             def communicate(timeout):
@@ -46,21 +57,33 @@ class GuardianTests(unittest.TestCase):
                 return types.SimpleNamespace(returncode=0, stdout='{}', stderr='')
             # First G receipt, worker READY, parent-alive check, optional parent EOF.
             selections = [([sleeper.stdout], [], []), ([trial.sys.stdin], [], []), ([worker.stdout], [], []), ([], [], [])]
+            if observe_worker: selections.append(([worker.stdout], [], []))
             if parent_dies: selections.append(([trial.sys.stdin], [], []))
             clock = [0, .1, .2, .3] if parent_dies else [0, 3, 3]
             def save(stage, name, record):
                 records.append(dict(record))
                 if journal_fails and record['phase'] == 'restoreIntent':
                     raise OSError('simulated disk full')
+            reads = [b'G']
+            if observe_worker:
+                reads.append(json.dumps({'mode': 'trialDisconnect', 'hardware': {'outcome': 0, 'baselineHex': '00', 'readbackHex': '08'}}).encode())
+            reads.append(b'')
             with patch.object(trial, 'EXPECTED_BINARY', hashlib.sha256(b'fixture-not-executable').hexdigest()), \
                  patch.object(trial, 'save', side_effect=save), \
-                 patch.object(trial.os, 'read', side_effect=[b'G', b'']), \
+                 patch.object(trial.os, 'read', side_effect=reads), \
                  patch.object(trial.select, 'select', side_effect=selections), \
                  patch.object(trial.time, 'monotonic', side_effect=clock), \
                  patch.object(trial.subprocess, 'Popen', side_effect=[sleeper, worker]), \
                  patch.object(trial.subprocess, 'run', side_effect=restore):
-                result = trial.guardian(Stage())
+                result = trial.guardian(Stage(), observe_worker=observe_worker)
         return result, events, records
+
+    def test_sleep_guardian_preserves_consumed_report_and_reaps_before_restore(self):
+        result, events, records = self.exercise(parent_dies=True, observe_worker=True)
+        self.assertEqual(result, 0)
+        self.assertTrue(any(record['phase'] == 'inhibitionAcknowledged' for record in records))
+        self.assertTrue(trial.inhibition_acknowledged(records[-1]['workerStdout'].encode()))
+        self.assertLess(events.index(('reap', None)), events.index(('restore', '--guardian-restore')))
 
     def test_deadline_reaps_writer_before_restore(self):
         result, events, _ = self.exercise()
