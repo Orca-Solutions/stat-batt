@@ -25,6 +25,8 @@ final class AppStore: ObservableObject {
     var nativeCoordinator: NativeLimitCoordinator?
     @Published var nativeTaskInProgress = false
     var nativeRefreshTask: Task<Void, Never>?
+    @Published var nativeSetupMessage: String?
+    @Published var pendingNativeImport: NativeFixedLimit?
     let platform = PlatformProbe.readOnly()
     private let telemetry = PublicTelemetry()
     private var history: HistoryStore?
@@ -61,7 +63,8 @@ final class AppStore: ObservableObject {
         UserDefaults.standard.set(true, forKey: "initialDashboardShown")
     }
     init() {
-        if ProcessInfo.processInfo.arguments.contains("--show-charging") { selectedDashboardTab = .charging }
+        if ProcessInfo.processInfo.arguments.contains("--show-charging") ||
+            !UserDefaults.standard.bool(forKey: "initialDashboardShown") { selectedDashboardTab = .charging }
         do {
             let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                                        appropriateFor: nil, create: true)
@@ -208,6 +211,7 @@ final class AppStore: ObservableObject {
         }
         sleepStart = nil; sleeping = false
         startMonitoring()
+        refreshNativeLimit()
     }
     func reloadHistory() {
         do { points = try history?.points() ?? []; gaps = try history?.gaps() ?? [] }

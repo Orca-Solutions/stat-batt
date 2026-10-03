@@ -30,7 +30,7 @@ To include the running app's native-workflow state, export from StatBatt. The st
 
 Use **Set to 80%** for everyday use and **Set to 100%** for a full charge, in either the menu or Charging. Both fixed Apple shortcuts have been observed changing the displayed setting on **Mac16,13 / arm64 / macOS 27.0.1 / build 26A434 / firmware mBoot-20457.1.29**. Existing trusted setup carries over automatically; there is no trial to unlock or confirmation loop after each click.
 
-For a fresh setup, create **StatBatt — Apple Limit 80** and **StatBatt — Apple Limit 100** in Shortcuts. Each contains one Apple **Set Battery Charge Limit** action at its named value, with **Set Until Tomorrow** off. Inspect them, stop other charging apps/helpers, then click **Enable charge buttons** once in Charging. This records trust without running either shortcut. Later edits can change what runs and cannot all be detected.
+For a fresh setup, the first launch opens Charging. Click **Install 80% shortcut…**, approve **Add Shortcut** in Apple’s window, and return to StatBatt. Repeat for **Install 100% shortcut…**, then stop other charging apps/helpers and click **Enable charge buttons**. The inspected signed workflows are included in the app; you do not build or download them separately. Each contains one Apple **Set Battery Charge Limit** action at its named value, with **Set Until Tomorrow** off. Setup records trust without running either shortcut. Later edits can change what runs and cannot all be detected. If you cancel import, return and use **Check again** to retry. Existing installed shortcuts are not imported again.
 
 Click either button and wait for its request to complete. StatBatt reports the requested value, not a live reading of Apple's setting. Opening Battery settings to check is optional during ordinary use. Monitoring needs no setup.
 
@@ -47,3 +47,10 @@ Closing the dashboard keeps monitoring in the menu bar. **Quit** stops monitorin
 ## Landing page
 
 The landing page introduces the app. **Explore StatBatt** leads to features, **See what’s available** leads to development status, and the Questions section expands answers. Its app panel and chart are labeled sample illustrations; they are not live readings. There is no download, account signup, or waitlist on the current page.
+
+
+## Install and remove
+
+Open the StatBatt disk image and drag StatBatt to Applications. The app includes the two shortcuts and presents Apple's import approval during setup. A package labeled LOCAL-PREVIEW is a development artifact, not a notarized public release. Native buttons are qualified only on the documented target; monitoring remains available elsewhere.
+
+To update, quit StatBatt before replacing the application; keep its existing local data and shortcuts so trusted setup carries forward. To remove, choose Set to 100% first if you want to remove the Apple limit, wait for completion, then quit and move the app to Trash. A persisted Apple limit does not disappear when the app is deleted. The optional shortcuts remain in your Shortcuts library and can be removed there; local history/preferences are retained unless you choose to delete them separately. There is no privileged helper or scheduled custom-control service in v1.

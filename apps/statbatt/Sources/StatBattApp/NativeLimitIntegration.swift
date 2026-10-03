@@ -51,19 +51,80 @@ extension AppStore {
 
     private func refreshNativePresentation(_ coordinator: NativeLimitCoordinator, background: Bool = false) async {
         var discovered: Set<NativeFixedLimit> = []
+        var missing: Set<NativeFixedLimit> = []
         var discoveryFailed = false
         for limit in NativeFixedLimit.allCases {
             do {
                 if try await coordinator.discoverConfiguredShortcut(for: limit) { discovered.insert(limit) }
+                else { missing.insert(limit) }
             } catch { discoveryFailed = true }
         }
         let state = await coordinator.status()
         let preflight = await nativePreflight()
         // A click can arrive while discovery is suspended. Do not overwrite its progress.
         guard !background || !nativeTaskInProgress else { return }
-        updateNativePresentation(state, discovered: discovered, preflight: preflight)
+        updateNativePresentation(state, discovered: discovered, missing: missing, preflight: preflight)
+        if let imported = pendingNativeImport, discovered.contains(imported) || missing.contains(imported) {
+            pendingNativeImport = nil
+            nativeSetupMessage = missing.contains(imported)
+                ? "The shortcut has not been added yet. You can retry installation."
+                : Set(NativeFixedLimit.allCases).isSubset(of: discovered)
+                ? "Both shortcuts are installed. Enable the charge buttons below."
+                : "\(imported.rawValue)% shortcut installed. Add the remaining shortcut to finish."
+        }
         if discoveryFailed && state.journalHealthy && nativePresentation.message == nil {
             nativePresentation.message = "Shortcut discovery is unavailable. Open Shortcuts, then refresh StatBatt. Refresh does not apply a limit."
+        }
+    }
+
+    var nativeShortcutSetupPlan: NativeShortcutSetupPlan {
+        NativeShortcutSetupPlan(discovered: nativePresentation.discoveredLimits,
+            missing: nativePresentation.missingLimits,
+            bundled: Set(NativeFixedLimit.allCases.filter { BundledNativeShortcuts.url(for: $0) != nil }),
+            deviceQualified: nativePresentation.deviceQualified,
+            controllerClear: nativePresentation.conflictingControllerResolved,
+            recoveryRequired: nativePresentation.phase == .recoveryRequired || nativePresentation.phase == .unavailable,
+            busy: nativeTaskInProgress || sleeping || pendingNativeImport != nil)
+    }
+
+    func installNextNativeShortcut() {
+        guard let limit = nativeShortcutSetupPlan.nextImport,
+              let coordinator = nativeCoordinator else { return }
+        // Reserve synchronously so repeated clicks cannot open duplicate import sheets.
+        pendingNativeImport = limit
+        nativeTaskInProgress = true
+        nativeSetupMessage = "Checking the shortcut library…"
+        Task {
+            defer { nativeTaskInProgress = false }
+            await nativeRefreshTask?.value
+            do {
+                guard !sleeping else { throw NativeLimitFailure.preflightUnavailable }
+                let state = await coordinator.status()
+                guard !state.requiresManualRecovery else { throw NativeLimitFailure.manualRecoveryRequired }
+                // Never import based only on a cached absence from a previous activation.
+                if try await coordinator.discoverConfiguredShortcut(for: limit) {
+                    pendingNativeImport = nil
+                    nativeSetupMessage = "This shortcut is already installed."
+                    await refreshNativePresentation(coordinator)
+                    return
+                }
+                guard let url = BundledNativeShortcuts.url(for: limit) else {
+                    pendingNativeImport = nil
+                    nativeSetupMessage = "The included shortcut is unavailable. Reinstall StatBatt from a complete package."
+                    return
+                }
+                // Opens Apple's import approval. Does not execute or edit the library.
+                if NSWorkspace.shared.open(url) {
+                    nativeSetupMessage = "Click Add Shortcut in Apple's window, then return here. If you cancel, use Check again to retry."
+                } else {
+                    pendingNativeImport = nil
+                    nativeSetupMessage = "The shortcut could not be opened. Open Shortcuts, then try again."
+                }
+            } catch {
+                pendingNativeImport = nil
+                nativeSetupMessage = "The shortcut library could not be checked. Open Shortcuts, then use Check again."
+                await refreshNativePresentation(coordinator)
+            }
         }
     }
 
@@ -159,7 +220,7 @@ extension AppStore {
     }
 
     private func updateNativePresentation(_ state: NativeLimitStatus, discovered: Set<NativeFixedLimit>,
-                                          preflight: NativePreflightResult) {
+                                          missing: Set<NativeFixedLimit>, preflight: NativePreflightResult) {
         let phase: NativeLimitPhase
         if !state.journalHealthy { phase = .unavailable }
         else if state.requiresManualRecovery { phase = .recoveryRequired }
@@ -173,7 +234,7 @@ extension AppStore {
             }
         }
         nativePresentation = NativeLimitPresentation(phase: phase,
-            discoveredLimits: discovered, trustedLimits: state.trustedLimits,
+            discoveredLimits: discovered, missingLimits: missing, trustedLimits: state.trustedLimits,
             qualifiedLimits: state.qualifiedLimits, deviceQualified: state.qualifiedTarget,
             conflictingControllerResolved: preflight == .clear,
             lastRequestedLimit: state.lastRequestedLimit, lastObservedLimit: state.lastObservedLimit,

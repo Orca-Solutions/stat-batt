@@ -9,6 +9,7 @@ enum NativeLimitPhase: Equatable {
 struct NativeLimitPresentation: Equatable {
     var phase: NativeLimitPhase = .setup
     var discoveredLimits: Set<NativeFixedLimit> = []
+    var missingLimits: Set<NativeFixedLimit> = []
     var trustedLimits: Set<NativeFixedLimit> = []
     var qualifiedLimits: Set<NativeFixedLimit> = []
     var deviceQualified = false
@@ -103,6 +104,10 @@ struct NativeLimitView: View {
     let request100Enabled: Bool
     let onOpenShortcuts: () -> Void
     let onOpenBatterySettings: () -> Void
+    let setupPlan: NativeShortcutSetupPlan
+    let setupMessage: String?
+    let onInstallShortcut: () -> Void
+    let onRefresh: () -> Void
     let onConfigure: () -> Void
     let onApply: (NativeFixedLimit) -> Void
     let onConfirmVisible: (NativeFixedLimit) -> Void
@@ -125,7 +130,8 @@ struct NativeLimitView: View {
                 if presentation.phase == .recoveryRequired {
                     recoveryContent
                 } else if presentation.phase != .applying {
-                    if !presentation.trustedLimits.contains(.eighty) || !presentation.trustedLimits.contains(.hundred) {
+                    if !presentation.trustedLimits.contains(.eighty) || !presentation.trustedLimits.contains(.hundred) ||
+                        !presentation.missingLimits.isEmpty {
                         setupContent
                     }
                     if presentation.phase == .completed && presentation.lastRequestedLimit != nil {
@@ -159,17 +165,30 @@ struct NativeLimitView: View {
         VStack(alignment: .leading, spacing: 10) {
             Divider()
             Text("Connect Apple Shortcuts once").font(.subheadline.weight(.medium))
-            Text("Each shortcut should contain one Set Battery Charge Limit action at the named percentage, with Set Until Tomorrow off.")
+            Text("StatBatt includes both Apple shortcuts. Add each in the Shortcuts window, then return here. Setup does not change charging.")
                 .font(.callout)
             ForEach(NativeFixedLimit.allCases, id: \.self) { limit in
-                Label(limit.expectedShortcutName,
+                Label("\(limit.rawValue)% shortcut · " + (presentation.discoveredLimits.contains(limit) ? "installed" : "not ready"),
                       systemImage: presentation.discoveredLimits.contains(limit) ? "checkmark.circle" : "circle.dashed")
             }
-            Button("Open Shortcuts") { onOpenShortcuts() }
+            if let next = setupPlan.nextImport {
+                Button("Install \(next.rawValue)% shortcut…") { onInstallShortcut() }
+                    .help("Opens the included shortcut for Apple's Add Shortcut confirmation")
+            } else if !setupPlan.unavailableBundledImports.isEmpty {
+                Text("An included shortcut is unavailable. Reinstall StatBatt from a complete package.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            if let setupMessage {
+                Text(setupMessage).font(.callout).foregroundStyle(.secondary)
+            }
+            HStack {
+                Button("Check again") { onRefresh() }
+                Button("Open Shortcuts") { onOpenShortcuts() }
+            }
             Text("Enabling confirms you trust these two shortcuts and have stopped other charging apps. Edits to a shortcut can change what runs; StatBatt cannot detect every edit.")
                 .font(.caption).foregroundStyle(.secondary)
             Button("Enable charge buttons") { onConfigure() }
-                .disabled(!canConfigure)
+                .disabled(!setupPlan.canEnable)
             Text("This saves setup without changing your charge limit.")
                 .font(.caption).foregroundStyle(.secondary)
         }
@@ -206,9 +225,4 @@ struct NativeLimitView: View {
         }
     }
 
-    private var canConfigure: Bool {
-        presentation.phase != .applying && presentation.phase != .recoveryRequired && presentation.phase != .unavailable &&
-            presentation.deviceQualified && presentation.conflictingControllerResolved &&
-            Set(NativeFixedLimit.allCases).isSubset(of: presentation.discoveredLimits)
-    }
 }

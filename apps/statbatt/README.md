@@ -1,8 +1,6 @@
 # StatBatt
 
-A native Apple silicon macOS menu bar battery app. The first local implementation provides live monitoring, details, seven-day history, CSV exports, settings, opt-in notifications, and redacted capability diagnostics.
-
-**Apple80% limiting now has a trusted-shortcut setup and direct menu action on the qualified local target.** The owner-assisted menu Apply/visible confirmation/normal-reopen/manual100% return passed; [evidence and scope](../../docs/research/NATIVE_APP_FLOW_RESULT.md). Custom charge bands, discharge cutoffs, thermal control and a privileged helper remain unavailable. Electrical cutoff and abnormal lifecycle checks are still pending. This is not the completed v1 Energiza replacement.
+V1 local candidate: native Apple 80%/100% charge-limit buttons, monitoring, history/CSV, diagnostics, preferences and opt-in alerts. The owner accepted native charging as the v1 scope; custom discharge, charge bands and temperature actuation are not required or claimed. See [scope decision](../../docs/decisions/0004-native-charging-v1.md).
 
 ## Build and run
 
@@ -16,7 +14,7 @@ apps/statbatt/scripts/build-app.sh
 open apps/statbatt/dist/StatBatt.app
 ```
 
-On the first interactive launch, StatBatt presents its Battery dashboard. Closing it keeps monitoring in the menu bar; later launches stay quiet. Click the menu bar battery to open the panel. **Details**, **History**, **Charging settings…**, and **Settings…** open the corresponding tab. Command-comma also opens Settings. A local ad-hoc signature permits development use; this is not a signed/notarized distribution candidate. Current target evidence is macOS 27.0.1 on arm64. The deployment minimum is macOS 15, but older OS versions and Intel have not been qualified.
+On the first interactive launch, StatBatt presents Charging setup. Closing it keeps monitoring in the menu bar; later launches stay quiet. Click the menu bar battery to open the panel. **Details**, **History**, **Charging settings…**, and **Settings…** open the corresponding tab. Command-comma also opens Settings. A local ad-hoc signature permits development use; this is not a signed/notarized distribution candidate. Current target evidence is macOS 27.0.1 on arm64. The deployment minimum is macOS 15, but older OS versions and Intel have not been qualified.
 
 Run the read-only diagnostic separately:
 
@@ -30,15 +28,11 @@ Local settings/history live in `~/Library/Application Support/StatBatt`. History
 
 ## Native Apple limit setup
 
-After rebuilding, quit StatBatt from its menu-bar menu and reopen `apps/statbatt/dist/StatBatt.app`; closing the Details window does not quit the old process. Settings → About StatBatt identifies this candidate as **0.1.0 (4)**.
+The package includes signed **StatBatt — Apple Limit 80** and **StatBatt — Apple Limit 100** shortcut documents. On first launch, use each **Install … shortcut** button and approve Apple's **Add Shortcut** prompt. Then click **Enable charge buttons** after reviewing the trust/controller explanation. No manual action authoring is required. Already-installed workflows and trusted setup are preserved.
 
-Open **Charging settings…**. A shortcut named **StatBatt — Apple Limit 80** must contain exactly one Apple **Set Battery Charge Limit** action set to80%. On the owner's development machine this is already prepared under the exact app name **StatBatt — Apple Limit 80**; inspect it before recording setup. Other user shortcuts were not edited.
+**Set to 80%** and **Set to 100%** were verified through the app on Mac16,13 / arm64 / macOS 27.0.1 / 26A434 / mBoot-20457.1.29. The app checks identity and known controller conflicts, persists intent before execution and never replays at startup. Unknown outcomes require review; ordinary completed requests need no repeated confirmation. Apple manages charging and retains the setting after StatBatt quits. The app cannot read the current selected limit or detect every later workflow edit.
 
-Record separate inspected/trusted setup for each fixed80% or100% shortcut and the declaration that other charge-management apps are stopped. Setup does not run either shortcut. StatBatt binds the shortcut's UUID, rejects missing/ambiguous/replaced identities and checks the known Energiza controller. It cannot detect every later action/parameter edit or exclude every external controller; the owner approved this trust model.
-
-After setup, **Set to 80%** and **Set to 100%** are visible in the menu and Charging. Each target requires its own trust and qualification;100% remains unqualified pending its separate actual app test. Successful requests permit another deliberate click without mandatory review or manual return. A timeout/interruption blocks both until the owner confirms the prior shortcut finished or was stopped and the visible80% or100% setting. Observations stay historical; StatBatt cannot read the current limit. Startup never retries. Killing the CLI does not prove the underlying action stopped. See [decision0003](../../docs/decisions/0003-two-target-native-limit.md).
-
-The setting is delegated to macOS and persists after app exit. There is no lower threshold, expiry, automatic restoration or guarantee of a precise electrical cutoff. Only80% on Mac16,13 / arm64 / macOS27.0.1 build26A434 / mBoot-20457.1.29 is qualified by the bounded setter lab. A different fingerprint disables Apply. New runtime hardware experiments are not performed by startup or tests.
+Other fingerprints remain unqualified for charging. The older schema-1 app should not be reopened after migration to schema 2. For a rebuilt app, quit the older instance before launching this bundle. Build 8 is the 1.0.0 local candidate.
 
 ## Implementation and verification
 

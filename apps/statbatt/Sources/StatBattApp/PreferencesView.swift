@@ -43,7 +43,7 @@ struct PreferencesView: View {
                 }
             }
             Section("Control & recovery") {
-                Text("Quit stops monitoring. An Apple charge limit applied through the trusted shortcut remains active after StatBatt quits. Return to 100% manually in Battery settings, after checking that the shortcut finished or stopping it in Shortcuts.")
+                Text("Quit stops monitoring. An Apple charge limit applied through the trusted shortcut remains active after StatBatt quits. Use Set to 100% before quitting if you want to remove the limit. If a request was interrupted, check or stop it in Shortcuts and review Battery settings.")
                     .font(.callout).foregroundStyle(.secondary)
                 Text("Custom controls are unavailable, and no privileged helper is installed. Other battery controllers continue independently.")
                     .font(.caption).foregroundStyle(.secondary)
