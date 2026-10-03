@@ -88,14 +88,24 @@ def guardian(stage):
             raise RuntimeError('supervisorOrSleepAssertionGoneBeforeGate')
         record.update(phase='inhibitionIntent', workerPID=worker.pid)
         save(stage, 'guardian.json', record)
-        deadline = time.monotonic() + HOLD_SECONDS
+        gate_time = time.monotonic()
+        deadline = gate_time + HOLD_SECONDS
+        record.update(gateMonotonicSeconds=gate_time)
         gate_sent = True  # Conservative intent before pipe write.
         writer_reaped = False
         worker.stdin.write(b'G')
         worker.stdin.flush()
+        record.update(phase='inhibitionGateSent')
+        evidence()
+        record['stopReason'] = 'deadlineOrWorkerExit'
         while time.monotonic() < deadline and worker.poll() is None:
-            if sleeper.poll() is not None or select.select([sys.stdin], [], [], min(0.02, max(0, deadline-time.monotonic())))[0]:
+            if sleeper.poll() is not None:
+                record['stopReason'] = 'sleepAssertionLost'
                 break
+            if select.select([sys.stdin], [], [], min(0.02, max(0, deadline-time.monotonic())))[0]:
+                record['stopReason'] = 'ownerEOF' if os.read(0, 1) == b'' else 'unexpectedOwnerData'
+                break
+        record['stopMonotonicSeconds'] = time.monotonic()
     except Exception as error:
         record.update(guardianError=type(error).__name__)
     finally:
@@ -157,6 +167,21 @@ def prior_inspection_packet():
             'generatedAtUTC': report['generatedAtUTC'], 'report': report}
 
 
+def disconnect_owner_after_gate(child, stage):
+    """Close the ownership pipe; this observer never controls the restore deadline."""
+    gate_deadline = time.monotonic() + 5
+    while child.poll() is None and time.monotonic() < gate_deadline:
+        try:
+            progress = json.loads((stage / 'guardian.json').read_bytes())
+        except (OSError, ValueError):
+            progress = {}
+        if progress.get('phase') == 'inhibitionGateSent':
+            time.sleep(1.25)
+            break
+        time.sleep(0.01)
+    child.stdin.close()
+
+
 def main():
     if not ENABLED or EXPECTED_BINARY is None:
         raise SystemExit('Source-only: emergency hardware recovery and trial review remain unresolved. Nothing executed.')
@@ -164,7 +189,8 @@ def main():
         raise SystemExit('Administrator identity required; no automatic elevation.')
     if sys.argv[1:] == ['--guardian']:
         return guardian(Path.cwd())
-    if sys.argv[1:] != ['--approved-bounded-trial'] or not process_preflight():
+    owner_disconnect = sys.argv[1:] == ['--approved-owner-disconnect-trial']
+    if (sys.argv[1:] != ['--approved-bounded-trial'] and not owner_disconnect) or not process_preflight():
         raise SystemExit('Explicit mode and stopped controllers required.')
     binary = Path(__file__).resolve().parent.parent / '.build/release/statbatt-adapter-lab'
     data = binary.read_bytes()
@@ -181,7 +207,8 @@ def main():
         'binarySHA256': EXPECTED_BINARY, 'maximumRequestedHoldSeconds': HOLD_SECONDS,
         'timestampUTC': datetime.datetime.now(datetime.timezone.utc).isoformat(),
         'priorInspection': inspection, 'argv': [str(stage / 'lab'), '--trial-disconnect-worker'],
-        'authorization': 'Explicit operator invocation --approved-bounded-trial; controllers and shortcuts stopped',
+        'authorization': 'Explicit operator invocation ' + sys.argv[1] + '; controllers and shortcuts stopped',
+        'ownerDisconnectTest': owner_disconnect,
         'limits': 'Software deadline only; hardware restoration and emergency recovery unproven.'})
     # File-backed output cannot block the guardian on a full parent-owned pipe.
     output_file = (stage / 'guardian.stdout').open('xb')
@@ -205,22 +232,34 @@ def main():
             'argv': [str(stage / 'lab'), '--trial-disconnect-worker'],
             'maximumRequestedHoldSeconds': HOLD_SECONDS})
         child.stdin.write(b'G'); child.stdin.flush()
+        if owner_disconnect:
+            # Exercise the same EOF restoration path as owner process loss while
+            # retaining this observer to collect evidence. Never extend the guardian's
+            # two-second deadline. Do not claim this is a daemon crash test.
+            disconnect_owner_after_gate(child, stage)
         # Do not kill guardian on timeout. Closing pipe requests immediate restoration.
         try:
             child.wait(timeout=12)
         except subprocess.TimeoutExpired:
-            child.stdin.close()
+            if not child.stdin.closed:
+                child.stdin.close()
             print('Guardian still running; recovery unknown. Do not retry.')
             return 1
         stdout = output_text('guardian.stdout')
         stderr = output_text('guardian.stderr')
+        owner_eof_observed = False
         for line in stdout.splitlines():
             if line.startswith('GUARDIAN_RESULT '):
-                print(json.dumps(json.loads(line[len('GUARDIAN_RESULT '):]), indent=2))
+                result = json.loads(line[len('GUARDIAN_RESULT '):])
+                owner_eof_observed = result.get('stopReason') == 'ownerEOF'
+                print(json.dumps(result, indent=2))
         if stderr:
             print('Guardian diagnostics:', stderr)
         if not any(line.startswith('GUARDIAN_RESULT ') for line in stdout.splitlines()):
             print('Guardian returned without a structured result; recovery unknown. Do not retry.')
+            return 1
+        if owner_disconnect and not owner_eof_observed:
+            print('Owner EOF recovery was not exercised; this qualification is inconclusive even if restoration succeeded.')
             return 1
         return child.returncode
     finally:

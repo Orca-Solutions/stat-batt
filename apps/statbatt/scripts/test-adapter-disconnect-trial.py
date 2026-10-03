@@ -47,14 +47,14 @@ class GuardianTests(unittest.TestCase):
             # First G receipt, worker READY, parent-alive check, optional parent EOF.
             selections = [([sleeper.stdout], [], []), ([trial.sys.stdin], [], []), ([worker.stdout], [], []), ([], [], [])]
             if parent_dies: selections.append(([trial.sys.stdin], [], []))
-            clock = [0, .1, .2, .3] if parent_dies else [0, 3]
+            clock = [0, .1, .2, .3] if parent_dies else [0, 3, 3]
             def save(stage, name, record):
                 records.append(dict(record))
                 if journal_fails and record['phase'] == 'restoreIntent':
                     raise OSError('simulated disk full')
             with patch.object(trial, 'EXPECTED_BINARY', hashlib.sha256(b'fixture-not-executable').hexdigest()), \
                  patch.object(trial, 'save', side_effect=save), \
-                 patch.object(trial.os, 'read', return_value=b'G'), \
+                 patch.object(trial.os, 'read', side_effect=[b'G', b'']), \
                  patch.object(trial.select, 'select', side_effect=selections), \
                  patch.object(trial.time, 'monotonic', side_effect=clock), \
                  patch.object(trial.subprocess, 'Popen', side_effect=[sleeper, worker]), \
@@ -68,10 +68,34 @@ class GuardianTests(unittest.TestCase):
         self.assertEqual(events, [('gate', b'G'), ('kill', None), ('reap', None), ('restore', '--guardian-restore'), ('sleepRelease', None), ('sleepReaped', None)])
 
     def test_parent_death_restores_without_waiting_deadline(self):
-        result, events, _ = self.exercise(parent_dies=True)
+        result, events, records = self.exercise(parent_dies=True)
         self.assertEqual(result, 0)
         self.assertIn(('restore', '--guardian-restore'), events)
         self.assertLess(events.index(('restore', '--guardian-restore')), events.index(('sleepRelease', None)))
+        self.assertEqual(records[-1]['stopReason'], 'ownerEOF')
+        self.assertLess(records[-1]['stopMonotonicSeconds'] - records[-1]['gateMonotonicSeconds'], trial.HOLD_SECONDS)
+
+    def test_owner_disconnect_closes_only_after_gate_observation(self):
+        events = []
+        child = types.SimpleNamespace(poll=lambda: None,
+            stdin=types.SimpleNamespace(close=lambda: events.append('closed')))
+        with tempfile.TemporaryDirectory() as folder:
+            stage = Path(folder)
+            (stage / 'guardian.json').write_text('{"phase":"inhibitionGateSent"}')
+            with patch.object(trial.time, 'monotonic', side_effect=[0, .1]), \
+                 patch.object(trial.time, 'sleep', side_effect=lambda seconds: events.append(seconds)):
+                trial.disconnect_owner_after_gate(child, stage)
+        self.assertEqual(events, [1.25, 'closed'])
+
+    def test_missing_gate_evidence_still_closes_owner_bounded(self):
+        events = []
+        child = types.SimpleNamespace(poll=lambda: None,
+            stdin=types.SimpleNamespace(close=lambda: events.append('closed')))
+        with tempfile.TemporaryDirectory() as folder:
+            with patch.object(trial.time, 'monotonic', side_effect=[0, .1, 6]), \
+                 patch.object(trial.time, 'sleep', side_effect=lambda seconds: events.append(seconds)):
+                trial.disconnect_owner_after_gate(child, Path(folder))
+        self.assertEqual(events, [.01, 'closed'])
 
     def test_journal_failure_cannot_skip_restoration(self):
         result, events, records = self.exercise(journal_fails=True)
