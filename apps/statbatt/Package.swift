@@ -30,6 +30,7 @@ let package = Package(
         .target(name: "StatBattPersistence", dependencies: ["StatBattDomain", "CSQLite"]),
         .executableTarget(name: "StatBattApp", dependencies: ["StatBattDomain", "StatBattTelemetry", "StatBattPersistence", "StatBattControlProtocol", "StatBattNativeLimit"]),
         .executableTarget(name: "StatBattDiagnostics", dependencies: ["StatBattDomain", "StatBattTelemetry"]),
+        .testTarget(name: "StatBattDiagnosticsTests", dependencies: ["StatBattDiagnostics"]),
         .testTarget(name: "StatBattDomainTests", dependencies: ["StatBattDomain"]),
         .testTarget(name: "StatBattNativeLimitTests", dependencies: ["StatBattNativeLimit", "StatBattDomain"]),
         .testTarget(name: "StatBattControlProtocolTests", dependencies: ["StatBattControlProtocol", "StatBattDomain"]),

@@ -6,8 +6,8 @@ import StatBattTelemetry
 struct DiagnosticsCommand {
     @MainActor static func main() async throws {
         let arguments = Array(CommandLine.arguments.dropFirst())
-        guard arguments.isEmpty || arguments == ["--temperature-sample"] else {
-            FileHandle.standardError.write(Data("Usage: statbatt-diagnostics [--temperature-sample]\n".utf8))
+        guard arguments.isEmpty || arguments == ["--temperature-sample"] || arguments == ["--sleep-wake-observe"] else {
+            FileHandle.standardError.write(Data("Usage: statbatt-diagnostics [--temperature-sample | --sleep-wake-observe]\n".utf8))
             exit(64)
         }
         let reader = PublicTelemetry()
@@ -19,6 +19,10 @@ struct DiagnosticsCommand {
             return
         }
         guard getuid() != 0 && geteuid() != 0 else { exit(64) }
+        if arguments == ["--sleep-wake-observe"] {
+            try SleepWakeObserver.run(reader: reader)
+            return
+        }
         let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys]; encoder.dateEncodingStrategy = .iso8601
         func emit<T: Encodable>(_ value: T) throws {
             FileHandle.standardOutput.write(try encoder.encode(value)); FileHandle.standardOutput.write(Data("\n".utf8))
