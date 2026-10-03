@@ -18,6 +18,7 @@ import StatBattDomain
     @Published private(set) var lastQualificationResult: String? = UserDefaults.standard.string(forKey: "thermalLastQualificationResult")
     @Published private(set) var statusCheckMessage: String?
     private var connection: NSXPCConnection?
+    private let requestLane = ThermalRequestLane()
     private var connectionID: UUID?
     private var monitor: Task<Void, Never>?
     private var refreshTask: (id: UUID, epoch: UInt64, task: Task<(ThermalControlStatus, Date), Error>)?
@@ -178,7 +179,7 @@ import StatBattDomain
                 rememberQualification(reply.qualificationResult ?? reply.message)
                 if epoch == commandEpoch { accept(reply) }
             } catch {
-                rememberQualification("Test outcome unknown: the service did not return a confirmed result. Stop and restore before continuing.")
+                rememberQualification("Test outcome unknown: \(requestFailure(error)). Stop and restore before continuing.")
                 errorMessage = "The adapter test outcome is not confirmed. Stop and restore before continuing."
             }
         }
@@ -247,7 +248,24 @@ import StatBattDomain
         if reply.safeToExit && (reply.phase == .off || reply.phase == .unavailable) { uncertain = false }
         if reply.phase == .watching || reply.phase == .paused || reply.phase == .restoring || reply.phase == .qualifying || reply.phase == .recoveryRequired { uncertain = true }
     }
-    private enum ClientError: Error { case connection, timeout, invalidReply, missingBundle }
+    private enum ClientError: Error { case connection, timeout, invalidReply, missingBundle, superseded }
+    private func requestFailure(_ error: Error) -> String {
+        if let failure = error as? WireFailure { return "request validation failed (\(failure.code.rawValue))" }
+        if let failure = error as? ClientError {
+            switch failure {
+            case .connection: return "service connection was lost"
+            case .timeout: return "service reply timed out"
+            case .invalidReply: return "service reply was invalid"
+            case .missingBundle: return "service bundle was missing"
+            case .superseded: return "request was superseded before dispatch"
+            }
+        }
+        let failure = error as NSError
+        if failure.domain == ThermalServiceContract.machServiceName {
+            return failure.code == 2 ? "service rejected an overlapping request before dispatch" : "service rejected the request or reply (code \(failure.code))"
+        }
+        return "service communication failed (code \(failure.code))"
+    }
     private func connected() throws -> NSXPCConnection {
         if let connection { return connection }
         let requirement = try ThermalServiceSigning.peerRequirement(ownIdentifier: ThermalServiceContract.appIdentifier, peerIdentifier: ThermalServiceContract.daemonIdentifier)
@@ -262,6 +280,13 @@ import StatBattDomain
     }
     private func call(_ action: ThermalControlAction, policy: ThermalAdapterPolicy? = nil) async throws -> ThermalControlStatus {
         let data = try BoundedCodec().encode(ThermalControlRequest(action: action, policy: policy))
+        let epoch = commandEpoch
+        return try await requestLane.perform { [self] in
+            guard epoch == commandEpoch else { throw ClientError.superseded }
+            return try await dispatch(action, data: data)
+        }
+    }
+    private func dispatch(_ action: ThermalControlAction, data: Data) async throws -> ThermalControlStatus {
         let connection = try connected()
         let id = UUID()
         return try await withCheckedThrowingContinuation { continuation in
