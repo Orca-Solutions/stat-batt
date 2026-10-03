@@ -11,13 +11,7 @@ gh repo clone Orca-Solutions/stat-batt
 cd stat-batt
 ```
 
-Until the monorepo/landing PR is merged, check out its branch:
-
-```sh
-git switch codex/monorepo-landing
-```
-
-The initial `main` contains the original app checkpoint; the PR introduces the monorepo layout. After merge, use `main`. All commands below run from the monorepo root.
+The foundation PR is merged; use `main` for the landing foundation. To review the resumed app candidate, use `git switch codex/app-v1-completion` after fetching that branch. All commands below run from the monorepo root.
 
 ## Native app
 
@@ -32,9 +26,9 @@ codesign --verify --deep --strict apps/statbatt/dist/StatBatt.app
 open apps/statbatt/dist/StatBatt.app
 ```
 
-The scripts resolve their app directory automatically. Caches are generated in `apps/statbatt/.build/`; the app bundle is generated in `apps/statbatt/dist/`. Both are ignored by Git. The current software suite has 102 tests. Test success establishes software contracts, not charging behavior on hardware.
+The scripts resolve their app directory automatically. Caches are generated in `apps/statbatt/.build/`; the app bundle is generated in `apps/statbatt/dist/`. Both are ignored by Git. The app-completion branch software suite has 131 tests; the earlier foundation checkpoint has102. Test success establishes software contracts, not charging behavior on hardware.
 
-The bundle is locally ad-hoc signed, not a notarized public release. Quit an older running StatBatt instance from its menu before opening a rebuilt bundle; closing its window leaves monitoring running. Settings → About StatBatt identifies version `0.1.0 (2)`. Do not run charging actions as a build verification step.
+The bundle is locally ad-hoc signed, not a notarized public release. Quit an older running StatBatt instance from its menu before opening a rebuilt bundle; closing its window leaves monitoring running. Settings → About StatBatt identifies version `0.1.0 (4)` on the menu-convenience candidate. Do not run charging actions as a build verification step.
 
 For a standalone read-only platform/telemetry probe:
 
@@ -63,3 +57,17 @@ Merge the reviewed PR before production rollout. Configure a static host to publ
 Never publish the monorepo root, native app bundles, `.build/`, repository guidance, or local user data. The website does not require runtime secrets or a database. A hosting provider, public URL, domain, and deployment automation have not yet been selected; repository and PR setup alone do not deploy the site. Recheck product-status copy before rollout. Publishing the landing page does not publish or release the native app.
 
 For everyday app use, see the [user guide](USER_GUIDE.md). For layout and preserved paths, see [monorepo notes](MONOREPO.md).
+
+## Standalone hardware metadata diagnostic
+
+For the reviewed candidate's closed, normal-user, nonactuating SMC probe:
+
+```sh
+apps/statbatt/scripts/swift-local.sh run statbatt-hardware-probe
+```
+
+It accepts no arguments, reads only fixed source-backed control metadata and conditional baseline bytes, and stops on permission denial. It never writes, installs a helper, runs a shortcut or promotes control support. [Qualification evidence](research/SMC_READ_ONLY_QUALIFICATION.md) and [third-party notices](../apps/statbatt/THIRD_PARTY_NOTICES.md) define its scope. Preserve notices if distributing the standalone diagnostic. The normal StatBatt app does not link this probe.
+
+## Separate native qualification candidate
+
+`apps/statbatt/scripts/build-native-qualification-app.sh` builds and locally signs `apps/statbatt/dist/native-100-qualification/StatBatt.app`; it never launches a shortcut. About identifies0.1.0-qualification build6. It contains a separate durable one-use100% trial and leaves normal100% capability unqualified. Actual use requires the explicit supervised authorization and target-specific trust in [LAB_PROTOCOL](LAB_PROTOCOL.md). Quit the old app before opening it; after schema2 migration, older schema1 builds cannot use the newer native journal. Neither this local ad-hoc build nor the ordinary build is a notarized release.

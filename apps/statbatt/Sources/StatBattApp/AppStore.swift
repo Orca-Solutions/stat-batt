@@ -23,7 +23,7 @@ final class AppStore: ObservableObject {
     @Published var nativePresentation = NativeLimitPresentation(phase: .unavailable,
         message: "Checking native shortcut setup…")
     var nativeCoordinator: NativeLimitCoordinator?
-    var nativeTaskInProgress = false
+    @Published var nativeTaskInProgress = false
     let platform = PlatformProbe.readOnly()
     private let telemetry = PublicTelemetry()
     private var history: HistoryStore?
@@ -31,24 +31,23 @@ final class AppStore: ObservableObject {
     private var observers: [NSObjectProtocol] = []
     private var sleepStart: Date?
     private var historyPauseStart: Date?
-    private var lastAlertNanoseconds: UInt64 = 0
-    private var alertBaseline: BatterySnapshot?
+    private var notificationReducer = BatteryNotificationReducer()
+    private var notificationPermissionRequestID: UUID?
     private var nativeNotificationObserver: NSObjectProtocol?
 
     var capabilities: CapabilitySnapshot {
         var result = CapabilityProbe.readOnly(platform: platform, snapshot: snapshot)
-        result.nativeRestorationMode = "explicitUserConfirmationInBatterySettings"
+        result.nativeRestorationMode = "deliberateTrustedTargetRequestOrManualSettings"
         if nativePresentation.deviceQualified {
-            let ready = nativePresentation.phase == .ready &&
-                nativePresentation.shortcutDiscovered && nativePresentation.conflictingControllerResolved
-            result.allowedNativeLimitsPercent = [80]
+            let ready = canSetNativeLimit80 || canSetNativeLimit100
+            result.allowedNativeLimitsPercent = nativePresentation.qualifiedLimits.map(\.percent).sorted()
             result.canSetNativeChargeLimit = Capability(status: ready ? .verified : .temporarilyUnavailable,
                 scope: .appleDelegated,
-                reasonCode: ready ? nil : nativePresentation.message ?? "Native setup or manual reconciliation required",
-                evidence: [EvidenceReference(identifier: "native80-lab-setting-readback",
-                    provenance: "observedSettingOnly", reference: "docs/research/NATIVE_LIMIT_LAB.md"),
+                reasonCode: ready ? nil : nativePresentation.message ?? "Native setup or prior execution reconciliation required",
+                evidence: [EvidenceReference(identifier: "native80-app-setting-readback",
+                    provenance: "observedSettingOnly", reference: "docs/research/NATIVE_APP_FLOW_RESULT.md"),
                     EvidenceReference(identifier: "mutable-user-workflow-trust", provenance: "ownerApproved",
-                        reference: "docs/decisions/0002-trusted-user-native-shortcut.md")],
+                        reference: "docs/decisions/0003-two-target-native-limit.md")],
                 verifiedAtUTC: Date())
         }
         return result
@@ -59,55 +58,6 @@ final class AppStore: ObservableObject {
     func dashboardPresented() {
         UserDefaults.standard.set(true, forKey: "initialDashboardShown")
     }
-    var percentage: String {
-        guard !sleeping, let value = snapshot.stateOfChargePercent.value else { return "—" }
-        return "\(Int(value.rounded()))%"
-    }
-    var sourceText: String {
-        guard !sleeping else { return "Sleeping · readings paused" }
-        switch snapshot.supplyingSource.value {
-        case .adapter: return "On adapter"
-        case .battery: return "On battery"
-        case .ups: return "On UPS"
-        default: return "Power source unavailable"
-        }
-    }
-    var chargingText: String {
-        guard !sleeping else { return "Readings paused" }
-        guard snapshot.batteryPresent.value == true else { return "Internal battery unavailable" }
-        guard let charging = snapshot.isCharging.value else { return "Charging state unavailable" }
-        if charging { return "Charging" }
-        if snapshot.stateOfChargePercent.value == 100 { return "Fully charged" }
-        if snapshot.supplyingSource.value == .battery { return "Using battery power" }
-        return "Not charging · reason unavailable"
-    }
-    var menuText: String {
-        switch preferences.menuDisplay {
-        case .percentage: percentage
-        case .temperature: snapshot.batteryTemperatureCelsius.value == nil ? "— \(temperatureSuffix)" : format(snapshot.batteryTemperatureCelsius, unit: "°C", temperature: true)
-        case .batteryWatts: snapshot.batteryPowerWatts.value == nil ? "— W" : format(snapshot.batteryPowerWatts, unit: "W")
-        case .timeRemaining:
-            estimateText(snapshot.isCharging.value == true ? snapshot.timeToFull : snapshot.timeToEmpty).replacingOccurrences(of: "Unavailable", with: "—")
-        }
-    }
-    var menuAccessibilityLabel: String {
-        let name: String
-        switch preferences.menuDisplay {
-        case .percentage: name = "battery charge"
-        case .temperature: name = "battery temperature"
-        case .batteryWatts: name = "net battery power"
-        case .timeRemaining: name = snapshot.isCharging.value == true ? "time to full" : "time remaining"
-        }
-        let value = menuText.contains("—") ? "unavailable" : menuText.replacingOccurrences(of: "~", with: "estimated ")
-        return "StatBatt, \(name) \(value), \(sourceText), \(chargingText)"
-    }
-    var symbol: String {
-        if snapshot.isCharging.value == true { return "battery.100percent.bolt" }
-        guard let percentage = snapshot.stateOfChargePercent.value else { return "battery.0percent" }
-        let level = percentage < 12.5 ? 0 : percentage < 37.5 ? 25 : percentage < 62.5 ? 50 : percentage < 87.5 ? 75 : 100
-        return "battery.\(level)percent"
-    }
-
     init() {
         do {
             let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
@@ -139,6 +89,7 @@ final class AppStore: ObservableObject {
             object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.telemetry.refresh() }
         }
+        configureNotificationReducer()
         startMonitoring()
         observers.append(NotificationCenter.default.addObserver(forName: NSApplication.didBecomeActiveNotification,
             object: nil, queue: .main) { [weak self] _ in
@@ -164,6 +115,7 @@ final class AppStore: ObservableObject {
     }
     func refresh() { telemetry.refresh(); refreshNativeLimit() }
     func savePreferences() {
+        configureNotificationReducer()
         if history?.recordingEnabled == true && !preferences.historyEnabled { historyPauseStart = Date() }
         history?.recordingEnabled = preferences.historyEnabled
         if preferences.historyEnabled, let paused = historyPauseStart {
@@ -191,16 +143,24 @@ final class AppStore: ObservableObject {
     var loginEnabled: Bool { SMAppService.mainApp.status == .enabled }
     func enableNotifications(_ enabled: Bool) {
         guard enabled else {
+            notificationPermissionRequestID = nil
             preferences.notificationsEnabled = false; notificationStatus = "Notifications are off"; savePreferences(); return
         }
+        let requestID = UUID()
+        notificationPermissionRequestID = requestID
         Task {
             do {
                 let allowed = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound])
+                guard notificationPermissionRequestID == requestID else { return }
+                notificationPermissionRequestID = nil
                 preferences.notificationsEnabled = allowed
                 notificationStatus = allowed ? "Notifications enabled" : "Permission denied · change this in System Settings"
-                alertBaseline = snapshot
                 savePreferences()
-            } catch { notificationStatus = "Notifications unavailable for this build" }
+            } catch {
+                guard notificationPermissionRequestID == requestID else { return }
+                notificationPermissionRequestID = nil
+                notificationStatus = "Notifications unavailable for this build"
+            }
         }
     }
     private func refreshNotificationStatus() {
@@ -210,32 +170,33 @@ final class AppStore: ObservableObject {
         }
     }
     private func notifyTransitions(_ sample: BatterySnapshot) {
-        defer { alertBaseline = sample }
-        guard preferences.notificationsEnabled, let old = alertBaseline,
-              SampleClock.nowNanoseconds() > lastAlertNanoseconds + 60_000_000_000 else { return }
-        var text: String?
-        if preferences.notifyChargingTransitions,
-           let prior = old.isCharging.value, let current = sample.isCharging.value, prior != current {
-            text = current ? "Battery charging started." : "Battery charging stopped. Reason unavailable."
-        }
-        if let prior = old.stateOfChargePercent.value, let value = sample.stateOfChargePercent.value,
-           prior > preferences.lowBatteryThresholdPercent, value <= preferences.lowBatteryThresholdPercent {
-            text = "Battery reached your low-battery notification threshold."
-        }
-        if preferences.notifyTemperature, let prior = old.batteryTemperatureCelsius.value,
-           let value = sample.batteryTemperatureCelsius.value,
-           prior < preferences.highTemperatureThresholdCelsius, value >= preferences.highTemperatureThresholdCelsius {
-            text = "Battery reached your temperature notification threshold. StatBatt is monitoring only."
-        }
-        guard let text else { return }
-        lastAlertNanoseconds = SampleClock.nowNanoseconds()
+        notificationReducer.observe(sample, nowNanoseconds: SampleClock.nowNanoseconds())
+        deliverPendingNotifications()
+    }
+    private func configureNotificationReducer() {
+        notificationReducer.configure(BatteryNotificationSettings(enabled: preferences.notificationsEnabled,
+            chargingTransitions: preferences.notifyChargingTransitions, temperature: preferences.notifyTemperature,
+            failures: preferences.notifyFailures, lowBatteryPercent: preferences.lowBatteryThresholdPercent,
+            highTemperatureCelsius: preferences.highTemperatureThresholdCelsius))
+    }
+    func notifyNativeFailure(id: String, message: String) {
+        notificationReducer.recordFailure(id: id, message: message)
+        if !sleeping { deliverPendingNotifications() }
+    }
+    func clearNativeFailureNotification() { notificationReducer.clearFailure() }
+    private func deliverPendingNotifications() {
+        let alerts = notificationReducer.drain(nowNanoseconds: SampleClock.nowNanoseconds())
+        guard !alerts.isEmpty else { return }
         let content = UNMutableNotificationContent()
-        content.title = "StatBatt"; content.body = text
+        content.title = "StatBatt"; content.body = alerts.map(\.message).joined(separator: "\n")
         let request = UNNotificationRequest(identifier: "statbatt-transition", content: content, trigger: nil)
-        Task { try? await UNUserNotificationCenter.current().add(request) }
+        Task {
+            guard preferences.notificationsEnabled, !sleeping else { return }
+            try? await UNUserNotificationCenter.current().add(request)
+        }
     }
     private func willSleep() {
-        sleeping = true; sleepStart = Date(); telemetry.stop(); alertBaseline = nil
+        sleeping = true; sleepStart = Date(); telemetry.stop(); notificationReducer.suspend()
     }
     private func didWake() {
         if let sleepStart {
@@ -273,31 +234,6 @@ final class AppStore: ObservableObject {
             do { try data.write(to: url, options: .atomic); message = "Export saved." }
             catch { message = "Export could not be saved." }
         }
-    }
-    func format(_ metric: Metric<Double>, unit: String, temperature: Bool = false) -> String {
-        guard !sleeping, let value = metric.value, metric.quality != .stale else { return "Unavailable" }
-        if temperature && preferences.temperatureUnit == .fahrenheit {
-            return (metric.quality == .estimated ? "~" : "") + String(format: "%.1f °F", value * 9 / 5 + 32)
-        }
-        return (metric.quality == .estimated || metric.source.hasPrefix("derived.registry.FullCharge") ? "~" : "") + String(format: "%.1f %@", value, unit)
-    }
-    func estimateText(_ estimate: TimeEstimate) -> String {
-        guard !sleeping else { return "Unavailable" }
-        switch estimate {
-        case .seconds(let seconds, _):
-            guard seconds.isFinite, seconds > 0, seconds <= 7 * 24 * 3600 else { return "Unavailable" }
-            return "~\(Int((seconds / 60).rounded())) min"
-        case .calculating: return "Calculating…"
-        case .unlimited: return "On external power"
-        case .unavailable: return "Unavailable"
-        }
-    }
-    var temperatureSuffix: String { preferences.temperatureUnit == .fahrenheit ? "°F" : "°C" }
-    func displayTemperature(_ celsius: Double) -> Double {
-        preferences.temperatureUnit == .fahrenheit ? celsius * 9 / 5 + 32 : celsius
-    }
-    func celsiusFromDisplay(_ value: Double) -> Double {
-        preferences.temperatureUnit == .fahrenheit ? (value - 32) * 5 / 9 : value
     }
     func openBatterySettings() {
         if let url = URL(string: "x-apple.systempreferences:com.apple.Battery-Settings.extension") { NSWorkspace.shared.open(url) }

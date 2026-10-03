@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.1.0 build6 two-target candidate — 2026-10-02
+
+- Add menu and Charging **Set to 80%** / **Set to 100%** buttons with separate one-time shortcut trust. Normal receipts permit the next deliberate request without a manual restoration loop.
+- Preserve unknown-execution fencing and no startup replay; migrate schema1 trust and recovery to schema2 atomically without granting100% trust.
+- Production100% remains unqualified. A separate compile-flag candidate offers one durable supervised100% trial, without promoting production capability. Actual100% trust and hardware test remain pending.
+- Software checks and fresh-context review are recorded in WORKING_RECORD. Original full-v1 and distribution acceptance stay open.
+
+## 0.1.0 build5 menu-label comparison — 2026-10-02
+
+- Skip menu label body updates when its text, symbol and accessibility description are unchanged; preserve the same content and actions.
+- Fresh-context source review, release compilation and local signature verification pass. One600-second closed-window run meets app targets at0.1583% CPU/79.233024MB peak RSS; restart/workload differences prevent attributing the improvement solely to this change.
+- Broader runtime/accessibility, original full-v1 and distribution acceptance remain open. Native live-flow evidence remains scoped to build4; a later unconfirmed request requires owner reconciliation.
+
+## 0.1.0 build4 menu convenience increment — 2026-10-02
+
+- Added a direct **Apply 80% limit** menu-panel button after trusted setup, using the existing guarded action.
+- Shared request eligibility between menu, Charging view and dispatch; sleep, concurrency, qualification and recovery restrictions remain enforced.
+- Added inline request/unconfirmed/recovery messages; confirmations remain historical and return to100% remains manual.
+- Fixed inherited-descriptor instance-lock lifetime; a deterministic regression failed before repair and passed afterward.
+- Product design consultant audited the actual menu flow;131 integrated tests and local release packaging/signature pass. Bounded live app-path evidence is recorded below.
+- Subsequently completed the separately authorized owner-assisted menu80% Apply/visible confirmation/normal-reopen/manual100% return. Journal records restoredUserConfirmed100; no replay observed on this normal restart. Cutoff, abnormal lifecycle and full-v1 acceptance remain open.
+
+## 0.1.0 build3 completion increment — 2026-10-02
+
+- Added60-second monitor display expiry, quality/finite-value checks and localized measurements.
+- Added readable chart summaries and gap-safe minute-bucket power-state observations.
+- Preserved pending threshold/recovery notifications through cooldown and sleep; added source transitions and native failures.
+- Clarified historical native confirmation and disabled custom one-time/temperature prerequisites.
+- Added a standalone exact-target, fixed-key read-only SMC probe; no mutation/helper/capability promotion.
+- Fixed three independently reviewed material defects;130 integrated tests pass, release packaging and local signature pass.
+- Native live-flow, custom-backend, accessibility/performance and signed distribution acceptance remain open.
+
 ## 0.1.0 local implementation — 2026-10-02
 
 - Added native menu panel, battery details, capability-specific charging setup, history charts, and settings.

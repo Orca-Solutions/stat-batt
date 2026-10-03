@@ -20,7 +20,7 @@ The deterministic domain reducer covers inclusive hysteresis, fresh telemetry, w
 | MON-02/03 | Units/origins, cycles, observed physical FCC/design and derived health on exact target, estimated pack temperature, public voltage/adapter/ETA decoding | Synchronized sensor comparison/bounds, raw SOC, signed current/power; adapter rating when reported |
 | MON-04 | 30s idle fallback, event coalescing, refresh on request, sleep/wake invalidation | Measured CPU/RSS, prolonged sampling/hot-plug; active5s watchdog awaits daemon |
 | CAP-01 | Independent unsupported/unknown controls with reasons; exact fingerprint | Scoped control evidence and denial/restore lab results |
-| CTL-01 | Trusted mutable-workflow setup, UUID binding, fixed80% normal-user runner, intent journal/lock, explicit acknowledged/observed/manual-restored states; lab80% setting/readback and100% restoration | Live app path, cutoff and lifecycle; other targets and automatic restoration unavailable. Owner-approved trust exception in decision0002 |
+| CTL-01 | Trusted setup, UUID-bound fixed80% runner, journal/lock; owner-assisted menu Apply/visible80% confirmation/normal-reopen/manual100% return passed | Electrical cutoff, independent pre-restart library completion and abnormal lifecycle; other targets/automatic restoration unavailable. Owner-approved trust exception in decision0002 |
 | CTL-02–07 | Pure validation/reducer safety tests; controls visibly disabled | Qualified provider, serialized persistent daemon, hardware/lifecycle matrix |
 | SAFE-01 | Native pre-dispatch journal, restart fencing and explicit manual recovery; no installed helper | Real native crash/library-action lifecycle; durable privileged restoration and two-phase helper uninstall |
 | SEC-01 | Typed bounded strict requests; connection-bound sessions and synthetic replay/CAS/fence tests | Production signed XPC listener, OS admin right, durable idempotency and journals, negative signed-client tests |
@@ -37,7 +37,7 @@ The October 2 read-only diagnostic observed `Mac16,13`, arm64, macOS27.0.1/build
 
 ## Software verification
 
-Latest integrated suite:102 tests passed (50 XCTest+52 Swift Testing), zero failures. Build2 release bundle/ad-hoc signature checks pass after the Settings copy/metadata follow-up. Independent engineering, telemetry, native and product-design consultations are saved in handoffs/. Owner-supplied screenshots establish rendering of the current native setup state and matching target fingerprint; interaction/accessibility, other appearances/scaling and release resource budgets remain unverified. The earlier authorized native80% setting/readback test passed after the owner stopped Energiza’s helper; the original100% setting was restored and reverified. See research/NATIVE_LIMIT_LAB.md. Later native integration evidence is below.
+Latest integrated suite:131 tests passed (69 XCTest+62 Swift Testing), zero failures. Build4 release packaging and strict local signature verification passed after the direct-menu action and inherited-lock-lifetime repair. Historical build2 evidence below remains scoped to that older candidate. Build2 release bundle/ad-hoc signature checks pass after the Settings copy/metadata follow-up. Independent engineering, telemetry, native and product-design consultations are saved in handoffs/. Owner-supplied screenshots establish rendering of the current native setup state and matching target fingerprint; interaction/accessibility, other appearances/scaling and release resource budgets remain unverified. The earlier authorized native80% setting/readback test passed after the owner stopped Energiza’s helper; the original100% setting was restored and reverified. See research/NATIVE_LIMIT_LAB.md. Later native integration evidence is below.
 
 ## Next gate
 
@@ -70,3 +70,40 @@ Build2 follow-up: added a Bundle-derived Settings version row (0.1.0(2)) and cor
 Owner supplied08:35:21 and08:35:27 screenshots after the verified build2 restart. The new Charging screen renders the trusted setup, reports the expected shortcut found, shows all three declarations unchecked and Record trusted setup disabled, and keeps custom/discharge controls visibly unavailable. The separate compatibility image matches the qualified model/architecture/OS/build/firmware and says no privileged helper is installed. This establishes current setup rendering and displayed discovery status; it does not establish setup persistence, actual Apply/verification/restoration, current Battery settings limit or accessibility behavior. Local screenshot copies remain ignored in .build; product design's static review is in the handoff.
 
 Product design rechecked both current08:35 screenshots at original resolution and found no material visual issue at that size/light appearance. The08:36 owner diagnostic reports nativeState=notConfigured (expected while the setup declarations are unchecked), estimated temperature27.09°C and derived health96.94%; current/power/voltage/OS condition remain unavailable. Native Apply/recovery and custom controls remain outside current acceptance evidence.
+
+
+## Resumed v1 completion team — build3
+
+Owner requested team-driven full v1 completion. The isolated app branch adds a60-second monitor presentation validity boundary and localized numeric display, historic native-confirmation labels, accessible history summaries/observations, explicit disabled one-time and thermal surfaces, and notification transitions/failures with bounded pending cooldown delivery. Sleep retains undelivered recovery warnings; mute/settings reset them. Minute summaries overlapping gaps are labeled and isolated on both sides; missing measurements break chart interpolation.130 software tests pass, build3 packaging and strict ad-hoc signature pass.
+
+Fresh-context same-family review found three material defects in the increment (denial continuation, lost sleeping failure warning, and minute-bucket gap inference); source repairs and regression evidence are recorded in the completion handoff. A closed standalone hardware probe ran once read-only: CHTE/CH0C SMC metadata result132, CHIE baseline00 readable, CH0J denied0xe00002c1 then stopped. No writes, shortcuts or helper were used. [Probe evidence](research/SMC_READ_ONLY_QUALIFICATION.md) does not enable custom controls. Native live app/hardware lifecycle, accessibility and release/performance gates remain open in [v1 acceptance](V1_ACCEPTANCE.md). Full v1 is not accepted or released.
+
+
+## Direct menu convenience — build4
+
+Owner reaffirmed finishing StatBatt for menu-icon → Apply80% convenience. Product design source audit MENU-01 identified the missing direct menu action; ready-state menu now offers it with shared eligibility across Charging and dispatch. Pending/confirmed/recovery states offer status/review rather than reapply. A deterministic duplicated-descriptor regression proved a lock lifetime defect before repair; acquired-owner explicit unlock fixes it while competing-instance exclusion remains enforced.131 integrated tests and final release build/signature pass. Live menu/app-path, owner-visible100% restoration, accessibility/performance and full custom-control acceptance remain open. See WORKING_RECORD and LAB_PROTOCOL for the shortcut preparation incident, correction and pending owner assistance.
+
+
+## Completed owner-assisted native menu flow
+
+Build0.1.0(4) completed one separately authorized owner-assisted menu80% request on the exact tuple, visible settings confirmation and app confirmation, normal quit/reopen with unchanged operation/request/confirmation timestamps and no replay observed, and permanent100% return. Owner reported all UI actions; local checks corroborated candidate/process identity and journal phases ready → manuallyConfirmed80 → restoredUserConfirmed100. The finished/stopped declaration was recorded during restoration, not independently before restart; no earlier library completion is invented. The initial shortcut-inspection incident is separately excluded. Full result and timestamps: [NATIVE_APP_FLOW_RESULT](research/NATIVE_APP_FLOW_RESULT.md). The100% baseline was owner-verified at the end of that flow; it is a historical observation, not an independent current-limit reading. No cutoff, custom backend or abnormal recovery is qualified by this flow.
+
+### Later request requires reconciliation
+
+During the build5 resource check, read-only journal inspection found a separate request timestamp2026-10-02T23:05:07.957Z, phase outcomeUnknown. This predates build5 preparation; no build5 causation is established. Startup preserves that timestamp and writes the pending result as unknown without executing the shortcut. Source review found no automatic dispatch or request-timestamp refresh route. After the resource run, read-only Apple Charging sheet inspection visibly showed80%; no setting was changed. Further Apply is blocked pending manual reconciliation. Owner was asked whether they applied80% again; no answer or owner confirmation is assumed. The earlier completed flow remains historical qualification.
+
+## Closed-window resource verification
+
+Owner confirmed windows/menu closed while build4 kept running. The subsequent600.043-second observation measured1.4716% mean app CPU and63.8976MB peak RSS. Memory meets the100MB target; CPU exceeds0.5%, so performance acceptance remains open. No Internet sockets were observed in roughly5-second snapshots, which do not exclude brief connections. No UI interaction, stack sample or charging change occurred during this observation. CPU attribution follows separately; see [resource evidence](research/RESOURCE_OBSERVATION.md).
+
+## Build5 menu-label comparison and resource result
+
+The three-input Equatable menu label preserves the same text/icon/accessibility content and skips unchanged label-body work. Fresh-context source review cleared f72adff; release compilation and strict local ad-hoc signature passed. Broader UI/accessibility parity remains unverified; the131-test result belongs to the preceding build4 software suite and no test rerun is claimed for this small UI experiment.
+
+Owner-confirmed closed-window build5 run completed600.010sec:0.1583% onecore CPU,79.233024MB peak RSS,26.902528MB final RSS and0 observed Internet sockets with0 observation errors. This run meets app CPU/RSS targets. Restart/retained-view/host-workload differences prevent claiming the label alone fixed the earlier miss. History still recorded20 valid readings in eight completed minutes. Full result, exact build/hash and limits: [resource evidence](research/RESOURCE_OBSERVATION.md). No hardware request occurred during the comparison.
+
+### Two-target follow-up
+
+Owner confirms the later23:05UTC80% request was their deliberate Apply click. Its unknown execution still needs reconciliation; it is not evidence of automatic replay. The owner requested one-click Set to80% / Set to100%, superseding the normal manual return loop in [decision0003](decisions/0003-two-target-native-limit.md). Separate100% software/trust/actual qualification is in progress, not a verified production capability. Original full-v1 acceptance remains open.
+
+Build6 software candidate: default137tests and qualification138tests pass, production/qualification release packaging and strict local ad-hoc signatures pass. Fresh-context same-family review clears source dc5c899 with no blocking/material findings. Normal100% capability remains disabled; separate0.1.0-qualification(6) contains a durable one-use supervised trial. No build6 runtime UI/hardware or performance pass is claimed. Candidate identity and pending authorization are recorded in WORKING_RECORD and LAB_PROTOCOL.

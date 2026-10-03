@@ -25,12 +25,15 @@ Foundation established October 1; owner authorized implementation October 2, 202
 | [BUILD_PLAN.md](BUILD_PLAN.md) | Execute bounded feasibility and implementation stages |
 | [TEST_PLAN.md](TEST_PLAN.md) | Verify requirements and qualify exact target hardware |
 | [SECURITY_OPERATIONS.md](SECURITY_OPERATIONS.md) | Authenticate, install, recover, update, uninstall and handle local data |
+| [decisions/0003-two-target-native-limit.md](decisions/0003-two-target-native-limit.md) | Read the two-button native flow and separate100% qualification gate |
 | [decisions/0002-trusted-user-native-shortcut.md](decisions/0002-trusted-user-native-shortcut.md) | Read the owner-approved mutable-shortcut trust exception and retained boundaries |
 | [decisions/0001-capability-based-native-app.md](decisions/0001-capability-based-native-app.md) | Understand the proposed foundational decision and alternatives |
 | [research/ENERGIZA_PARITY.md](research/ENERGIZA_PARITY.md) | Compare sourced Energiza features against planned behavior |
 | [research/ENERGIZA_SOURCES.md](research/ENERGIZA_SOURCES.md) | Revisit primary vendor sources and bounded source-repository search |
 | [research/ENERGIZA_FAILURE.md](research/ENERGIZA_FAILURE.md) | Understand the supplied log and diagnosis limits |
 | [research/NATIVE_SHORTCUT_TRUST.md](research/NATIVE_SHORTCUT_TRUST.md) | Inspect supported native transport and the owner-approved mutable-workflow trust disposition |
+| [research/NATIVE_APP_FLOW_RESULT.md](research/NATIVE_APP_FLOW_RESULT.md) | Read the completed owner-assisted menu80%/normal-reopen/manual100% result and exact scope |
+| [research/RESOURCE_OBSERVATION.md](research/RESOURCE_OBSERVATION.md) | Read build4 ordinary-session and closed-window CPU/RSS measurements and their limits |
 | [research/NATIVE_LIMIT_LAB.md](research/NATIVE_LIMIT_LAB.md) | Read the executed80% native setting test,100% restoration, and proof limits |
 | [research/MACOS27_TELEMETRY.md](research/MACOS27_TELEMETRY.md) | Read exact-device nested telemetry evidence and coconutBattery comparison limits |
 | [research/MACOS_PLATFORM.md](research/MACOS_PLATFORM.md) | Evaluate public/native/private control surfaces and hardware proof |
@@ -38,3 +41,5 @@ Foundation established October 1; owner authorized implementation October 2, 202
 | [../WORKING_RECORD.md](../WORKING_RECORD.md) | Resume work: current state, review, checks and next action |
 
 SPEC.md owns product acceptance IDs. Research tables use their own vendor-parity IDs and do not override the spec's MON/CTL numbering. API.md owns the proposed transport shape. TEST_PLAN.md owns the compatibility matrix; only tested local combinations enter it. Research describes upstream claims separately.
+
+Completion follow-up: [V1_ACCEPTANCE.md](V1_ACCEPTANCE.md) tracks the open acceptance gates; [read-only SMC qualification](research/SMC_READ_ONLY_QUALIFICATION.md) records exact-target metadata without capability promotion.

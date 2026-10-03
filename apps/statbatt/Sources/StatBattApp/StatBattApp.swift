@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import StatBattDomain
+import StatBattNativeLimit
 
 @main
 struct StatBattApplication: App {
@@ -9,8 +10,9 @@ struct StatBattApplication: App {
         MenuBarExtra {
             MenuPanel(store: store)
         } label: {
-            Label(store.menuText, systemImage: store.symbol)
-                .accessibilityLabel(store.menuAccessibilityLabel)
+            StatusItemLabel(text: store.menuText, symbol: store.symbol,
+                            accessibilityDescription: store.menuAccessibilityLabel)
+                .equatable()
         }
         .menuBarExtraStyle(.window)
         Window("StatBatt", id: "dashboard") {
@@ -29,6 +31,17 @@ struct StatBattApplication: App {
     }
 }
 
+private struct StatusItemLabel: View, Equatable {
+    let text: String
+    let symbol: String
+    let accessibilityDescription: String
+
+    var body: some View {
+        Label(text, systemImage: symbol)
+            .accessibilityLabel(accessibilityDescription)
+    }
+}
+
 struct MenuPanel: View {
     @ObservedObject var store: AppStore
     @Environment(\.openWindow) private var openWindow
@@ -37,29 +50,22 @@ struct MenuPanel: View {
             HStack {
                 Text("StatBatt").font(.headline)
                 Spacer()
-                Text(store.nativePresentation.phase == .confirmed ? "APPLE LIMIT" : "MONITOR").font(.caption2.bold()).foregroundStyle(.secondary)
+                Text(store.nativePresentation.lastObservedLimit.map { "LAST OBSERVED \($0.rawValue)%" } ?? "MONITOR").font(.caption2.bold()).foregroundStyle(.secondary)
                     .padding(.horizontal, 8).padding(.vertical, 4).background(.quaternary, in: Capsule())
             }
             BatteryHeader(store: store, compact: true)
             Divider()
-            VStack(alignment: .leading, spacing: 6) {
-                Label(store.nativePresentation.phase == .confirmed ? "Apple80% setting confirmed by you" : "Apple limit setup & charging controls", systemImage: "info.circle").font(.subheadline.weight(.medium))
-                Text(store.nativePresentation.phase == .recoveryRequired || store.nativePresentation.phase == .awaitingConfirmation
-                     ? "Review the Apple limit in Charging. Custom hold and discharge remain unavailable."
-                     : "Configure Apple limiting in Charging. Custom hold and discharge are untested.")
-                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                Button("Charging settings…") { show(.charging) }
-            }
+            nativeLimitActions
             HStack {
                 Button("Charge to full once") {}.disabled(true)
                 Button("Discharge to…") {}.disabled(true)
             }.help("Requires a verified backend and safe restoration on this Mac")
             HStack(alignment: .top) {
-                MiniStat(title: "Temperature", value: store.format(store.snapshot.batteryTemperatureCelsius, unit: "°C", temperature: true), explanation: "A tilde means an estimated battery sensor reading.")
+                MiniStat(title: "Temperature", value: store.format(store.displaySnapshot.batteryTemperatureCelsius, unit: "°C", temperature: true), explanation: "A tilde means an estimated battery sensor reading.")
                 Spacer()
-                MiniStat(title: "Health", value: store.format(store.snapshot.healthPercent, unit: "%"), explanation: "Estimated full charge capacity divided by design capacity; separate from the macOS condition.")
+                MiniStat(title: "Health", value: store.format(store.displaySnapshot.healthPercent, unit: "%"), explanation: "Estimated full charge capacity divided by design capacity; separate from the macOS condition.")
                 Spacer()
-                MiniStat(title: "Cycles", value: store.snapshot.cycleCount.value.map(String.init) ?? "Unavailable")
+                MiniStat(title: "Cycles", value: store.displaySnapshot.cycleCount.value.map(String.init) ?? "Unavailable")
             }
             Divider()
             HStack {
@@ -72,6 +78,28 @@ struct MenuPanel: View {
             }
         }.padding(20).frame(width: 380)
     }
+
+    @ViewBuilder private var nativeLimitActions: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Apple charge limit", systemImage: "slider.horizontal.3")
+                .font(.subheadline.weight(.medium))
+            NativeLimitActionButtons(presentation: store.nativePresentation,
+                request80Enabled: store.canSetNativeLimit80,
+                request100Enabled: store.canSetNativeLimit100,
+                onApply: { store.setNativeLimit($0) })
+            NativeLimitStatusView(presentation: store.nativePresentation)
+            if store.nativePresentation.phase == .ready || store.nativePresentation.phase == .completed {
+                Text("Uses your trusted shortcuts. Reinspect them if edited.")
+                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            }
+            if let message = store.nativePresentation.message, !message.isEmpty {
+                Label(message, systemImage: "info.circle")
+                    .font(.caption).fixedSize(horizontal: false, vertical: true)
+            }
+            Button("Charging…") { show(.charging) }
+        }
+    }
+
     private func show(_ tab: DashboardTab) {
         store.selectedDashboardTab = tab
         openWindow(id: "dashboard")
@@ -121,17 +149,17 @@ struct BatteryHeader: View {
                 if !compact {
                     VStack(alignment: .trailing, spacing: 4) {
                         Text(store.chargingText).font(.subheadline.weight(.medium))
-                        Text("\(store.snapshot.isCharging.value == true ? "To full" : "Time remaining"): \(store.estimateText(store.snapshot.isCharging.value == true ? store.snapshot.timeToFull : store.snapshot.timeToEmpty))")
+                        Text("\(store.displaySnapshot.isCharging.value == true ? "To full" : "Time remaining"): \(store.estimateText(store.displaySnapshot.isCharging.value == true ? store.displaySnapshot.timeToFull : store.displaySnapshot.timeToEmpty))")
                             .font(.caption).foregroundStyle(.secondary)
                     }
                 }
             }
-            if let percent = store.snapshot.stateOfChargePercent.value {
+            if let percent = store.displaySnapshot.stateOfChargePercent.value {
                 ProgressView(value: percent, total: 100).tint(.green).accessibilityLabel("Battery charge")
             }
             if compact {
                 Text(store.chargingText).font(.subheadline)
-                Text("\(store.snapshot.isCharging.value == true ? "To full" : "Remaining"): \(store.estimateText(store.snapshot.isCharging.value == true ? store.snapshot.timeToFull : store.snapshot.timeToEmpty))")
+                Text("\(store.displaySnapshot.isCharging.value == true ? "To full" : "Remaining"): \(store.estimateText(store.displaySnapshot.isCharging.value == true ? store.displaySnapshot.timeToFull : store.displaySnapshot.timeToEmpty))")
                     .font(.caption).foregroundStyle(.secondary)
             }
         }
@@ -145,7 +173,7 @@ struct Dashboard: View {
             HStack {
                 Text("StatBatt").font(.title2.bold())
                 Spacer()
-                Label(store.nativePresentation.phase == .confirmed ? "Apple limit · confirmed by you" : "Monitoring", systemImage: "eye").font(.subheadline).foregroundStyle(.secondary)
+                Label(store.nativePresentation.lastObservedLimit != nil ? "Apple limit · last observed by you" : "Monitoring", systemImage: "eye").font(.subheadline).foregroundStyle(.secondary)
                 Button { store.refresh() } label: { Image(systemName: "arrow.clockwise") }.help("Refresh").accessibilityLabel("Refresh battery readings")
             }.padding(24)
             if let message = store.message {
@@ -175,28 +203,28 @@ struct Overview: View {
                 BatteryHeader(store: store).padding(20).background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 16))
                 GroupBox("Battery condition") {
                     VStack(spacing: 10) {
-                        DetailRow(title: "macOS condition", value: store.snapshot.operatingSystemCondition.value ?? "Unavailable", origin: store.snapshot.operatingSystemCondition.source)
-                        DetailRow(title: "Estimated health", value: store.format(store.snapshot.healthPercent, unit: "%"), origin: "Full charge capacity ÷ design capacity · estimate, not an OS health diagnosis")
-                        DetailRow(title: "Cycle count", value: store.snapshot.cycleCount.value.map(String.init) ?? "Unavailable", origin: store.snapshot.cycleCount.source)
-                        DetailRow(title: "Full charge capacity", value: store.snapshot.fullChargeCapacityMilliampHours.value.map { "\(Int($0)) mAh" } ?? "Unavailable", origin: "Reported physical capacity · battery registry")
-                        DetailRow(title: "Design capacity", value: store.snapshot.designCapacityMilliampHours.value.map { "\(Int($0)) mAh" } ?? "Unavailable", origin: "Reported physical capacity · battery registry")
-                        DetailRow(title: "Battery temperature", value: store.format(store.snapshot.batteryTemperatureCelsius, unit: "°C", temperature: true), origin: store.snapshot.batteryTemperatureCelsius.value == nil ? "This Mac isn’t reporting a validated battery temperature yet" : "Battery sensor · estimated reading" )
+                        DetailRow(title: "macOS condition", value: store.displaySnapshot.operatingSystemCondition.value ?? "Unavailable", origin: store.displaySnapshot.operatingSystemCondition.source)
+                        DetailRow(title: "Estimated health", value: store.format(store.displaySnapshot.healthPercent, unit: "%"), origin: "Full charge capacity ÷ design capacity · estimate, not an OS health diagnosis")
+                        DetailRow(title: "Cycle count", value: store.displaySnapshot.cycleCount.value.map(String.init) ?? "Unavailable", origin: store.displaySnapshot.cycleCount.source)
+                        DetailRow(title: "Full charge capacity", value: store.displaySnapshot.fullChargeCapacityMilliampHours.value.map { "\(Int($0)) mAh" } ?? "Unavailable", origin: "Reported physical capacity · battery registry")
+                        DetailRow(title: "Design capacity", value: store.displaySnapshot.designCapacityMilliampHours.value.map { "\(Int($0)) mAh" } ?? "Unavailable", origin: "Reported physical capacity · battery registry")
+                        DetailRow(title: "Battery temperature", value: store.format(store.displaySnapshot.batteryTemperatureCelsius, unit: "°C", temperature: true), origin: store.displaySnapshot.batteryTemperatureCelsius.value == nil ? store.displaySnapshot.batteryTemperatureCelsius.unavailableReason ?? "No validated battery temperature reading" : "Battery sensor · estimated reading" )
                     }.padding(10)
                 }
                 GroupBox("Power & electrical readings") {
                     VStack(spacing: 10) {
-                        DetailRow(title: "Adapter connection (reported)", value: store.snapshot.adapterAttached.value.map { $0 ? "Yes" : "No" } ?? "Unavailable", origin: store.snapshot.adapterAttached.source)
-                        DetailRow(title: "Supplying source", value: store.sourceText, origin: store.snapshot.supplyingSource.source)
-                        DetailRow(title: "Battery voltage", value: store.format(store.snapshot.batteryVoltageMillivolts, unit: "mV"), origin: store.snapshot.batteryVoltageMillivolts.source)
-                        DetailRow(title: "Battery current", value: store.format(store.snapshot.batteryCurrentMilliamps, unit: "mA"), origin: "Battery current direction is not yet verified on this Mac")
-                        DetailRow(title: "Net battery power", value: store.format(store.snapshot.batteryPowerWatts, unit: "W"), origin: "Positive into battery; negative out · distinct from charger delivery")
-                        DetailRow(title: "Adapter rating", value: store.format(store.snapshot.adapterRatedWatts, unit: "W"), origin: "Reported adapter rating, not measured input power")
-                        DetailRow(title: "System thermal pressure", value: store.snapshot.thermalPressure.value?.rawValue.capitalized ?? "Unavailable", origin: "System category, not battery temperature")
+                        DetailRow(title: "Adapter connection (reported)", value: store.displaySnapshot.adapterAttached.value.map { $0 ? "Yes" : "No" } ?? "Unavailable", origin: store.displaySnapshot.adapterAttached.source)
+                        DetailRow(title: "Supplying source", value: store.sourceText, origin: store.displaySnapshot.supplyingSource.source)
+                        DetailRow(title: "Battery voltage", value: store.format(store.displaySnapshot.batteryVoltageMillivolts, unit: "mV"), origin: store.displaySnapshot.batteryVoltageMillivolts.source)
+                        DetailRow(title: "Battery current", value: store.format(store.displaySnapshot.batteryCurrentMilliamps, unit: "mA"), origin: "Battery current direction is not yet verified on this Mac")
+                        DetailRow(title: "Net battery power", value: store.format(store.displaySnapshot.batteryPowerWatts, unit: "W"), origin: "Positive into battery; negative out · distinct from charger delivery")
+                        DetailRow(title: "Adapter rating", value: store.format(store.displaySnapshot.adapterRatedWatts, unit: "W"), origin: "Reported adapter rating, not measured input power")
+                        DetailRow(title: "System thermal pressure", value: store.displaySnapshot.thermalPressure.value?.rawValue.capitalized ?? "Unavailable", origin: "System category, not battery temperature")
                     }.padding(10)
                 }
                 Text("A paused charge can reflect Apple’s charge limit, optimized charging, temperature, or another controller. Public telemetry does not identify the reason.")
                     .font(.caption).foregroundStyle(.secondary)
-                Text("Updated \(store.snapshot.stateOfChargePercent.sampledAtUTC.formatted(date: .omitted, time: .standard)) · Local data only")
+                Text("Updated \(store.displaySnapshot.stateOfChargePercent.sampledAtUTC.formatted(date: .omitted, time: .standard)) · Local data only")
                     .font(.caption).foregroundStyle(.secondary)
             }.padding(16)
         }
@@ -224,16 +252,20 @@ struct ChargingView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Charging setup").font(.title2.bold())
+                Text("Charging").font(.title2.bold())
                 Text("Apple limiting delegates charging to macOS. Custom hold and discharge need separate verification on this Mac.")
                     .foregroundStyle(.secondary)
                 NativeLimitView(presentation: store.nativePresentation,
+                    request80Enabled: store.canSetNativeLimit80,
+                    request100Enabled: store.canSetNativeLimit100,
+                    supervised100Enabled: store.canRunSupervised100Qualification,
                     onOpenShortcuts: { store.openNativeShortcutSetup() },
                     onOpenBatterySettings: { store.openBatterySettings() },
-                    onConfigure: { store.configureNativeLimit(inspected: $0, baselineConfirmed: $1, controllersStopped: $2) },
-                    onApply: { store.applyNativeLimit80() },
-                    onConfirm80: { store.confirmNativeLimit80() },
-                    onConfirmRestored100: { store.confirmNativeRestored100(priorShortcutCompletedOrStopped: $0) },
+                    onConfigure: { store.configureNativeLimit(for: $0, inspected: $1, controllersStopped: $2) },
+                    onApply: { store.setNativeLimit($0) },
+                    onConfirmVisible: { store.confirmNativeVisibleLimit($0) },
+                    onReconcile: { store.reconcileNativeLimit($0, priorShortcutCompletedOrStopped: $1) },
+                    onSupervised100Qualification: { store.runSupervised100Qualification() },
                     onForgetSetup: { store.forgetNativeSetup() })
                 GroupBox("Custom charge band") {
                     VStack(alignment: .leading, spacing: 12) {
@@ -252,6 +284,31 @@ struct ChargingView: View {
                         Label("Unavailable · adapter restoration unverified", systemImage: "lock")
                         Text("Uses ordinary workload on battery while the adapter remains plugged in. Requires a verified cutoff, reserve protection, timeout, and recovery through sleep and crashes.")
                         Button("Discharge to 70%") {}.disabled(true)
+                    }.frame(maxWidth: .infinity, alignment: .leading).padding(10)
+                }
+                GroupBox("One-time charging actions") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label("Unavailable · charge gate and return policy unverified", systemImage: "lock")
+                        Text("Charging to a target or full needs a verified charge gate, a bounded expiry, and a safe return to the enabled policy. Stopping charging retains external power. These actions are not available through the Apple limit shortcut.")
+                            .font(.callout)
+                        HStack {
+                            Button("Charge to 80% once") {}.disabled(true)
+                            Button("Charge to full once") {}.disabled(true)
+                        }
+                        Button("Stop charging now") {}.disabled(true)
+                    }.frame(maxWidth: .infinity, alignment: .leading).padding(10)
+                }
+                GroupBox("Temperature protection") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label("Unavailable · thermal charge control unverified", systemImage: "lock")
+                        Text("Proposed defaults · inactive").font(.caption).foregroundStyle(.secondary)
+                        Text("Pause at \(store.displayTemperature(40).formatted(.number.precision(.fractionLength(0)))) \(store.temperatureSuffix) · resume at \(store.displayTemperature(37).formatted(.number.precision(.fractionLength(0)))) \(store.temperatureSuffix)")
+                            .foregroundStyle(.secondary)
+                        Text("Requires validated, fresh battery temperature and a verified charge gate. Missing readings must release custom control. StatBatt does not disconnect the adapter for temperature protection.")
+                            .font(.callout)
+                        Toggle("Enable temperature protection", isOn: .constant(false)).disabled(true)
+                        Text("Temperature notifications are available in Settings when readings are available. Notifications do not control charging; Apple's hardware protections remain active.")
+                            .font(.caption).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity, alignment: .leading).padding(10)
                 }
                 GroupBox("Helper & compatibility") {
