@@ -16,6 +16,8 @@ import time
 import uuid
 
 ENABLED = False
+GUARDIAN_MODE = "--cycle"
+MINIMUM_INHIBITION_NANOSECONDS = 0
 BINARY = Path('/Library/Application Support/StatBattLocal/StatBatt.app/Contents/MacOS/StatBattAdapterGuardian')
 BINARY_SHA256 = '673176cd92b7374fa01b194dac8491ed1e1a05094424f2c5a3a96c466642cd62'
 SOURCE_MANIFEST = Path('/private/tmp/statbatt-v11-candidate-b9znmgcm/CANDIDATE_MANIFEST.json')
@@ -157,8 +159,14 @@ def cleanup_owned_intent(inspect, available, recover, read_phase):
     return {'verified': verified, 'recovery': cleanup, 'finalInspection': final}
 
 
+def eligible_for_kill(packet, first_inhibited):
+    if not positive(packet, 8) or first_inhibited is None: return False
+    if GUARDIAN_MODE == '--cycle-120' and packet.get('holdSeconds') != 120: return False
+    return packet['sampledAt'] >= first_inhibited + MINIMUM_INHIBITION_NANOSECONDS
+
+
 def observe_cycle(child, operation):
-    killed = False; evidence = []; pending = b''; error = None; kill_audit = {}
+    killed = False; evidence = []; pending = b''; error = None; kill_audit = {}; first_inhibited = None
     try:
         child.stdin.write((operation + '\n').encode()); child.stdin.flush()
         deadline = time.monotonic() + 6
@@ -173,7 +181,10 @@ def observe_cycle(child, operation):
                 try: packet = json.loads(line)
                 except ValueError: continue
                 if len(evidence) < 128: evidence.append(packet)
-                if positive(packet, 8):
+                if packet.get('phase') == 'inhibited' and packet.get('key') == 8 and packet.get('outcome') == 0:
+                    sampled = packet.get('sampledAt')
+                    if type(sampled) is int and sampled > 0 and first_inhibited is None: first_inhibited = sampled
+                if eligible_for_kill(packet, first_inhibited):
                     # Exactly this child, exactly once. Never kill the independent worker.
                     killed = kill_once(child, packet, killed, kill_audit); break
             if killed: break
@@ -192,6 +203,8 @@ def main():
         raise SystemExit('Source-only guardian-loss packet; execution disabled.')
     if os.getuid() != 0 or os.geteuid() != 0 or sys.argv[1:] != ['--approved-guardian-loss-test']:
         raise SystemExit('Explicit administrator invocation required; no elevation.')
+    if (GUARDIAN_MODE, MINIMUM_INHIBITION_NANOSECONDS) not in (('--cycle', 0), ('--cycle-120', 3_000_000_000)):
+        raise SystemExit('Unrecognized fixed test scope')
     verify_binary()
     proof = Path(SOURCE_MANIFEST).read_bytes()
     if len(proof) > 65536 or hashlib.sha256(proof).hexdigest() != SOURCE_MANIFEST_SHA256:
@@ -201,6 +214,10 @@ def main():
                  'Sources/CStatBattAdapterControl/adapter_control.c', 'Sources/StatBattAdapterBackend/AdapterPacket.swift'):
         if hashlib.sha256((SOURCE_ROOT / name).read_bytes()).hexdigest() != manifest.get(name):
             raise SystemExit('Reviewed source mismatch')
+    if GUARDIAN_MODE == '--cycle-120':
+        name = 'Sources/StatBattAdapterGuardian/LongPauseSafety.swift'
+        if hashlib.sha256((SOURCE_ROOT / name).read_bytes()).hexdigest() != manifest.get(name):
+            raise SystemExit('Long-pause source mismatch')
     names = subprocess.run(['/bin/ps', '-axo', 'comm='], check=True, capture_output=True, text=True, timeout=3).stdout.splitlines()
     blocked = {'statbatt', 'statbattcontroldaemon', 'shortcuts', 'energiza', 'aldente', 'batt', 'batterytoolkit', 'battery toolkit', 'batterytoolkitd'}
     if not names or any(Path(name.strip()).name.lower() in blocked for name in names):
@@ -214,8 +231,9 @@ def main():
     save(stage, 'intent.json', {'operation': operation, 'authorization': sys.argv[1], 'binarySHA256': BINARY_SHA256,
         'sourceManifestSHA256': SOURCE_MANIFEST_SHA256, 'baseline': baseline,
         'timestampUTC': datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        'plan': 'One cycle; kill only its guardian after fresh08+battery; worker restores on EOF with fixed2s lease. One guarded00 fallback if needed, OR after independent00+AC proof one00 cleanup closes owned journal. No repeated08.'})
-    child = subprocess.Popen([str(BINARY), '--cycle'], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        'guardianMode': GUARDIAN_MODE, 'minimumInhibitionNanoseconds': MINIMUM_INHIBITION_NANOSECONDS,
+        'plan': 'One fixed cycle; kill only its guardian after fresh08+battery and the selected minimum interval; worker restores on EOF or its nonrenewable mode deadline. One guarded00 fallback if needed, OR after independent00+AC proof one00 cleanup closes owned journal. No repeated08.'})
+    child = subprocess.Popen([str(BINARY), GUARDIAN_MODE], stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                              stderr=subprocess.DEVNULL, env=ENV, start_new_session=True)
     killed, evidence, error, kill_audit = observe_cycle(child, operation)
     # Evidence I/O cannot delay the worker's independent restoration.

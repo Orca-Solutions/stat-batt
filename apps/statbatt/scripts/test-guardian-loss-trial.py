@@ -50,6 +50,16 @@ class GuardianLossTests(unittest.TestCase):
         self.assertTrue(trial.kill_once(child, packet(8), True))
         child.kill.assert_called_once_with()
 
+    def test_long_mode_requires_three_seconds_and_fixed_long_packet(self):
+        with patch.object(trial, 'GUARDIAN_MODE', '--cycle-120'), \
+             patch.object(trial, 'MINIMUM_INHIBITION_NANOSECONDS', 3_000_000_000), \
+             patch.object(trial, 'continuous_nanoseconds', return_value=3_000_000_102):
+            good = dict(packet(8), sampledAt=3_000_000_100, sourceAt=3_000_000_101, holdSeconds=120)
+            self.assertTrue(trial.eligible_for_kill(good, 100))
+            self.assertFalse(trial.eligible_for_kill(good, 101))
+            self.assertFalse(trial.eligible_for_kill(dict(good, holdSeconds=2), 100))
+            self.assertFalse(trial.eligible_for_kill(good, None))
+
     def test_cycle_exception_returns_for_recovery_after_closing_owner(self):
         child = Mock()
         child.poll.return_value = None

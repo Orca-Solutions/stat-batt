@@ -1,6 +1,6 @@
 # Build13 bounded long-pause qualification
 
-Prepared October3,2026. Not installed or executed; specific hardware authorization is pending. Public signing/notarization remains deferred. Automatic admission remainsnil in both normal source and candidate.
+Prepared October3,2026. Build13 is installed and the authorized normal120-second trial passed; further recovery tests require their own authorization. Public signing/notarization remains deferred. Automatic admission remainsnil in both normal source and candidate.
 
 ## Candidate and intended scope
 
@@ -40,3 +40,11 @@ Directory: `/private/tmp/statbatt-long-pause-ready-6nt9y49h`. Exact pinned depen
   "long-pause-evidence.py": "e745ed31ffa56ce0f75424319ea0cdb9ae4ebc811ddb457b7838c4c88b93f41c"
 }
 ```
+
+Owner authorization: after the exact install/120-second test request, the owner replied “approved keep pushing to v1 pls.” This authorizes one described cycle and guarded restore-only fallback, not repeated cycles or automatic policy. Build12 service reported adapterRestored/safeToExit true, then unregistered successfully before Installer was opened for build13. Installation and hardware result remain pending.
+
+Build13 installation completed successfully; installed app/daemon/guardian SHA256 values match the packet and strict Apple/Team bundle verification passed. App and other identified controllers were absent. The one-use launcher has been dispatched once and is awaiting administrator authentication; no result yet.
+
+## Executed result
+
+Owner confirmed installation and authenticated the single trial. Saved stdout and owner screenshot agree: qualifiedtrue, guardian exit0,1140samples, no error or fallback, fresh00+adapter and closed recovery journal, battery80%, estimated30.69°C. Root-private trace: `/private/tmp/statbatt-long-pause-217uw0r_`; saved summary: THERMAL_LONG_PAUSE_RESULT.json. This establishes the sustained bounded mode and normal restoration, not independent long-mode crash/sleep recovery or automatic-session acceptance. The one-use launcher is retired; no retry was performed.
