@@ -75,7 +75,7 @@ private actor InspectionFixture {
     #expect(later?.sampledAt == 2)
 }
 
-@Test func inspectionReservesBackendBeforeLaunchingSharedTask() async throws {
+@Test func pendingInhibitionWaitsForReadOnlyInspectionWithoutBusyFailure() async throws {
     let fixture = InspectionFixture()
     let ledger = try ThermalOwnershipLedger(storage: MemoryJournal(), bootID: UUID())
     let operation = try await ledger.prepareInhibition(sessionID: UUID(), now: 1)
@@ -83,7 +83,9 @@ private actor InspectionFixture {
     let inspection = Task { await backend.freshInspection() }
     while await fixture.calls == 0 { await Task.yield() }
     #expect(await backend.inhibitAdapter(operationID: operation) == false)
-    #expect(await backend.diagnosticSnapshot().last?.failure == .backendBusy)
+    let history = await backend.diagnosticSnapshot()
+    #expect(history.contains { $0.failure == .identityOrGate })
+    #expect(!history.contains { $0.failure == .backendBusy })
     #expect(await inspection.value?.sampledAt == 1)
 }
 
@@ -108,4 +110,59 @@ private actor InspectionFixture {
     #expect(flock(contender, LOCK_EX | LOCK_NB) != 0)
     child.terminate(); child.waitUntilExit()
     #expect(flock(contender, LOCK_EX | LOCK_NB) == 0)
+}
+
+@Test func stopAndRestoreWaitForReadOnlyInspection() async throws {
+    let fixture = InspectionFixture()
+    let ledger = try ThermalOwnershipLedger(storage: MemoryJournal(), bootID: UUID())
+    _ = try await ledger.prepareInhibition(sessionID: UUID(), now: 1)
+    let backend = LocalThermalAdapterBackend(ledger: ledger, bootID: UUID(), inspection: { await fixture.inspect() })
+    let reading = Task { await backend.freshInspection() }
+    while await fixture.calls == 0 { await Task.yield() }
+    #expect(await backend.stopAndReapWriter())
+    #expect(await reading.value?.sampledAt == 1)
+    let second = Task { await backend.freshInspection() }
+    while await fixture.calls < 2 { await Task.yield() }
+    #expect(await backend.restoreAdapter() == nil) // Closed write gate, not reader contention.
+    let history = await backend.diagnosticSnapshot()
+    #expect(history.contains { $0.failure == .identityOrGate })
+    #expect(!history.contains { $0.failure == .backendBusy })
+    #expect(await second.value?.sampledAt == 2)
+    #expect(await ledger.blocksInhibitionAndUninstall)
+}
+
+@Test func packetDrainSelectsFreshLastPacketBeyondOneRead() throws {
+    let channel = Pipe()
+    let fd = channel.fileHandleForReading.fileDescriptor
+    #expect(fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK) == 0)
+    var bytes = Data()
+    for index in 1...90 {
+        var packet = AdapterPacket(phase: "inhibited")
+        packet.sampledAt = UInt64(index); packet.key = 8; packet.outcome = 0; packet.battery = true
+        bytes.append(try JSONEncoder().encode(packet)); bytes.append(10)
+    }
+    #expect(bytes.count > 4096 && bytes.count < 16000)
+    try channel.fileHandleForWriting.write(contentsOf: bytes)
+    var buffered = Data(), latest: AdapterPacket?, count = 0
+    drainAdapterPackets(fileDescriptor: fd, buffered: &buffered) { latest = $0; count += 1 }
+    #expect(count == 90 && latest?.sampledAt == 90)
+    #expect(buffered.isEmpty)
+    // No EOF is required: EAGAIN terminates immediately with the writer open.
+    drainAdapterPackets(fileDescriptor: fd, buffered: &buffered) { _ in count += 1 }
+    #expect(count == 90)
+}
+
+@Test func packetDrainPreservesSplitFrameAcrossCalls() throws {
+    let channel = Pipe(), packet = AdapterPacket(phase: "inspection")
+    let fd = channel.fileHandleForReading.fileDescriptor
+    #expect(fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK) == 0)
+    var bytes = try JSONEncoder().encode(packet); bytes.append(10)
+    let split = bytes.count / 2
+    try channel.fileHandleForWriting.write(contentsOf: bytes.prefix(split))
+    var buffered = Data(), phases: [String] = []
+    drainAdapterPackets(fileDescriptor: fd, buffered: &buffered) { phases.append($0.phase) }
+    #expect(phases.isEmpty && !buffered.isEmpty)
+    try channel.fileHandleForWriting.write(contentsOf: bytes.suffix(from: split))
+    drainAdapterPackets(fileDescriptor: fd, buffered: &buffered) { phases.append($0.phase) }
+    #expect(phases == ["inspection"] && buffered.isEmpty)
 }

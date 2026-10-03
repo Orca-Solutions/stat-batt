@@ -53,3 +53,5 @@ See [local integration and remaining gates](research/THERMAL_LOCAL_INTEGRATION.m
 ## Build 11 follow-up
 
 Build 10 is installed and restored, but is not complete v1 temperature control. Build 11 is prepared with 218 passing software tests and installer admission fixtures. Automatic admission remains disabled pending exact-build electrical and lifecycle qualification. Public signing/notarization are deferred by owner direction, not blockers to this local test. See [integration checkpoint](research/THERMAL_LOCAL_INTEGRATION.md) and [fixed candidate](research/THERMAL_APP_ONE_SHOT_CANDIDATE.md).
+
+Build12 follow-up: the owner-operated two-second app-path test returned fresh battery-supply observation and verified restoration, corroborated by the retained UI result and authenticated service status. The independent user-level trace stayed on AC; this limitation is retained. Automatic temperature control remains unavailable pending exact-guardian crash/sleep and longer-pause qualification.

@@ -40,7 +40,7 @@ A new same-team signed read-only diagnostic client queried the existing service.
 Source fixes retain test outcomes independently of generic refresh messages, show manual status-check progress/timestamps, coalesce concurrent client refreshes and backend inspections, and record bounded sanitized launch/precondition/key/source/restore diagnostic events. Unregistration now requests prepareUninstall and requires safeToExit rather than using the legacy non-actuating status. All204 software tests pass. These source fixes are not yet deployed to the protected service. The old trial's exact failure cause remains unknown; startup consuming the observation budget or a precondition rejection are hypotheses only.
 
 
-## Installed build 10 — current state
+## Installed build 10 — historical checkpoint
 
 The protected update completed and installed executable hashes were verified against the reviewed build 10 payload. The service is registered. A subsequent read-only status confirmed `adapterRestored: true`, `safeToExit: true`, `controlAvailable: false`, and `qualificationAvailable: true`. These observations show a safe baseline; they do not accept the earlier test or authorize a repeat.
 
@@ -48,7 +48,7 @@ The outcome persistence, manual status feedback, coalesced reads and diagnostic 
 
 Local update admission validates the stopped app/service, root-owned existing installation, same-team signatures, resolved ledger and fresh read-only zero/AC samples. Installer scripts perform no restoration or registration. Guided protected bundle removal is now implemented in source, preserving recovery journals and user-owned shortcuts, but is not yet deployed or live-tested. Public notarization remains deferred.
 
-## Build 11 prepared follow-up — not yet executed
+## Build 11 candidate and subsequent attempt
 
 Prepared isolated source: `/private/tmp/statbatt-v11-candidate-b9znmgcm/statbatt`; manifest and six-line gate diff are adjacent. Automatic qualification record is nil. The revised worker adds independent EOF/sleep/deadline restoration, excludes startup from the two-second lease and keeps output nonblocking. Software suite: 218 tests pass; preflight fixtures pass.
 
@@ -70,10 +70,16 @@ Owner screenshot records a failed reply at11:00:55 local time. The daemon subseq
 
 Code inspection found an app request race: automatic status reads do not mark UI busy, so a click may send a second request on the same connection while the service permits only one. The client previously collapsed every error into unknown outcome, so the exact rejection code from this attempt is unavailable. This is a concrete defect and plausible explanation, not a proven historical error code. The fix serializes connection requests, never retries mutations, checks command supersession before dispatch, and retains bounded error information. Two new software regression tests pass.
 
-## Build 12 app-only correction — prepared
+## Build 12 app-only correction and successful test
 
 Source stage: `/private/tmp/statbatt-v12-candidate-kstxn1ht/statbatt`. Packaged signed app version12 fixes per-connection request serialization and retains sanitized rejection details. Daemon, guardian and removal helper are byte-identical to build11. Two focused regression tests pass and release app compilation succeeds. No hardware retry has occurred; new approval is pending.
 
 Package `apps/statbatt/dist/qualification/StatBatt-12-ONE-SHOT-UPDATE.pkg` SHA256 `aa0e0514ba24a298f7552dffa3148194a0b4af4b3b74bbacc1f07a12817e2963`; app executable SHA256 `ac2484aea362627bcc1310078bce85f8ac1e427c7c6090a97fb12a092cfc5a69`. Package builder checked Apple/team signatures and shortcut integrity; expanded payload matches signed files.
 
 Build11 independent trace completed3000samples from17:58:35.642Z to18:03:47.892Z, all adapter. Trace SHA256 `aee6b9beaf0a42d8c47058a3b0f737598c0078bd065e49186d183b39d8b4ae9a`. This covers the screenshot's18:00:55Z outcome; it does not prove no transient write shorter than sampling.
+
+### Build 12 app-path success — October 3, 11:10 local
+
+Owner explicitly approved installation and one fresh test. Installed app/daemon/guardian hashes matched the candidate; baseline AC80%, adapterRestored=true and safeToExit=true. The owner clicked once. At11:10:16 the app displayed: “One-shot adapter test observed battery power and verified restoration. Automatic temperature control remains off.” A direct authenticated status query returned the same qualificationResult, qualificationAvailable=false, adapterRestored=true and safeToExit=true. The owner confirmed the message and supplied a screenshot. This establishes the scoped app/service/guardian normal-cycle observation and restoration result, not crash/sleep or long-pause qualification.
+
+The separate user-level100ms IOPowerSources recorder did not capture a battery transition. Its interpretation may differ from fresh root guardian observations; no independent electrical corroboration is claimed. Do not erase this discrepancy or repeat the operation automatically. Further work is lifecycle recovery qualification on the exact guardian, then longer bounded policy operation.
