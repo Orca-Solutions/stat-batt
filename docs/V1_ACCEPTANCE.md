@@ -55,3 +55,19 @@ See [local integration and remaining gates](research/THERMAL_LOCAL_INTEGRATION.m
 Build 10 is installed and restored, but is not complete v1 temperature control. Build 11 is prepared with 218 passing software tests and installer admission fixtures. Automatic admission remains disabled pending exact-build electrical and lifecycle qualification. Public signing/notarization are deferred by owner direction, not blockers to this local test. See [integration checkpoint](research/THERMAL_LOCAL_INTEGRATION.md) and [fixed candidate](research/THERMAL_APP_ONE_SHOT_CANDIDATE.md).
 
 Build12 follow-up: the owner-operated two-second app-path test returned fresh battery-supply observation and verified restoration, corroborated by the retained UI result and authenticated service status. The independent user-level trace stayed on AC; this limitation is retained. Automatic temperature control remains unavailable pending exact-guardian crash/sleep and longer-pause qualification.
+
+
+Guardian-loss follow-up: the exact installed Swift guardian was terminated after
+fresh08+battery evidence. Its independent worker restored00+adapter before any
+supervisor cleanup, without fallback; separate journal cleanup and final inspection
+passed. See [recorded qualification](research/THERMAL_GUARDIAN_LOSS_QUALIFICATION.md).
+This closes guardian-process loss for the tested two-second mode only. It does not
+qualify a longer pause, simultaneous worker loss, or the full automatic session.
+
+Remaining temperature work has two broad areas, not a guaranteed two test cycles:
+(1) implement and qualify a useful bounded pause duration, including independent
+restoration and telemetry/reserve stop rules; (2) qualify the integrated automatic
+session through sleep/wake, disable/quit, owner/service loss, and native-control
+handoff. Some failure branches can be tested offline; installed hardware evidence
+must cover the exact candidate and actual branch. No synthetic heat or stress load
+is required. Public signing/notarization remains deferred.

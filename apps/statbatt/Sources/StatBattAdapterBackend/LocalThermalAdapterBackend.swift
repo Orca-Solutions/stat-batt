@@ -4,10 +4,14 @@ import StatBattControlProtocol
 import StatBattDomain
 import StatBattTelemetry
 
-/// Qualification provider only: two-second, nonrenewable ownership. No long-hold capability.
+public enum AdapterPauseMode: Sendable { case twoSeconds, oneHundredTwentySeconds }
+
+/// Closed, nonrenewable leases; extended mode requires separate qualification gates.
 public actor LocalThermalAdapterBackend: ThermalControlBackend {
     public static let qualificationEnabled = false
     public static let recoveryEnabled = false
+    public static let longPauseQualificationEnabled = false
+    private let pauseMode: AdapterPauseMode
     private let ledger: ThermalOwnershipLedger
     private let bootID: UUID
     private var child: Process?
@@ -29,15 +33,17 @@ public actor LocalThermalAdapterBackend: ThermalControlBackend {
         diagnosticHistory.append(AdapterDiagnostic(event: event, at: SampleClock.nowNanoseconds(), packet: packet, failure: failure, exitCode: exitCode))
     }
 
-    public init(ledger: ThermalOwnershipLedger, bootID: UUID) {
+    public init(ledger: ThermalOwnershipLedger, bootID: UUID, pauseMode: AdapterPauseMode = .twoSeconds) {
+        self.pauseMode = pauseMode
         self.ledger = ledger; self.bootID = bootID; inspectionOverride = nil
     }
     // Internal read-only injection; never an XPC or production initialization option.
     init(ledger: ThermalOwnershipLedger, bootID: UUID, inspection: @escaping @Sendable () async -> AdapterPacket?) {
+        self.pauseMode = .twoSeconds
         self.ledger = ledger; self.bootID = bootID; inspectionOverride = inspection
     }
     private func start(_ mode: String) throws {
-        guard (mode == "--cycle" ? (Self.qualificationEnabled && Self.recoveryEnabled) : mode == "--recover" ? Self.recoveryEnabled : mode == "--inspect"), getuid() == 0, geteuid() == 0 else {
+        guard (mode == "--cycle-120" ? (Self.longPauseQualificationEnabled && Self.qualificationEnabled && Self.recoveryEnabled) : mode == "--cycle" ? (Self.qualificationEnabled && Self.recoveryEnabled) : mode == "--recover" ? Self.recoveryEnabled : mode == "--inspect"), getuid() == 0, geteuid() == 0 else {
             if mode != "--inspect" { note("failed", failure: .identityOrGate) }
             throw ThermalJournalError.unavailable
         }
@@ -78,6 +84,15 @@ public actor LocalThermalAdapterBackend: ThermalControlBackend {
         return false // Never race a potentially live writer with a new restore.
     }
     public func inhibitAdapter(operationID: UUID) async -> Bool {
+        await inhibit(operationID: operationID, mode: pauseMode)
+    }
+    public func inhibitAdapterForOneShotQualification(operationID: UUID) async -> Bool {
+        await inhibit(operationID: operationID, mode: .twoSeconds)
+    }
+    public func inhibitAdapterForLongPauseQualification(operationID: UUID) async -> Bool {
+        await inhibit(operationID: operationID, mode: .oneHundredTwentySeconds)
+    }
+    private func inhibit(operationID: UUID, mode: AdapterPauseMode) async -> Bool {
         mutationWaiters += 1
         defer { mutationWaiters -= 1 }
         await drainInspectionBeforeMutation()
@@ -86,11 +101,11 @@ public actor LocalThermalAdapterBackend: ThermalControlBackend {
         runningCall = true; defer { runningCall = false }
         guard let intent = await ledger.snapshot, intent.operationID == operationID, intent.unresolved else { note("failed", failure: .missingIntent); return false }
         do {
-            try start("--cycle")
+            try start(mode == .twoSeconds ? "--cycle" : "--cycle-120")
             operation = operationID
             try owner?.fileHandleForWriting.write(contentsOf: Data((operationID.uuidString + "\n").utf8))
             note("dispatch")
-            // Startup allowance only: the guardian starts its unchanged two-second
+            // Startup allowance only: the guardian starts its fixed nonrenewable
             // hardware lease after the prepared worker's READY/G handoff.
             let deadline = ContinuousClock.now + .seconds(5)
             repeat {

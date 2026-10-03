@@ -43,7 +43,10 @@ actor ThermalRuntime {
         }
         nativeStorage = storage
         self.ledger = ledger
-        let backend = LocalThermalAdapterBackend(ledger: ledger, bootID: boot)
+        // Only a reviewed source admission can select the longer fixed worker mode.
+        // XPC clients never choose a guardian mode or extend its lease.
+        let pauseMode: AdapterPauseMode = ThermalAutomaticQualification.current?.maximumPauseSeconds == 120 ? .oneHundredTwentySeconds : .twoSeconds
+        let backend = LocalThermalAdapterBackend(ledger: ledger, bootID: boot, pauseMode: pauseMode)
         self.backend = backend
         let controller = ThermalControlOrchestrator(ledger: ledger, backend: backend, bootID: boot,
                                               clock: { SampleClock.nowNanoseconds() })
@@ -155,6 +158,7 @@ actor ThermalRuntime {
               admission.capabilities.platform == platform,
               let policy, policy.enabled, policy.isValid,
               policy.maximumPauseSeconds <= admission.maximumPauseSeconds,
+              policy.reservePercent >= admission.minimumReservePercent,
               !uninstallRequested, !qualificationRunning, !recovering, nativeOwner == nil,
               let policySession else {
             return await status(message: "Automatic temperature control is awaiting end-to-end qualification. No adapter command was sent.")
@@ -255,7 +259,7 @@ actor ThermalRuntime {
             _ = await controller.stop()
             return await finishQualification("Test cancelled before adapter inhibition.")
         }
-        let acknowledged = await backend.inhibitAdapter(operationID: operation)
+        let acknowledged = await backend.inhibitAdapterForOneShotQualification(operationID: operation)
         // Startup/signature verification is not part of the hardware interval.
         // This observation budget cannot renew the independent worker deadline.
         let start = SampleClock.nowNanoseconds()
@@ -324,6 +328,8 @@ actor ThermalRuntime {
                      message: message ?? (activePolicy != nil ? policyMessage : nil) ?? (blocked ? "Adapter restoration is not verified. Keep the app open for recovery." : "Temperature control is not yet qualified for automatic operation. The 80% and 100% controls remain available."),
                      temperatureCelsius: observation?.temperatureCelsius ?? (activePolicy != nil ? policyTemperature?.value : nil),
                      estimatedTemperature: observation?.temperatureEstimated ?? true, policy: activePolicy, qualificationResult: qualificationResult,
-                     nativeReconciliationRequired: nativeNeedsReconciliation)
+                     nativeReconciliationRequired: nativeNeedsReconciliation,
+                     maximumPauseSeconds: ThermalAutomaticQualification.current?.maximumPauseSeconds,
+                     minimumReservePercent: ThermalAutomaticQualification.current?.minimumReservePercent)
     }
 }

@@ -44,7 +44,19 @@ import StatBattDomain
     var recoveryPending: Bool { uncertain || status?.phase == .restoring || status?.phase == .recoveryRequired }
     var needsServiceSetup: Bool { serviceStatus != .enabled }
     var awaitingApproval: Bool { serviceStatus == .requiresApproval }
-    var canStart: Bool { status?.controlAvailable == true && !active && !recoveryPending && !busy && !nativeBlocked && serviceStatus == .enabled }
+    var canStart: Bool { status?.admittedAutomaticPauseSeconds != nil && !active && !recoveryPending && !busy && !nativeBlocked && serviceStatus == .enabled }
+    var reserveDescription: String {
+        guard status?.admittedAutomaticPauseSeconds != nil, let reserve = status?.admittedMinimumReservePercent else {
+            return "Qualification requires at least 50% battery charge."
+        }
+        return "Battery reserve: \(reserve.formatted())%."
+    }
+    var pauseLimitDescription: String {
+        if let seconds = status?.admittedAutomaticPauseSeconds {
+            return "Maximum pause: \(seconds.formatted()) seconds per cycle."
+        }
+        return "Automatic pauses unavailable. The separate adapter test requests restoration after 2 seconds."
+    }
     var temperature: Double? { status?.temperatureCelsius }
     var estimatedTemperature: Bool { status?.estimatedTemperature ?? true }
     var phaseLabel: String {
@@ -132,7 +144,8 @@ import StatBattDomain
         } catch { errorMessage = "Could not set up the background service. Use the complete signed local StatBatt package." }
     }
     func startFromUI() {
-        guard canStart else { return }
+        guard canStart, let maximumPause = status?.admittedAutomaticPauseSeconds,
+              let reserve = status?.admittedMinimumReservePercent else { return }
         busy = true; errorMessage = nil
         commandEpoch &+= 1
         let epoch = commandEpoch
@@ -142,7 +155,7 @@ import StatBattDomain
             defer { busy = false }
             do {
                 let policy = ThermalAdapterPolicy(enabled: true, disconnectAtCelsius: disconnectAt,
-                    reconnectAtCelsius: reconnectAt, reservePercent: 30, maximumPauseSeconds: 2, cooldownSeconds: 60)
+                    reconnectAtCelsius: reconnectAt, reservePercent: reserve, maximumPauseSeconds: maximumPause, cooldownSeconds: 60)
                 let reply = try await call(.start, policy: policy)
                 guard epoch == commandEpoch else { return }
                 accept(reply)

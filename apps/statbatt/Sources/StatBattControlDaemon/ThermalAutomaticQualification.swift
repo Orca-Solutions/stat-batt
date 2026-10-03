@@ -7,5 +7,6 @@ struct ThermalAutomaticQualification: Sendable {
     let capabilities: CapabilitySnapshot
     let estimatedTemperature: EstimatedTemperatureAdmission?
     let maximumPauseSeconds: Double
+    let minimumReservePercent: Double
     static let current: Self? = nil
 }

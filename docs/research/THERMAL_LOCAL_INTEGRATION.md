@@ -55,3 +55,6 @@ Full software suite passed 218 tests (69 XCTest +149 Swift Testing), with zero f
 ## Current installed checkpoint: build12
 
 Build12 is installed and its single approved test succeeded in the service/guardian observations. Automatic policy remains off. Worker/guardian-loss and sleep recovery of this exact executable remain unqualified. New source-only backend fixes serialize read-only inspection with mutation admission; they are not deployed and do not alter the pinned installed guardian used for the next lab. Public Developer ID membership/signing remain optional for continued local development and are deferred.
+
+
+Guardian-loss qualification now passed for installed build12’s unchanged guardian: fresh battery observation, guardian exit-9, independent worker restoration without fallback, and final00+AC/journal cleanup. See THERMAL_GUARDIAN_LOSS_QUALIFICATION.md. The current source also advertises automatic pause/reserve admission explicitly to the UI; old or incomplete status cannot enable automatic start. Automatic qualification remainsnil. Longer-duration mode and its exact-candidate recovery evidence remain open.

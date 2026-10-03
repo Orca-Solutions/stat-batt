@@ -77,7 +77,7 @@ def verify_binary():
     for parent in BINARY.parents:
         if not secure_path(parent, directory=True): raise RuntimeError('binaryAncestry')
     if hashlib.sha256(BINARY.read_bytes()).hexdigest() != BINARY_SHA256: raise RuntimeError('binaryHash')
-    subprocess.run(['/usr/bin/codesign', '--verify', '--strict', '-R', REQUIREMENT, str(BINARY)],
+    subprocess.run(['/usr/bin/codesign', '--verify', '--strict', '-R', '=' + REQUIREMENT, str(BINARY)],
                    check=True, capture_output=True, timeout=5, env=ENV)
 
 

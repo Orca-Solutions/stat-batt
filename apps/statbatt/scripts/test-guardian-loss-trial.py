@@ -26,6 +26,17 @@ class GuardianLossTests(unittest.TestCase):
         result = trial.verify_recovery(lambda: {'exit': 1, 'packets': [packet(0)]}, lambda: True, recovery)
         self.assertEqual(result['result'], 'restorationUnknown')
 
+    def test_signature_check_uses_inline_requirement_and_fails_closed(self):
+        with patch.object(trial, 'secure_path', return_value=True), \
+             patch.object(Path, 'read_bytes', return_value=b'fixture'), \
+             patch.object(trial, 'BINARY_SHA256', trial.hashlib.sha256(b'fixture').hexdigest()), \
+             patch.object(trial.subprocess, 'run') as verify:
+            trial.verify_binary()
+            command = verify.call_args.args[0]
+            self.assertEqual(command[command.index('-R') + 1], '=' + trial.REQUIREMENT)
+            verify.side_effect = trial.subprocess.CalledProcessError(1, command)
+            with self.assertRaises(trial.subprocess.CalledProcessError): trial.verify_binary()
+
     def test_disabled_entrypoint_never_launches(self):
         with patch.object(trial.subprocess, 'Popen') as launch:
             with self.assertRaises(SystemExit): trial.main()

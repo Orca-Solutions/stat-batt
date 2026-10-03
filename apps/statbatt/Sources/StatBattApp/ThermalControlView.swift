@@ -19,7 +19,7 @@ struct ThermalControlView: View {
                     Stepper("Disconnect: \(Int(model.disconnectAt)) °C", value: $model.disconnectAt, in: 35...50, step: 1)
                     Stepper("Reconnect: \(Int(model.reconnectAt)) °C", value: $model.reconnectAt, in: 25...(model.disconnectAt - 3), step: 1)
                 }.disabled(model.active || model.busy)
-                Text("Battery reserve: 30% · Current qualification limit: 2 seconds per pause. Sessions never restart automatically.")
+                Text("\(model.reserveDescription) \(model.pauseLimitDescription) Sessions never restart automatically.")
                     .font(.caption).foregroundStyle(.secondary)
                 HStack {
                     if model.active || model.recoveryPending {

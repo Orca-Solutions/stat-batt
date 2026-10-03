@@ -85,3 +85,34 @@ import StatBattDomain
             qualificationAvailable: true, nativeMayProceed: true, message: "Conflicting qualification"))
     }
 }
+
+@Test func automaticPauseAdmissionUsesAdvertisedLimitAndOlderStatusFailsClosed() throws {
+    let codec = BoundedCodec()
+    let ready = ThermalControlStatus(phase: .off, controlAvailable: true, message: "Qualified", maximumPauseSeconds: 120, minimumReservePercent: 50)
+    let data = try codec.encode(ready)
+    #expect(try codec.decode(ThermalControlStatus.self, from: data).admittedAutomaticPauseSeconds == 120)
+    var old = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    old.removeValue(forKey: "maximumPauseSeconds")
+    #expect(try codec.decode(ThermalControlStatus.self, from: JSONSerialization.data(withJSONObject: old)).admittedAutomaticPauseSeconds == nil)
+    let trialOnly = ThermalControlStatus(phase: .unavailable, controlAvailable: false, qualificationAvailable: true, message: "Trial only", maximumPauseSeconds: 2)
+    #expect(trialOnly.admittedAutomaticPauseSeconds == nil)
+    for invalid in [0.0, 121.0, -1.0] {
+        #expect(throws: (any Error).self) {
+            try codec.encode(ThermalControlStatus(phase: .off, controlAvailable: true, message: "Invalid", maximumPauseSeconds: invalid))
+        }
+    }
+}
+
+@Test func automaticReserveAdmissionRequiresValidAdvertisedMinimum() throws {
+    let codec = BoundedCodec()
+    let ready = ThermalControlStatus(phase: .off, controlAvailable: true, message: "Qualified", maximumPauseSeconds: 120, minimumReservePercent: 50)
+    let decoded = try codec.decode(ThermalControlStatus.self, from: codec.encode(ready))
+    #expect(decoded.admittedMinimumReservePercent == 50 && decoded.admittedAutomaticPauseSeconds == 120)
+    let missing = ThermalControlStatus(phase: .off, controlAvailable: true, message: "Old service", maximumPauseSeconds: 120)
+    #expect(missing.admittedAutomaticPauseSeconds == nil && missing.admittedMinimumReservePercent == nil)
+    for invalid in [19.0, 81.0, -1.0] {
+        #expect(throws: (any Error).self) {
+            try codec.encode(ThermalControlStatus(phase: .off, controlAvailable: true, message: "Invalid", maximumPauseSeconds: 120, minimumReservePercent: invalid))
+        }
+    }
+}

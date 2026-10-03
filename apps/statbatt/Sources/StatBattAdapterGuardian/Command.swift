@@ -9,6 +9,7 @@ import StatBattDomain
 
 private let guardianQualificationEnabled = false
 private let guardianRecoveryEnabled = false
+private let guardianLongPauseQualificationEnabled = false
 private let directory = "/Library/Application Support/StatBattAdapterGuardian"
 
 func ignoreBrokenOutput() { sb_control_ignore_broken_output() }
@@ -96,10 +97,14 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
         guard getuid() == 0, geteuid() == 0,
               CommandLine.arguments.count == 2 else { diagnose(.identityOrGate); exit(64) }
         let mode = CommandLine.arguments[1]
-        let enabled = ["--cycle", "--worker-inhibit"].contains(mode) ? (guardianQualificationEnabled && guardianRecoveryEnabled) :
+        let longCycle = mode == "--cycle-120"
+        let cycle = mode == "--cycle" || longCycle
+        let enabled = ["--cycle-120", "--worker-inhibit-120"].contains(mode) ?
+            (guardianLongPauseQualificationEnabled && guardianQualificationEnabled && guardianRecoveryEnabled) :
+            ["--cycle", "--worker-inhibit"].contains(mode) ? (guardianQualificationEnabled && guardianRecoveryEnabled) :
             ["--recover", "--worker-restore"].contains(mode) ? guardianRecoveryEnabled : ["--inspect", "--worker-inspect"].contains(mode)
         guard enabled else { diagnose(.identityOrGate); exit(64) }
-        guard ["--cycle", "--recover", "--inspect", "--worker-inhibit", "--worker-restore", "--worker-inspect"].contains(mode),
+        guard ["--cycle", "--cycle-120", "--recover", "--inspect", "--worker-inhibit", "--worker-inhibit-120", "--worker-restore", "--worker-inspect"].contains(mode),
               let executable = Bundle.main.executableURL else { exit(64) }
         do { try AdapterExecutableIdentity.verify(url: executable, ownIdentifier: AdapterExecutableIdentity.identifier) }
         catch { diagnose(.signature); throw error }
@@ -112,7 +117,7 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
         let hasIntent = fstatat(fd, "intent.json", &intentInfo, AT_SYMLINK_NOFOLLOW) == 0
         if hasIntent && (intentInfo.st_uid != 0 || intentInfo.st_mode & S_IFMT != S_IFREG || intentInfo.st_mode & 0o077 != 0) { exit(1) }
         if mode == "--recover" && !hasIntent { diagnose(.ownershipJournal); exit(1) }
-        if mode == "--cycle" && hasIntent {
+        if cycle && hasIntent {
             guard let saved = try? Data(contentsOf: URL(fileURLWithPath: directory + "/intent.json")),
                   saved.count <= 4096, let object = try? JSONSerialization.jsonObject(with: saved) as? [String: Any],
                   object["phase"] as? String == "restored" else { diagnose(.ownershipJournal); exit(1) }
@@ -121,7 +126,7 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
         guard flags >= 0, fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK) == 0 else { exit(1) }
         let outputFlags = fcntl(STDOUT_FILENO, F_GETFL)
         guard outputFlags >= 0, fcntl(STDOUT_FILENO, F_SETFL, outputFlags | O_NONBLOCK) == 0 else { exit(1) }
-        if mode != "--cycle" {
+        if !cycle {
             let result = runWorker(executable, mode == "--recover" ? "--worker-restore" : "--worker-inspect", seconds: 4)
             if var packet = result.packet {
                 packet.reaped = result.reaped; emit(packet)
@@ -159,8 +164,8 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
             CFRunLoopRemoveSource(CFRunLoopGetCurrent(), source, .defaultMode)
             IOServiceClose(sleep.connection); IONotificationPortDestroy(port)
         }
-        // One writer and a nonrenewable two-second deadline. EOF/sleep shortens it.
-        let inhibited = runWorker(executable, "--worker-inhibit", seconds: 2, stop: {
+        // One writer and a closed nonrenewable2s or120s qualification lease. EOF/sleep shortens it.
+        let inhibited = runWorker(executable, longCycle ? "--worker-inhibit-120" : "--worker-inhibit", seconds: longCycle ? 120 : 2, stop: {
             var byte: UInt8 = 0
             let count = read(STDIN_FILENO, &byte, 1)
             return sleep.sleeping || count == 0 || count > 0
@@ -206,7 +211,7 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
                 if let decoded = try? JSONDecoder().decode(AdapterPacket.self, from: line) { packet = decoded; report(decoded) }
             }
         }
-        let inhibition = mode == "--worker-inhibit"
+        let inhibition = ["--worker-inhibit", "--worker-inhibit-120"].contains(mode)
         var armed = !inhibition
         var deadline = ContinuousClock.now + (inhibition ? .seconds(3) : .milliseconds(Int(seconds * 1000)))
         while process.isRunning && ContinuousClock.now < deadline && !stop() {
@@ -216,7 +221,7 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
                 // Start the fixed hold only after signed worker setup/preflight.
                 do { try commands.fileHandleForWriting.write(contentsOf: Data([0x47])) }
                 catch { break }
-                armed = true; deadline = ContinuousClock.now + .seconds(2)
+                armed = true; deadline = ContinuousClock.now + .milliseconds(Int(seconds * 1000))
             }
             CFRunLoopRunInMode(.defaultMode, 0.01, false)
         }
@@ -248,11 +253,13 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
     }
 
     @MainActor private static func worker(_ mode: String) {
+        let longPause = mode == "--worker-inhibit-120"
+        let inhibition = mode == "--worker-inhibit" || longPause
         let lock = lockDirectory(sharedWorker: true)
         guard lock >= 0 else { diagnose(.ownershipLock); return }
         defer { close(lock) }
         let reader = PublicTelemetry()
-        var gate = WorkerRecoveryGate()
+        var gate = WorkerRecoveryGate(lease: longPause ? .longTrial : .shortTrial)
         let workerSleep = SleepState()
         var workerPort: IONotificationPortRef?
         var workerNotifier: io_object_t = 0
@@ -273,16 +280,17 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
             let count = read(STDERR_FILENO, &byte, 1)
             return count >= 0 || (errno != EAGAIN && errno != EINTR)
         }
-        if mode == "--worker-inhibit" {
+        if inhibition {
             let flags = fcntl(STDERR_FILENO, F_GETFL)
             guard flags >= 0, fcntl(STDERR_FILENO, F_SETFL, flags | O_NONBLOCK) == 0 else { diagnose(.inputChannel); return }
             if let reason = inhibitionRejection(reader.snapshot(), now: SampleClock.nowNanoseconds()) { diagnose(reason); return }
+            if longPause, let reason = LongPauseSafety.rejection(reader.snapshot(), now: SampleClock.nowNanoseconds(), requireBattery: false) { diagnose(reason); return }
             workerSleep.connection = IORegisterForSystemPower(Unmanaged.passUnretained(workerSleep).toOpaque(), &workerPort, callback, &workerNotifier)
             guard workerSleep.connection != 0, let workerPort else { diagnose(.sleepNotification); return }
             workerSource = IONotificationPortGetRunLoopSource(workerPort).takeUnretainedValue()
             CFRunLoopAddSource(CFRunLoopGetCurrent(), workerSource, .defaultMode)
             guard sb_control_prevent_idle_sleep(&workerAssertion) == 0 else { diagnose(.sleepAssertion); return }
-            emit(AdapterPacket(phase: "writerReady"))
+            var ready = AdapterPacket(phase: "writerReady"); ready.holdSeconds = longPause ? 120 : 2; emit(ready)
             let readyDeadline = ContinuousClock.now + .seconds(3)
             var receivedGate = false
             while ContinuousClock.now < readyDeadline && !workerSleep.sleeping {
@@ -294,25 +302,27 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
             }
             guard receivedGate, gate.begin(now: SampleClock.nowNanoseconds(), ownerGone: ownerGone(), sleeping: workerSleep.sleeping) else { diagnose(.ownerToken); return }
             if let reason = inhibitionRejection(reader.snapshot(), now: SampleClock.nowNanoseconds()) { diagnose(reason); return }
+            if longPause, let reason = LongPauseSafety.rejection(reader.snapshot(), now: SampleClock.nowNanoseconds(), requireBattery: false) { diagnose(reason); return }
         }
         // The worker is an independent restorer on normal completion or guardian
         // EOF. Its own assertion and sleep callback remain alive through this call.
         defer {
-            if mode == "--worker-inhibit" {
+            if inhibition {
                 var packet = AdapterPacket(phase: "workerRestoring")
                 packet.recoveryCause = gate.cause
                 emit(packet)
                 worker("--worker-restore")
             }
         }
-        let raw = sb_adapter_control(mode == "--worker-inhibit" ? 3 : mode == "--worker-restore" ? 4 : 0)
+        let raw = sb_adapter_control(inhibition ? 3 : mode == "--worker-restore" ? 4 : 0)
         var keyAt = SampleClock.nowNanoseconds()
         var key = mode == "--worker-inspect" ? raw.baseline_value : raw.readback_value
         var outcome = raw.outcome
-        let end = ContinuousClock.now + .seconds(mode == "--worker-inhibit" ? 2 : mode == "--worker-restore" ? 3 : 0)
+        let end = ContinuousClock.now + .seconds(mode == "--worker-restore" ? 3 : 0)
         repeat {
             let sample = reader.snapshot()
-            var packet = AdapterPacket(phase: mode == "--worker-inhibit" ? "inhibited" : mode == "--worker-restore" ? "restored" : "inspection")
+            var packet = AdapterPacket(phase: inhibition ? "inhibited" : mode == "--worker-restore" ? "restored" : "inspection")
+            if inhibition { packet.holdSeconds = longPause ? 120 : 2 }
             packet.key = key; packet.outcome = outcome; packet.sampledAt = keyAt
             packet.baselineKey = raw.baseline_value
             if outcome != 0 { packet.failure = .hardware }
@@ -333,14 +343,18 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
             packet.temperatureEstimated = sample.batteryTemperatureCelsius.quality == .estimated
             packet.stateOfCharge = sample.stateOfChargePercent.value
             emit(packet)
-            if mode == "--worker-inhibit" {
-                if gate.shouldRestore(now: SampleClock.nowNanoseconds(), ownerGone: ownerGone(), sleeping: workerSleep.sleeping, hardwareFailed: outcome != 0) { break }
+            if inhibition {
+                let now = SampleClock.nowNanoseconds()
+                let started = gate.deadline.map { $0 - gate.lease.rawValue * 1_000_000_000 } ?? now
+                let unsafe = longPause ? LongPauseSafety.rejection(sample, now: now, requireBattery: now - started >= 2_000_000_000) : nil
+                if let unsafe { diagnose(unsafe) }
+                if gate.shouldRestore(now: SampleClock.nowNanoseconds(), ownerGone: ownerGone(), sleeping: workerSleep.sleeping, hardwareFailed: outcome != 0 || (longPause && key != 8) || unsafe != nil) { break }
             } else if mode == "--worker-inspect" || raw.outcome != 0 || packet.adapter == true { break }
             CFRunLoopRunInMode(.defaultMode, 0.1, false)
-            if mode == "--worker-inhibit" {
+            if inhibition {
                 let fresh = sb_adapter_control(0)
                 key = fresh.baseline_value; outcome = fresh.outcome; keyAt = SampleClock.nowNanoseconds()
             }
-        } while mode == "--worker-inhibit" ? !gate.restorationStarted : ContinuousClock.now < end
+        } while inhibition ? !gate.restorationStarted : ContinuousClock.now < end
     }
 }

@@ -22,6 +22,7 @@ public struct AdapterPacket: Codable, Sendable {
     public var smcResult: UInt8?
     public var smcStatus: UInt8?
     public var recoveryCause: AdapterRecoveryCause?
+    public var holdSeconds: UInt16?
     public init(phase: String) { self.phase = phase }
 }
 
@@ -32,6 +33,7 @@ public enum AdapterFailure: String, Codable, Sendable {
     case sleepNotification, sleepAssertion, workerLaunch, writerUnreaped
     case batteryMissingOrStale, externalPowerMissingOrStale, reserveMissingOrStale, thermalNotNominalOrStale
     case backendBusy, missingIntent, dispatchFailed, deadline, hardware
+    case powerSourceUnavailableOrUnexpected, temperatureMissingInvalidOrStale
 }
 
 public struct AdapterDiagnostic: Codable, Sendable {
@@ -49,6 +51,7 @@ public struct AdapterDiagnostic: Codable, Sendable {
     public let battery: Bool?
     public let exitCode: Int32?
     public let recoveryCause: AdapterRecoveryCause?
+    public let holdSeconds: UInt16?
     public init(event: String, at: UInt64, packet: AdapterPacket? = nil, failure: AdapterFailure? = nil, exitCode: Int32? = nil) {
         let events: Set<String> = ["admission", "launch", "dispatch", "packet", "exit", "timeout", "failed", "restoreLaunch"]
         let phases: Set<String> = ["inhibited", "restored", "inspection", "writerReady", "workerRestoring", "writerReaped", "writerUnreapedUnknown", "rejected"]
@@ -59,6 +62,7 @@ public struct AdapterDiagnostic: Codable, Sendable {
         transport = packet?.transport; smcResult = packet?.smcResult; smcStatus = packet?.smcStatus
         adapter = packet?.adapter; battery = packet?.battery; self.exitCode = exitCode
         recoveryCause = packet?.recoveryCause
+        holdSeconds = packet?.holdSeconds
     }
 }
 
