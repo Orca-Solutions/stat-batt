@@ -105,3 +105,5 @@ Owner-confirmed closed-window build5 run completed600.010sec:0.1583% onecore CPU
 ### Two-target follow-up
 
 Owner confirms the later23:05UTC80% request was their deliberate Apply click. Its unknown execution still needs reconciliation; it is not evidence of automatic replay. The owner requested one-click Set to80% / Set to100%, superseding the normal manual return loop in [decision0003](decisions/0003-two-target-native-limit.md). Separate100% software/trust/actual qualification is in progress, not a verified production capability. Original full-v1 acceptance remains open.
+
+Build6 software candidate: default137tests and qualification138tests pass, production/qualification release packaging and strict local ad-hoc signatures pass. Fresh-context same-family review clears source dc5c899 with no blocking/material findings. Normal100% capability remains disabled; separate0.1.0-qualification(6) contains a durable one-use supervised trial. No build6 runtime UI/hardware or performance pass is claimed. Candidate identity and pending authorization are recorded in WORKING_RECORD and LAB_PROTOCOL.
