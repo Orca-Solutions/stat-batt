@@ -33,7 +33,7 @@ Use deterministic fake telemetry/clock/provider; assert both logical state and e
 8. Native action succeeds but current limit unobservable: acknowledged/unverified, no invented effective-state result.
 9. Enabled custom policy -> begin native fence -> app crashes before shortcut result -> restart refuses custom enable -> native restoration/reconciliation -> fence clears but custom stays disabled. A second UID without fresh admin authorization cannot clear the owner's fence; fresh-admin restoration reconciliation may clear it but cannot enable new control. Native-only installation reconciles its journal when a helper is enrolled.
 
-Property checks: active adapter inhibition implies verified capability, fresh battery data, valid target, nonexpired session, awake state, and explicit user intent; unauthorized requests cause zero hardware operations; revisions increase monotonically; restoration is safe to repeat; temperature policy never triggers adapter cycling.
+Property checks: active adapter inhibition implies verified capability, fresh battery data, valid target, nonexpired session, awake state, and explicit user intent; unauthorized requests cause zero hardware operations; revisions increase monotonically; restoration is safe to repeat; legacy temperature hold never silently triggers adapter cycling. The separate opt-in ThermalAdapterReducer is covered by decision0005 and must pass its own hardware/lifecycle gates before being enabled.
 
 ## Compatibility registry
 
@@ -59,3 +59,9 @@ The native suite uses injected nonhardware transports and closed subprocess fixt
 
 
 Owner-assisted menu-flow qualification and limitations are recorded in [research/NATIVE_APP_FLOW_RESULT.md](research/NATIVE_APP_FLOW_RESULT.md). Owner-visible settings are distinct from journal confirmations; no independent native getter or physical cutoff trace is claimed.
+
+## Adapter-temperature extension — current boundary
+
+The owner requested autonomous completion on October 2, including preparation of bounded qualification work. Decision0005 defines the optional adapter-disconnection policy. The standalone `ThermalAdapterReducer` now models upper/lower temperature hysteresis, a maximum pause duration, restoration cooldown, reserve, fresh observed telemetry, exact boot/session timing, sleep/quit, concurrent native requests, and qualification/ownership gates. It emits intent only and is not exposed as an enabled app feature. Tests cannot certify the provider.
+
+The normal-user CHIE00 write was denied. One owner-authenticated administrator CHIE00-to-00 write passed, with readback00 and adapter supply observed. Actual08 inhibition, restoration from08, physical recovery, sleep/crash lifecycle, and a production helper remain unverified. Keep these separate from native80/100 acceptance and do not mark the compatibility row as full adapter support.

@@ -1,5 +1,8 @@
 # Project brief — StatBatt
 
+> **Current v1 scope (owner direction October 2):** monitoring/history/alerts plus native Apple 80%/100% controls and bundled shortcut installation. The owner has also requested opt-in temperature control through adapter disconnection, subject to hardware and recovery qualification; that extension is in progress and not enabled. Custom charge bands and temporary overrides remain outside this release. See [native scope](docs/decisions/0004-native-charging-v1.md) and [temperature extension](docs/decisions/0005-investigate-thermal-adapter-control.md). The original requirements below remain historical context where they conflict.
+
+
 Status: v1 implementation authorized October 2, 2026; local implementation in progress. Original brief dated 2026-10-01.
 
 ## Intent and user

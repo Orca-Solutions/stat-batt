@@ -98,12 +98,12 @@ public enum ThermalAdapterReducer {
         guard !i.quitting else { return restore(.quitting) }
         guard !i.nativeRequestInProgress else { return restore(.nativeRequestInProgress) }
         guard i.telemetry.bootID == i.bootID else { return restore(.staleTelemetry) }
-        func fresh<T>(_ metric: Metric<T>) -> Bool {
-            metric.quality == .observed && metric.isFresh(at: i.now, maximumAgeSeconds: 2,
+        func fresh<T>(_ metric: Metric<T>, allowDerived: Bool = false) -> Bool {
+            (metric.quality == .observed || (allowDerived && metric.quality == .derived)) && metric.isFresh(at: i.now, maximumAgeSeconds: 2,
                                                        minimumSampleNanoseconds: i.minimumSampleTime)
         }
         let t = i.telemetry
-        guard fresh(t.batteryPresent), fresh(t.stateOfChargePercent), fresh(t.adapterAttached),
+        guard fresh(t.batteryPresent), fresh(t.stateOfChargePercent, allowDerived: true), fresh(t.adapterAttached),
               fresh(t.supplyingSource), fresh(t.thermalPressure) else { return restore(.staleTelemetry) }
         guard t.batteryPresent.value == true else { return restore(.noBattery) }
         guard let soc = t.stateOfChargePercent.value, soc.isFinite, (0...100).contains(soc) else {

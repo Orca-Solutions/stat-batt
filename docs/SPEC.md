@@ -1,5 +1,8 @@
 # Product and engineering specification
 
+> **Current v1 scope (owner direction October 2):** monitoring/history/alerts plus native Apple 80%/100% controls and bundled shortcut installation. The owner has also requested opt-in temperature control through adapter disconnection, subject to hardware and recovery qualification; that extension is in progress and not enabled. Custom charge bands and temporary overrides remain outside this release. See [native scope](decisions/0004-native-charging-v1.md) and [temperature extension](decisions/0005-investigate-thermal-adapter-control.md). The original requirements below remain historical context where they conflict.
+
+
 Version 0.1, 2026-10-01; implementation authorized 2026-10-02. Authoritative product requirements; architecture and transport details live in their own documents. Numbers below are proposed product settings, not Apple recommendations or demonstrated firmware behavior.
 
 ## Product sheet

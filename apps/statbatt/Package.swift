@@ -8,6 +8,7 @@ let package = Package(
         .executable(name: "StatBatt", targets: ["StatBattApp"]),
         .executable(name: "statbatt-diagnostics", targets: ["StatBattDiagnostics"]),
         .executable(name: "statbatt-hardware-probe", targets: ["StatBattHardwareProbeCommand"]),
+        .executable(name: "statbatt-adapter-lab", targets: ["StatBattAdapterLabCommand"]),
         .library(name: "StatBattDomain", targets: ["StatBattDomain"]),
         .library(name: "StatBattNativeLimit", targets: ["StatBattNativeLimit"]),
         .library(name: "StatBattControlProtocol", targets: ["StatBattControlProtocol"])
@@ -16,6 +17,9 @@ let package = Package(
         .target(name: "StatBattDomain"),
         .target(name: "StatBattControlProtocol", dependencies: ["StatBattDomain"]),
         .target(name: "StatBattTelemetry", dependencies: ["StatBattDomain"], linkerSettings: [.linkedFramework("IOKit")]),
+        .target(name: "CStatBattAdapterLab", linkerSettings: [.linkedFramework("IOKit")]),
+        .executableTarget(name: "StatBattAdapterLabCommand", dependencies: ["CStatBattAdapterLab", "StatBattTelemetry", "StatBattDomain", "StatBattNativeLimit"]),
+        .testTarget(name: "StatBattAdapterLabTests", dependencies: ["StatBattAdapterLabCommand"]),
         .target(name: "CStatBattSMCReadOnly", linkerSettings: [.linkedFramework("IOKit")]),
         .target(name: "StatBattHardwareProbe", dependencies: ["CStatBattSMCReadOnly", "StatBattDomain"]),
         .executableTarget(name: "StatBattHardwareProbeCommand", dependencies: ["StatBattHardwareProbe", "StatBattTelemetry"]),

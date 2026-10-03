@@ -1,6 +1,6 @@
 # Implementation checkpoint — October 2, 2026
 
-**Latest follow-up: build 7** enables ordinary 80% / 100% switching on the exact target after a visibly observed fixed-shortcut round trip. Existing trust is reused; no one-use trial or repeated setup is required. Activation refresh no longer discards accepted clicks. See the latest WORKING_RECORD.md entry and USER_GUIDE.md. Historical checkpoints below remain evidence for their original builds. Full custom charge/discharge control is still unavailable.
+**Latest follow-up: build 8 local v1 candidate.** Both 80% / 100% buttons were verified by the owner. The package includes both inspected signed shortcuts and missing-only guided setup. The rebuilt DMG passed read-only contents/signature checks; public signing awaits Developer enrollment. Optional adapter-based temperature control is still in progress: a separate administrator CHIE00-to-00 test passed, but actual disconnection/restoration and lifecycle recovery are unqualified. The new guarded temperature reducer is tested but not wired into live hardware. See [current acceptance](V1_ACCEPTANCE.md) and [control evidence](research/V1_CONTROL_FEASIBILITY.md). Historical checkpoints below apply to their original builds.
 
 
 > Monorepo paths: app sources and commands now live in `apps/statbatt/`; historical verification commands below describe their original location. See [current app instructions](../apps/statbatt/README.md).

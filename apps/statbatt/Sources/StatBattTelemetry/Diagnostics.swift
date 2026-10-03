@@ -15,7 +15,8 @@ public struct DiagnosticReport: Codable, Sendable {
 
     public init(platform: PlatformFingerprint, telemetry: BatterySnapshot,
                 capabilities: CapabilitySnapshot? = nil, nativeState: String = "notConfigured") {
-        schemaVersion = 1; applicationVersion = "0.1.0"
+        schemaVersion = 1
+        applicationVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "development"
         generatedAtUTC = Date(); self.platform = platform; self.telemetry = telemetry
         self.capabilities = capabilities ?? CapabilityProbe.readOnly(platform: platform, snapshot: telemetry)
         self.nativeState = nativeState
@@ -78,7 +79,7 @@ public enum CapabilityProbe {
                     provenance: "observed", reference: "IOPowerSources")], verifiedAtUTC: Date())
         }
         result.canSetNativeChargeLimit = Capability(status: .unknown,
-            reasonCode: "Native80% lab setting/readback passed on the recorded target; trusted runtime setup and manual reconciliation are required.")
+            reasonCode: "Native80%/100% setting/readback passed on the recorded target; trusted runtime setup and manual reconciliation are required.")
         result.canHoldChargePreservingAC.reasonCode = "No charge-gate backend has passed exact-device verification."
         result.canInhibitAdapter.reasonCode = "Adapter inhibition and crash/sleep restoration are untested."
         result.canReadControlState.reasonCode = "No qualified control readback provider."

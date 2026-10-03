@@ -8,7 +8,7 @@ private func thermalFixture() -> ThermalAdapterInput {
     var sample = BatterySnapshot(bootID: boot)
     func value<T>(_ v: T) -> Metric<T> { .init(value: v, quality: .observed, sampledAtContinuousNanoseconds: now, source: "fixture") }
     sample.batteryPresent = value(true); sample.adapterAttached = value(true)
-    sample.stateOfChargePercent = value(80); sample.supplyingSource = value(.adapter)
+    sample.stateOfChargePercent = value(80); sample.stateOfChargePercent.quality = .derived; sample.supplyingSource = value(.adapter)
     sample.batteryTemperatureCelsius = value(40); sample.thermalPressure = value(.nominal)
     let verified = Capability(status: .verified, scope: .awakeOnly, evidence: [.init(identifier: "fixture", provenance: "test only")],
                               verifiedAtUTC: Date(), restorationVerified: true, crashRecoveryBoundSeconds: 5)
@@ -51,6 +51,7 @@ private func thermalFixture() -> ThermalAdapterInput {
         { $0.sessionDeadline = $0.sessionStartedAt + 3_600_000_000_001 },
         { $0.bootID = UUID() }, { $0.minimumSampleTime = $0.now + 1 },
         { $0.telemetry.batteryPresent.value = false }, { $0.telemetry.stateOfChargePercent.value = 30 },
+        { $0.telemetry.stateOfChargePercent.quality = .estimated },
         { $0.telemetry.stateOfChargePercent.value = .nan }, { $0.telemetry.stateOfChargePercent.value = 101 },
         { $0.telemetry.adapterAttached.value = false }, { $0.telemetry.supplyingSource.value = .unknown },
         { $0.telemetry.thermalPressure.value = .critical }, { $0.telemetry.thermalPressure.value = .unknown },
