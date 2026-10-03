@@ -53,7 +53,7 @@ private func thermalFixture() -> ThermalAdapterInput {
         { $0.telemetry.batteryPresent.value = false }, { $0.telemetry.stateOfChargePercent.value = 30 },
         { $0.telemetry.stateOfChargePercent.quality = .estimated },
         { $0.telemetry.stateOfChargePercent.value = .nan }, { $0.telemetry.stateOfChargePercent.value = 101 },
-        { $0.telemetry.adapterAttached.value = false }, { $0.telemetry.supplyingSource.value = .unknown },
+{ $0.telemetry.supplyingSource.value = .unknown },
         { $0.telemetry.thermalPressure.value = .critical }, { $0.telemetry.thermalPressure.value = .unknown },
         { $0.telemetry.batteryTemperatureCelsius.value = nil }, { $0.telemetry.batteryTemperatureCelsius.value = .nan },
         { $0.telemetry.batteryTemperatureCelsius.value = 61 },
@@ -119,4 +119,16 @@ private func thermalFixture() -> ThermalAdapterInput {
         #expect(!i.policy.isValid)
         #expect(ThermalAdapterReducer.evaluate(i).reason == .invalidConfiguration)
     }
+}
+
+@Test func thermalAdapterAttachmentFlagDisappearsDuringOwnedCut() {
+    var i = thermalFixture()
+    i.telemetry.adapterAttached.value = false
+    #expect(ThermalAdapterReducer.evaluate(i).reason == .adapterUnavailable)
+    i.observation = .inhibitedByThisSession
+    i.pauseStartedAt = i.now - 1_000_000_000
+    i.telemetry.supplyingSource.value = .battery
+    #expect(ThermalAdapterReducer.evaluate(i).reason == .holding)
+    i.controlObservedAt = i.now - 2_000_000_001
+    #expect(ThermalAdapterReducer.evaluate(i).effect == .releaseOwnedControls)
 }

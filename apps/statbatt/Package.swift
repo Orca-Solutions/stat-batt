@@ -6,6 +6,7 @@ let package = Package(
     platforms: [.macOS(.v15)],
     products: [
         .executable(name: "StatBatt", targets: ["StatBattApp"]),
+        .executable(name: "StatBattControlDaemon", targets: ["StatBattControlDaemon"]),
         .executable(name: "statbatt-diagnostics", targets: ["StatBattDiagnostics"]),
         .executable(name: "statbatt-hardware-probe", targets: ["StatBattHardwareProbeCommand"]),
         .executable(name: "statbatt-adapter-lab", targets: ["StatBattAdapterLabCommand"]),
@@ -15,7 +16,8 @@ let package = Package(
     ],
     targets: [
         .target(name: "StatBattDomain"),
-        .target(name: "StatBattControlProtocol", dependencies: ["StatBattDomain"]),
+        .target(name: "StatBattControlProtocol", dependencies: ["StatBattDomain"], linkerSettings: [.linkedFramework("Security")]),
+        .executableTarget(name: "StatBattControlDaemon", dependencies: ["StatBattControlProtocol"]),
         .target(name: "StatBattTelemetry", dependencies: ["StatBattDomain"], linkerSettings: [.linkedFramework("IOKit")]),
         .target(name: "CStatBattAdapterLab", linkerSettings: [.linkedFramework("IOKit")]),
         .executableTarget(name: "StatBattAdapterLabCommand", dependencies: ["CStatBattAdapterLab", "StatBattTelemetry", "StatBattDomain", "StatBattNativeLimit"]),

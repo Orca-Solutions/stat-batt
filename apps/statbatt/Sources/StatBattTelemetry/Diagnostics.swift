@@ -20,11 +20,11 @@ public struct DiagnosticReport: Codable, Sendable {
         generatedAtUTC = Date(); self.platform = platform; self.telemetry = telemetry
         self.capabilities = capabilities ?? CapabilityProbe.readOnly(platform: platform, snapshot: telemetry)
         self.nativeState = nativeState
-        helperState = "notInstalled"
+        helperState = "notQueried"
         limitations = ["Private charging controls are unqualified and disabled. Configured trusted user shortcuts request Apple limits on the qualified target; command completion is not a current-limit reading.",
                        "Pack temperature is estimated on the qualified target; current polarity remains unverified. Health is derived from reported physical capacities.",
                        "Public battery readings do not reveal why macOS paused charging.",
-                       "No helper, private SMC writes or external telemetry is used. Native restoration is manual and user-confirmed; cutoff and lifecycle behavior remain unqualified."]
+                       "This diagnostic does not query helper installation or perform SMC writes. Native restoration is manual and user-confirmed; cutoff and lifecycle behavior remain unqualified."]
     }
     public func encoded() throws -> Data {
         let encoder = JSONEncoder()
@@ -81,7 +81,7 @@ public enum CapabilityProbe {
         result.canSetNativeChargeLimit = Capability(status: .unknown,
             reasonCode: "Native80%/100% setting/readback passed on the recorded target; trusted runtime setup and manual reconciliation are required.")
         result.canHoldChargePreservingAC.reasonCode = "No charge-gate backend has passed exact-device verification."
-        result.canInhibitAdapter.reasonCode = "Adapter inhibition and crash/sleep restoration are untested."
+        result.canInhibitAdapter.reasonCode = "Automatic adapter inhibition is disabled pending crash/sleep recovery qualification."
         result.canReadControlState.reasonCode = "No qualified control readback provider."
         result.canRestoreOwnedControl.reasonCode = "No owned hardware changes; restoration provider untested."
         result.canObserveBatteryTemperature = Capability(status: .unknown,

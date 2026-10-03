@@ -106,11 +106,11 @@ private struct Report: Encodable {
     var hardware: Hardware?
     var result = "notRun"
     let limitations = [
-        "Default inspection and enabled-state tests retain their original behavior. Disconnect/guardian modes are hard-disabled source-only preparation.",
+        "Disconnect/guardian modes are restricted to the separately authorized supervised laboratory trial; not an app capability.",
         "Write acknowledgement and 00 readback do not prove restoration from an inhibited state, discharge capability, sleep safety, or emergency recovery.",
         "Known-controller checks are incomplete; the operator must stop all charging controllers and shortcut executions before the explicit test.",
-        "Telemetry is sampled before and after, not atomically with the SMC call. No electrical transition is expected or established.",
-        "This lab is not linked into the app and enables no app capability. Administrator mode requires its separate explicit flag; no automatic privilege retry, daemon, guardian or arbitrary key/value operation exists."
+        "Telemetry sampling and SMC operations are not atomic. Control readback alone does not establish electrical effect.",
+        "This lab is not linked into the app and enables no app capability. Administrator mode requires its separate explicit flag; no automatic privilege retry, installed daemon or arbitrary key/value operation exists."
     ]
 }
 
@@ -168,7 +168,17 @@ private struct Report: Encodable {
         let raw = sb_adapter_lab(operation)
         report.hardware = Hardware(raw)
         let postWriteFloor = SampleClock.nowNanoseconds()
-        let after = telemetry.snapshot()
+        var after = telemetry.snapshot()
+        if mode == .guardianRestore && raw.outcome == 0 {
+            // Source reporting lags key readback on the tested Mac. Poll only; never
+            // repeat the write. The guardian retains its own idle-sleep assertion.
+            for _ in 0..<60 {
+                if LabAdmission.restorationSourceObserved(snapshot: after, now: SampleClock.nowNanoseconds(),
+                                                          postWriteFloor: postWriteFloor) { break }
+                try await Task.sleep(for: .milliseconds(50))
+                after = telemetry.snapshot()
+            }
+        }
         report.after = Observation(after)
         if raw.outcome != 0 { report.result = "hardwareStepFailed" }
         else if mode == .inspect { report.result = "readOnlyInspectionCompleted" }
@@ -192,7 +202,23 @@ private struct Report: Encodable {
         if mode == .guardianRestore && report.result != "restoredZeroExternalSourceObserved" { exit(1) }
         if [.testRestore, .testRestoreAdmin].contains(mode) && report.result != "zeroWriteAcknowledgedZeroReadbackExternalSourceObserved" { exit(1) }
         if mode == .trialDisconnect {
-            // Retain sleep assertion until guardian closes gate or sends stop; never writes twice.
+            // Read-only trace stays inside the guardian's unchanged two-second deadline.
+            // Allow notification processing between samples; never issue another write.
+            struct Trace: Encodable {
+                let kind = "sourceObservation"
+                let sampledAtContinuousNanoseconds: UInt64
+                let sourceQuality: ValueQuality
+                let observation: Observation
+            }
+            for _ in 0..<30 {
+                try await Task.sleep(for: .milliseconds(50))
+                let sample = telemetry.snapshot()
+                let trace = Trace(sampledAtContinuousNanoseconds: sample.supplyingSource.sampledAtContinuousNanoseconds,
+                                  sourceQuality: sample.supplyingSource.quality, observation: Observation(sample))
+                FileHandle.standardOutput.write(try JSONEncoder().encode(trace))
+                FileHandle.standardOutput.write(Data("\n".utf8))
+            }
+            // Guardian owns termination and restoration; worker never re-inhibits.
             _ = FileHandle.standardInput.readData(ofLength: 1)
         }
     }

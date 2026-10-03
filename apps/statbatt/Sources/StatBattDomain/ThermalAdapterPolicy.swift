@@ -110,7 +110,6 @@ public enum ThermalAdapterReducer {
             return restore(.staleTelemetry)
         }
         guard soc > i.policy.reservePercent else { return restore(.reserveReached) }
-        guard t.adapterAttached.value == true else { return restore(.adapterUnavailable) }
         // Severe system pressure exits our experiment; Apple's own protections remain in charge.
         guard t.thermalPressure.value == .nominal || t.thermalPressure.value == .fair else {
             return restore(.systemThermalPressure)
@@ -129,6 +128,10 @@ public enum ThermalAdapterReducer {
             if temperature <= i.policy.reconnectAtCelsius { return restore(.cooling, end: false) }
             return .init(effect: .inhibitAdapter, reason: .holding, endSession: false)
         case .enabled:
+            // CHIE inhibition makes ExternalConnected false on this qualified target.
+            // Require connection before a new cut; fresh owned inhibition uses readback
+            // plus battery-source evidence and cannot distinguish physical cable removal.
+            guard t.adapterAttached.value == true else { return restore(.adapterUnavailable) }
             guard t.supplyingSource.value == .adapter, i.pauseStartedAt == nil else {
                 return restore(.recoveryRequired)
             }

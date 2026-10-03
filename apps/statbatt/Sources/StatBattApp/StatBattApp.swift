@@ -6,6 +6,7 @@ import StatBattNativeLimit
 @main
 struct StatBattApplication: App {
     @StateObject private var store = AppStore()
+    init() { ThermalServiceDeveloperCommand.runIfRequested() }
     var body: some Scene {
         MenuBarExtra {
             MenuPanel(store: store)
@@ -271,7 +272,7 @@ struct ChargingView: View {
                 }
                 DisclosureGroup("Compatibility & diagnostics") {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Privileged helper: not installed · custom controls unavailable")
+                        Text("Custom controls and automatic adapter disconnection unavailable")
                         Text("\(store.platform.model) · \(store.platform.architecture) · macOS \(store.platform.operatingSystemVersion) (\(store.platform.operatingSystemBuild))")
                         Text("Firmware: \(store.platform.firmwareVersion)")
                         Button("Export capability diagnostics…") { store.exportDiagnostics() }
