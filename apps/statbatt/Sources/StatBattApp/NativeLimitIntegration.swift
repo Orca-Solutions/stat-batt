@@ -164,6 +164,12 @@ extension AppStore {
             await nativeRefreshTask?.value
             do {
                 guard !sleeping else { throw NativeLimitFailure.preflightUnavailable }
+                guard await thermalControl.prepareNative() else {
+                    message = thermalControl.errorMessage ?? "Adapter restoration is required before changing the Apple limit."
+                    await refreshNativePresentation(coordinator)
+                    return
+                }
+                guard !sleeping else { throw NativeLimitFailure.preflightUnavailable }
                 _ = try await coordinator.request(limit)
                 await refreshNativePresentation(coordinator)
             } catch { await displayNativeFailure(coordinator) }

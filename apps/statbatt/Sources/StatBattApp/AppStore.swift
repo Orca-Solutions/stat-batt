@@ -12,6 +12,7 @@ enum DashboardTab: Hashable { case battery, charging, history, settings }
 
 @MainActor
 final class AppStore: ObservableObject {
+    let thermalControl = ThermalUIModel()
     @Published var selectedDashboardTab: DashboardTab = .battery
     @Published var snapshot = BatterySnapshot(bootID: UUID())
     @Published var preferences = AppPreferences()
@@ -21,9 +22,13 @@ final class AppStore: ObservableObject {
     @Published var sleeping = false
     @Published var notificationStatus = "Notifications are off"
     @Published var nativePresentation = NativeLimitPresentation(phase: .unavailable,
-        message: "Checking native shortcut setup…")
+        message: "Checking native shortcut setup…") {
+        didSet { thermalControl.setNativeBlocked(nativeTaskInProgress || nativePresentation.phase == .applying || nativePresentation.phase == .recoveryRequired) }
+    }
     var nativeCoordinator: NativeLimitCoordinator?
-    @Published var nativeTaskInProgress = false
+    @Published var nativeTaskInProgress = false {
+        didSet { thermalControl.setNativeBlocked(nativeTaskInProgress || nativePresentation.phase == .applying || nativePresentation.phase == .recoveryRequired) }
+    }
     var nativeRefreshTask: Task<Void, Never>?
     @Published var nativeSetupMessage: String?
     @Published var pendingNativeImport: NativeFixedLimit?
@@ -63,6 +68,8 @@ final class AppStore: ObservableObject {
         UserDefaults.standard.set(true, forKey: "initialDashboardShown")
     }
     init() {
+        ThermalApplicationDelegate.model = thermalControl
+        thermalControl.beginMonitoring()
         if ProcessInfo.processInfo.arguments.contains("--show-charging") ||
             !UserDefaults.standard.bool(forKey: "initialDashboardShown") { selectedDashboardTab = .charging }
         do {
@@ -203,6 +210,7 @@ final class AppStore: ObservableObject {
     }
     private func willSleep() {
         sleeping = true; sleepStart = Date(); telemetry.stop(); notificationReducer.suspend()
+        thermalControl.sleeping()
     }
     private func didWake() {
         if let sleepStart {
@@ -210,6 +218,7 @@ final class AppStore: ObservableObject {
             catch { message = "Sleep gap could not be saved." }
         }
         sleepStart = nil; sleeping = false
+        thermalControl.woke()
         startMonitoring()
         refreshNativeLimit()
     }
@@ -248,5 +257,5 @@ final class AppStore: ObservableObject {
     func openNativeShortcutSetup() {
         NSWorkspace.shared.open(URL(fileURLWithPath: "/System/Applications/Shortcuts.app"))
     }
-    func quit() { telemetry.stop(); NSApplication.shared.terminate(nil) }
+    func quit() { NSApplication.shared.terminate(nil) }
 }

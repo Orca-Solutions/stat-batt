@@ -5,6 +5,7 @@ import StatBattNativeLimit
 
 @main
 struct StatBattApplication: App {
+    @NSApplicationDelegateAdaptor(ThermalApplicationDelegate.self) private var applicationDelegate
     @StateObject private var store = AppStore()
     init() { ThermalServiceDeveloperCommand.runIfRequested() }
     var body: some Scene {
@@ -266,13 +267,14 @@ struct ChargingView: View {
                     onConfirmVisible: { store.confirmNativeVisibleLimit($0) },
                     onReconcile: { store.reconcileNativeLimit($0, priorShortcutCompletedOrStopped: $1) },
                     onForgetSetup: { store.forgetNativeSetup() })
+                ThermalControlView(model: store.thermalControl)
                 DisclosureGroup("Other charging features") {
-                    Text("Custom charge bands, forced discharge, one-time charging and temperature control are not available on this Mac yet. Apple manages charging; temperature alerts are available in Settings.")
+                    Text("Custom charge bands and forced discharge are not available. Apple manages charging; optional temperature control has its own qualification and restoration requirements.")
                         .font(.callout).foregroundStyle(.secondary).padding(.vertical, 8)
                 }
                 DisclosureGroup("Compatibility & diagnostics") {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Custom controls and automatic adapter disconnection unavailable")
+                        Text("Temperature control availability is reported by the background service above.")
                         Text("\(store.platform.model) · \(store.platform.architecture) · macOS \(store.platform.operatingSystemVersion) (\(store.platform.operatingSystemBuild))")
                         Text("Firmware: \(store.platform.firmwareVersion)")
                         Button("Export capability diagnostics…") { store.exportDiagnostics() }

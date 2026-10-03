@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Separate signed, NON-ACTUATING background-service bring-up bundle.
+# Signed local application with authenticated background service. Building never registers or runs it.
 set -eu
 cd "${0:A:h}/.."
 [[ $# == 0 ]] || { print -u2 'No arguments accepted; set STATBATT_DEVELOPMENT_IDENTITY.'; exit 2; }
@@ -12,6 +12,7 @@ identities=$(/usr/bin/security find-identity -v -p codesigning)
 scripts/verify-shortcuts.sh
 scripts/swift-local.sh build -c release --product StatBatt
 scripts/swift-local.sh build -c release --product StatBattControlDaemon
+scripts/swift-local.sh build -c release --product StatBattAdapterGuardian
 mkdir -p dist/service-development
 stage=$(/usr/bin/mktemp -d "$PWD/dist/service-development/build.XXXXXX")
 cleanup() {
@@ -26,13 +27,16 @@ app="$stage/StatBatt.app"
 mkdir -p "$app/Contents/MacOS" "$app/Contents/Resources/Shortcuts"
 cp .build/release/StatBatt "$app/Contents/MacOS/"
 cp Resources/Info.plist "$app/Contents/Info.plist"
-cp THIRD_PARTY_NOTICES.md Resources/INSTALL.txt "$app/Contents/Resources/"
+/usr/libexec/PlistBuddy -c 'Set :CFBundleVersion 9' "$app/Contents/Info.plist"
+cp THIRD_PARTY_NOTICES.md Resources/INSTALL.txt Resources/LOCAL_SERVICE_INSTALL.txt "$app/Contents/Resources/"
 cp Resources/Shortcuts/*.shortcut "$app/Contents/Resources/Shortcuts/"
 mkdir -p "$app/Contents/Library/LaunchDaemons"
-cp .build/release/StatBattControlDaemon "$app/Contents/MacOS/"
+cp .build/release/StatBattControlDaemon .build/release/StatBattAdapterGuardian "$app/Contents/MacOS/"
 cp Resources/LaunchDaemons/dev.statbatt.control-daemon.plist "$app/Contents/Library/LaunchDaemons/"
+/usr/bin/codesign --force --options runtime --sign "$STATBATT_DEVELOPMENT_IDENTITY" --identifier dev.statbatt.adapter-guardian "$app/Contents/MacOS/StatBattAdapterGuardian"
 /usr/bin/codesign --force --options runtime --sign "$STATBATT_DEVELOPMENT_IDENTITY" --identifier dev.statbatt.control-daemon "$app/Contents/MacOS/StatBattControlDaemon"
 /usr/bin/codesign --force --options runtime --sign "$STATBATT_DEVELOPMENT_IDENTITY" "$app"
+/usr/bin/codesign --verify --strict -R='anchor apple generic and identifier "dev.statbatt.adapter-guardian"' "$app/Contents/MacOS/StatBattAdapterGuardian"
 /usr/bin/codesign --verify --strict -R='anchor apple generic and identifier "dev.statbatt.control-daemon"' "$app/Contents/MacOS/StatBattControlDaemon"
 /usr/bin/codesign --verify --strict -R='anchor apple generic and identifier "dev.statbatt.local"' "$app"
 [[ ! -e dist/service-development/StatBatt.app ]] || /bin/mv dist/service-development/StatBatt.app "$stage/previous.app"
@@ -41,4 +45,5 @@ if ! /bin/mv "$app" dist/service-development/StatBatt.app; then
   exit 1
 fi
 print "Prepared $PWD/dist/service-development/StatBatt.app"
-print 'No service registered or installed. Status endpoint only; no charging actuation.'
+print 'No service registered or installed. Use the in-app background-service setup button.'
+print 'Temperature controls remain gated by the daemon’s qualification and verified recovery state.'

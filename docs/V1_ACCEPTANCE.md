@@ -1,4 +1,4 @@
-# V1 candidate acceptance — October 2, 2026
+# V1 candidate acceptance — October 3, 2026
 
 The native charging baseline follows [decision 0004](decisions/0004-native-charging-v1.md): working Apple 80% / 100% buttons plus monitoring. The owner subsequently requested optional temperature control by disconnecting adapter input in [decision 0005](decisions/0005-investigate-thermal-adapter-control.md). That feature is under separate investigation and is not a shipped capability. Native installer acceptance proceeds independently; the overall temperature request remains open until qualification succeeds or a concrete blocker is reported.
 
@@ -11,8 +11,8 @@ The native charging baseline follows [decision 0004](decisions/0004-native-charg
 | Notifications | Opt-in battery/source/temperature/failure alerts and tested debounce | Owner OS permission and real delivery smoke test |
 | UX | Native keyboard-accessible controls, text state, unavailable controls removed from primary workflow | Full VoiceOver, both appearances and scaling sweep; CUA cannot bind this app reliably |
 | Resource use | Build 5 closed-window 10-minute sample: 0.1583% CPU, 79.23 MB peak RSS | Installer candidate has not repeated the long-duration resource measurement |
-| Distribution | Repeatable local app/package build; bundled integrity checks; public pipeline fails closed without signing configuration; read-only image acceptance script | Owner has no Apple Developer membership/identity; public signing/notarization is blocked. Clean-account install/update/remove remains unexecuted |
-| Optional adapter-temperature control | Administrator CHIE00 write/readback passed; tested dormant temperature policy and independently reviewed disabled disconnect/guardian experiment; no app capability enabled | Actual adapter cut/restore, live policy integration, privilege boundary and failure/lifecycle qualification remain outstanding |
+| Distribution | Repeatable local app/package build; bundled integrity checks; public pipeline fails closed without signing configuration; read-only image acceptance script | Apple Development identity exists for local builds. Public Developer ID signing/notarization is explicitly deferred by the owner. Clean-account install/update/remove remains unexecuted |
+| Optional adapter-temperature control | Scoped cut/restore, owner-loss and sleep lab evidence; local UI/XPC/recovery integration and fixed two-second Swift guardian candidate implemented; normal package write gates closed | New guardian and app-to-daemon hardware qualification, estimated-sensor convenience admission, recurring policy and protected update/removal remain outstanding |
 
 The application is a local v1 candidate. A local ad-hoc signature or package does not mean public release readiness. Exact charging qualification remains Mac16,13 / arm64 / macOS 27.0.1 / 26A434 / mBoot-20457.1.29. No privileged helper is installed or needed for the native baseline. Any helper or guardian required by optional temperature control must pass its own security and recovery acceptance before shipping.
 
@@ -45,3 +45,7 @@ lab executable included. The volume was detached after inspection. Companion
 SHA-256 verification passed. Public packaging without credentials was checked
 and rejected before building. These results do not close the clean-account or
 public-notarization rows above.
+
+## Local background integration follow-up
+
+See [local integration and remaining gates](research/THERMAL_LOCAL_INTEGRATION.md). Build 9 is a local development integration candidate, not an accepted automatic temperature controller. Its protected first-install package preserves the existing native app and shortcuts. A separate source-gated one-shot candidate may test one two-second adapter interval; passing that test cannot enable automatic policy. Public notarization is deferred and is not the reason temperature control remains unavailable.

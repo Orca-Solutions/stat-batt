@@ -42,10 +42,13 @@ struct PreferencesView: View {
                     Button("Export diagnostics…") { store.exportDiagnostics() }
                 }
             }
+            Section("Temperature control") {
+                ThermalControlView(model: store.thermalControl)
+            }
             Section("Control & recovery") {
-                Text("Quit stops monitoring. An Apple charge limit applied through the trusted shortcut remains active after StatBatt quits. Use Set to 100% before quitting if you want to remove the limit. If a request was interrupted, check or stop it in Shortcuts and review Battery settings.")
+                Text("Quit first asks the background service to restore any owned adapter override, then stops monitoring. An Apple charge limit applied through the trusted shortcut remains active after StatBatt quits. Use Set to 100% before quitting if you want to remove the limit. If a request was interrupted, check or stop it in Shortcuts and review Battery settings.")
                     .font(.callout).foregroundStyle(.secondary)
-                Text("Custom controls and automatic adapter disconnection are unavailable in this build. Other battery controllers continue independently.")
+                Text("Temperature control stays off until the background service confirms it is qualified and accepts a new session. Other battery controllers must be stopped.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section("About StatBatt") {
