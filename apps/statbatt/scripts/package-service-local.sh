@@ -8,10 +8,9 @@ app="$PWD/dist/service-development/StatBatt.app"
 /usr/bin/codesign --verify --deep --strict -R='anchor apple generic and identifier "dev.statbatt.local"' "$app"
 stage=$(/usr/bin/mktemp -d "$PWD/dist/service-development/package.XXXXXX")
 trap '/bin/rm -rf "$stage"' EXIT
-mkdir -p "$stage/payload/Library/Application Support/StatBattLocal" "$stage/payload/Applications" "$stage/scripts"
-/usr/bin/ditto "$app" "$stage/payload/Library/Application Support/StatBattLocal/StatBatt.app"
-/bin/ln -s '/Library/Application Support/StatBattLocal/StatBatt.app' "$stage/payload/Applications/StatBatt Local.app"
-/bin/chmod -R go-w "$stage/payload/Library"
+mkdir -p "$stage/payload" "$stage/scripts"
+/usr/bin/ditto --norsrc --noextattr --noacl "$app" "$stage/payload/StatBatt.app"
+/bin/chmod -R go-w "$stage/payload"
 cat > "$stage/scripts/preinstall" <<'SCRIPT'
 #!/bin/zsh
 set -eu
@@ -27,13 +26,23 @@ for path in / /Library '/Library/Application Support'; do
   (( (8#$mode & 8#22) == 0 )) || { print -u2 "Unsafe writable ancestor: $path"; exit 1; }
 done
 SCRIPT
-chmod 755 "$stage/scripts/preinstall"
+cat > "$stage/scripts/postinstall" <<'SCRIPT'
+#!/bin/zsh
+set -eu
+# Parent directories are never part of the payload or permission changes.
+app='/Library/Application Support/StatBattLocal/StatBatt.app'
+[[ "$3" == '/' && -d "$app" && ! -L "$app" ]] || exit 1
+/usr/bin/codesign --verify --deep --strict -R='anchor apple generic and identifier "dev.statbatt.local"' "$app"
+[[ ! -e '/Applications/StatBatt Local.app' && ! -L '/Applications/StatBatt Local.app' ]] || exit 1
+/bin/ln -s "$app" '/Applications/StatBatt Local.app'
+SCRIPT
+chmod 755 "$stage/scripts/preinstall" "$stage/scripts/postinstall"
 version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")
 /usr/bin/pkgbuild --analyze --root "$stage/payload" "$stage/components.plist"
-/usr/libexec/PlistBuddy -c 'Set :0:BundleIsRelocatable false' "$stage/components.plist"
+/usr/libexec/PlistBuddy -c 'Add :0:BundleIsRelocatable bool false' "$stage/components.plist"
 /usr/libexec/PlistBuddy -c 'Set :0:BundleHasStrictIdentifier true' "$stage/components.plist"
 /usr/bin/pkgbuild --component-plist "$stage/components.plist" --root "$stage/payload" --scripts "$stage/scripts" --ownership recommended \
-  --identifier dev.statbatt.local.first-install --version "$version" --install-location / \
+  --identifier dev.statbatt.local.first-install --version "$version" --install-location "/Library/Application Support/StatBattLocal" \
   "$stage/StatBatt-LOCAL-DEVELOPMENT.pkg"
 /bin/mv "$stage/StatBatt-LOCAL-DEVELOPMENT.pkg" dist/service-development/StatBatt-LOCAL-DEVELOPMENT.pkg
 print "Prepared $PWD/dist/service-development/StatBatt-LOCAL-DEVELOPMENT.pkg"
