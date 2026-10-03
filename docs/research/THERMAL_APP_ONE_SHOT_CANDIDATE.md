@@ -1,6 +1,6 @@
 # Prepared app-path adapter candidate — October 3, 2026
 
-This is a supervised local qualification candidate, not an automatic temperature controller. Public signing/notarization are deferred. Installation, service registration and this new hardware experiment have not yet run.
+This is a supervised local qualification candidate, not an automatic temperature controller. Public signing/notarization are deferred. The build 9 attempt was inconclusive; build 10 is now installed with improved feedback. Historical preparation details below are retained as evidence, not current pending actions.
 
 ## Identity and package checks
 
@@ -24,3 +24,42 @@ SHA-256:
 4. Require fresh zero readback plus AC supply and durable restoration acknowledgement. If unknown, preserve the service and journals, stop further experiments and use the owned restore action; do not uninstall. Do not automatically repeat an inconclusive trial. Guardian-process death itself remains an unqualified case; this experiment does not deliberately kill the guardian.
 
 Installer is prepared at its final Install screen. The launchd daemon label `dev.statbatt.control-daemon` was absent before installation. The old native build8 app was still running. No new adapter write has been dispatched.
+
+Owner authorization: after the package identity/checks above were prepared, the owner explicitly replied **“Yes, install and run the two-second test.”** This authorizes the bounded installation/registration and one app-path trial described above, not repeated experiments or unattended control. Installer's Install button has been pressed; administrator authentication/completion is pending. No hardware test has yet run. A separate fixed, read-only public-power-source observer was prepared to capture the brief physical transition independently of the XPC result.
+
+Installation completed with owner-entered administrator authorization. Installed executable hashes match all three recorded candidate hashes; bundle/guardian parents are root0755, and `/Applications` remains root0775. The separate launcher points to the protected bundle. Same-team strict installed signature validation passed. User-context SMAppService registration returned enabled; launchd identifies bundle version9 and the expected daemon/team. The old native-only PID10378 was closed; installed app PID15013 and daemon PID15014 were observed running. No additional Background Items approval was needed.
+
+The UI automation tool timed out attaching to the new StatBatt app, although process and launchd checks confirm it launched. The owner has been asked to press the already-authorized test button once while a separate 100ms public IOPowerSources trace records source changes. Trace: `/private/tmp/statbatt-app-one-shot-source.jsonl`. No result is inferred from installation/registration alone.
+
+## Observed outcome and feedback repair
+
+The owner reported pressing the one-shot button; it then disappeared/was disabled, and Check status showed no visible result. Their08:52:19 screenshot showed the service's generic unavailable message and estimated27.6°C. The completed independent trace contains3000 samples from15:50:46.017Z through15:55:58.225Z, all adapter supply (SHA256 `af08de550e840b885679fecc17e33750c97ab8e991794f66dfbcc6fe58788287`). This does not prove that no key write occurred; it does mean no physical transition was observed. The trial is **inconclusive**, not accepted and not automatically repeated.
+
+A new same-team signed read-only diagnostic client queried the existing service. Concurrent UI polling initially yielded no fresh reading. After closing the UI with an authoritative safeToExit acknowledgement, a quiescent query confirmed `adapterRestored:true`, `safeToExit:true`, no further qualification available, and estimated27.39°C. Evidence is `/private/tmp/statbatt-post-test-quiescent-status.json`. Public power status also remained AC attached at80%. No extra hardware test was sent.
+
+Source fixes retain test outcomes independently of generic refresh messages, show manual status-check progress/timestamps, coalesce concurrent client refreshes and backend inspections, and record bounded sanitized launch/precondition/key/source/restore diagnostic events. Unregistration now requests prepareUninstall and requires safeToExit rather than using the legacy non-actuating status. All204 software tests pass. These source fixes are not yet deployed to the protected service. The old trial's exact failure cause remains unknown; startup consuming the observation budget or a precondition rejection are hypotheses only.
+
+
+## Installed build 10 — current state
+
+The protected update completed and installed executable hashes were verified against the reviewed build 10 payload. The service is registered. A subsequent read-only status confirmed `adapterRestored: true`, `safeToExit: true`, `controlAvailable: false`, and `qualificationAvailable: true`. These observations show a safe baseline; they do not accept the earlier test or authorize a repeat.
+
+The outcome persistence, manual status feedback, coalesced reads and diagnostic improvements above are now deployed. Automatic temperature control remains unavailable. No build 10 hardware test is recorded. The build 9 all-AC trace remains the only independent app-path trial trace documented here. A newly available qualification button is not evidence that any test ran.
+
+Local update admission validates the stopped app/service, root-owned existing installation, same-team signatures, resolved ledger and fresh read-only zero/AC samples. Installer scripts perform no restoration or registration. Guided protected bundle removal is now implemented in source, preserving recovery journals and user-owned shortcuts, but is not yet deployed or live-tested. Public notarization remains deferred.
+
+## Build 11 prepared follow-up — not yet executed
+
+Prepared isolated source: `/private/tmp/statbatt-v11-candidate-b9znmgcm/statbatt`; manifest and six-line gate diff are adjacent. Automatic qualification record is nil. The revised worker adds independent EOF/sleep/deadline restoration, excludes startup from the two-second lease and keeps output nonblocking. Software suite: 218 tests pass; preflight fixtures pass.
+
+Package: `apps/statbatt/dist/qualification/StatBatt-11-ONE-SHOT-UPDATE.pkg`. Apple Development signatures and fixed-team identities verified; all 13 payload files match the signed source. Fixed install location and build11 metadata checked.
+
+| Artifact | SHA-256 |
+|---|---|
+| Package | `dce35ea883ba867bc8618c1db523f05e04fcdb8d3670a6d6550107b8d7be1e1f` |
+| App executable | `7d90a6512ce0072881f1b063d2dcdc3a17e0fb873cc33118ea3ce87adcef7699` |
+| Daemon | `c71ed9bdac847efe2eb4581cd2cb3d3cb0007bc259e1271a8a5877de26fcaf59` |
+| Guardian | `673176cd92b7374fa01b194dac8491ed1e1a05094424f2c5a3a96c466642cd62` |
+| Removal helper | `e912ed8070c4e411ea678911f49c7ae2e7d57def86d39ba996aea7de6d6cfa37` |
+
+Requested operation: one supervised fixed CHIE00→08→00 interval on the previously recorded exact Mac/OS/firmware, normal thermal state, fresh AC and zero baseline, SOC≥50%, charger attached and lid open. Independent guardian and worker restoration deadlines remain two seconds, with bounded restoration observation afterward. No artificial load, native-limit changes, sleep injection, repeat or automatic policy. Unknown outcome preserves recovery ownership and stops further experiments. The owner explicitly approved installing build11 and running this one test in the current conversation. Installation is underway; the test has not run. The build9 authorization remains consumed.

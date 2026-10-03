@@ -132,3 +132,32 @@ private func thermalFixture() -> ThermalAdapterInput {
     i.controlObservedAt = i.now - 2_000_000_001
     #expect(ThermalAdapterReducer.evaluate(i).effect == .releaseOwnedControls)
 }
+
+@Test func thermalConvenienceEstimateRequiresExactAdmissionAndFreshness() {
+    var i = thermalFixture()
+    let platform = PlatformFingerprint(model: "fixture", architecture: "arm64", operatingSystemVersion: "1", operatingSystemBuild: "1", firmwareVersion: "1", providerVersion: "1")
+    i.capabilities.platform = platform
+    i.capabilities.canObserveBatteryTemperature = .init()
+    i.capabilities.verifiedBatteryTemperatureBoundsCelsius = nil
+    i.telemetry.batteryTemperatureCelsius.quality = .estimated
+    i.estimatedTemperatureAdmission = .init(platform: platform, source: "fixture", bounds: .init(lower: 0, upper: 60))
+    #expect(ThermalAdapterReducer.evaluate(i).reason == .hot)
+    #expect(i.telemetry.batteryTemperatureCelsius.quality == .estimated)
+    #expect(!i.capabilities.canObserveBatteryTemperature.isVerified)
+    let mutations: [(inout ThermalAdapterInput) -> Void] = [
+        { $0.capabilities.platform.operatingSystemBuild = "changed" },
+        { $0.telemetry.batteryTemperatureCelsius.source = "another sensor" },
+        { $0.telemetry.batteryTemperatureCelsius.quality = .derived },
+        { $0.telemetry.batteryTemperatureCelsius.sampledAtContinuousNanoseconds = $0.now - 2_000_000_001 },
+        { $0.minimumSampleTime = $0.now + 1 },
+        { $0.telemetry.batteryTemperatureCelsius.value = .nan },
+        { $0.telemetry.batteryTemperatureCelsius.value = 61 },
+        { $0.estimatedTemperatureAdmission = nil },
+        { $0.capabilities.canInhibitAdapter.restorationVerified = false }
+    ]
+    for mutation in mutations {
+        var changed = i; mutation(&changed)
+        #expect(ThermalAdapterReducer.evaluate(changed).endSession)
+        #expect(ThermalAdapterReducer.evaluate(changed).effect == .releaseOwnedControls)
+    }
+}

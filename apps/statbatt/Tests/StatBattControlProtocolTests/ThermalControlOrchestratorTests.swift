@@ -66,6 +66,40 @@ private func controlInput(boot: UUID, now: UInt64, hot: Bool = true, inhibited: 
     return input
 }
 
+@Test func thermalSessionMissingHeartbeatRestoresWithoutAnotherWrite() async throws {
+    let boot = UUID(), owner = UUID(), clock = ControlClock(), storage = ControlJournal()
+    let ledger = try ThermalOwnershipLedger(storage: storage, bootID: boot)
+    let backend = ControlBackend(boot: boot, clock: clock)
+    let control = ThermalControlOrchestrator(ledger: ledger, backend: backend, bootID: boot, clock: { clock.now() })
+    let session = ThermalPolicySession(controller: control, clock: { clock.now() }, activeUID: { 501 })
+    #expect(await session.start(owner: owner, uid: 501, policy: .init(enabled: true)))
+    #expect(await session.tick(controlInput(boot: boot, now: clock.now()), activeUID: 501) == .inhibited)
+    #expect(!(await session.heartbeat(owner: UUID(), activeUID: 501)))
+    clock.advance(ThermalSessionLease.heartbeatLimit)
+    #expect(await session.tick(controlInput(boot: boot, now: clock.now(), inhibited: true), activeUID: 501) == .stopped)
+    #expect(await session.owner == nil)
+    #expect(!(await session.heartbeat(owner: owner, activeUID: 501)))
+    #expect(storage.record?.phase == .restored)
+    #expect(await backend.calls.filter { $0 == "write08" }.count == 1)
+}
+
+@Test func thermalSessionUserSwitchAndOwnerDisconnectEndConsent() async throws {
+    let boot = UUID(), owner = UUID(), clock = ControlClock(), storage = ControlJournal()
+    let ledger = try ThermalOwnershipLedger(storage: storage, bootID: boot)
+    let backend = ControlBackend(boot: boot, clock: clock)
+    let control = ThermalControlOrchestrator(ledger: ledger, backend: backend, bootID: boot, clock: { clock.now() })
+    let session = ThermalPolicySession(controller: control, clock: { clock.now() }, activeUID: { 501 })
+    #expect(await session.start(owner: owner, uid: 501, policy: .init(enabled: true)))
+    _ = await session.tick(controlInput(boot: boot, now: clock.now()), activeUID: 502)
+    #expect(await session.owner == nil)
+    #expect(await backend.calls.isEmpty)
+    #expect(await session.start(owner: owner, uid: 501, policy: .init(enabled: true)))
+    await session.disconnected(UUID())
+    #expect(await session.owner == owner)
+    await session.disconnected(owner)
+    #expect(await session.owner == nil)
+}
+
 @Test func thermalOrchestratorHotHoldCoolPersistsAndDoesNotRewrite() async throws {
     let boot = UUID(), clock = ControlClock(), storage = ControlJournal()
     let ledger = try ThermalOwnershipLedger(storage: storage, bootID: boot)

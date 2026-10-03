@@ -19,10 +19,29 @@ public actor LocalThermalAdapterBackend: ThermalControlBackend {
     private var reaped = false
     private var runningCall = false
     private var childIsReadOnly = false
+    private var diagnosticHistory = AdapterDiagnosticHistory()
+    private var recordPackets = false
+    private var inspectionFlight: Task<AdapterPacket?, Never>?
+    private let inspectionOverride: (@Sendable () async -> AdapterPacket?)?
+    public func diagnosticSnapshot() -> [AdapterDiagnostic] { diagnosticHistory.entries }
+    private func note(_ event: String, packet: AdapterPacket? = nil, failure: AdapterFailure? = nil, exitCode: Int32? = nil) {
+        diagnosticHistory.append(AdapterDiagnostic(event: event, at: SampleClock.nowNanoseconds(), packet: packet, failure: failure, exitCode: exitCode))
+    }
 
-    public init(ledger: ThermalOwnershipLedger, bootID: UUID) { self.ledger = ledger; self.bootID = bootID }
+    public init(ledger: ThermalOwnershipLedger, bootID: UUID) {
+        self.ledger = ledger; self.bootID = bootID; inspectionOverride = nil
+    }
+    // Internal read-only injection; never an XPC or production initialization option.
+    init(ledger: ThermalOwnershipLedger, bootID: UUID, inspection: @escaping @Sendable () async -> AdapterPacket?) {
+        self.ledger = ledger; self.bootID = bootID; inspectionOverride = inspection
+    }
     private func start(_ mode: String) throws {
-        guard (mode == "--cycle" ? (Self.qualificationEnabled && Self.recoveryEnabled) : mode == "--recover" ? Self.recoveryEnabled : mode == "--inspect"), getuid() == 0, geteuid() == 0 else { throw ThermalJournalError.unavailable }
+        guard (mode == "--cycle" ? (Self.qualificationEnabled && Self.recoveryEnabled) : mode == "--recover" ? Self.recoveryEnabled : mode == "--inspect"), getuid() == 0, geteuid() == 0 else {
+            if mode != "--inspect" { note("failed", failure: .identityOrGate) }
+            throw ThermalJournalError.unavailable
+        }
+        recordPackets = mode != "--inspect"
+        if recordPackets { note(mode == "--recover" ? "restoreLaunch" : "launch") }
         let executable = Bundle.main.executableURL!.deletingLastPathComponent().appendingPathComponent("StatBattAdapterGuardian")
         try AdapterExecutableIdentity.verify(url: executable, ownIdentifier: ThermalServiceContract.daemonIdentifier)
         let process = Process(), input = Pipe(), output = Pipe()
@@ -48,6 +67,7 @@ public actor LocalThermalAdapterBackend: ThermalControlBackend {
             let line = data.prefix(upTo: newline); data.removeSubrange(...newline)
             if let packet = try? JSONDecoder().decode(AdapterPacket.self, from: line) {
                 latest = packet
+                if recordPackets { note("packet", packet: packet) }
                 if packet.reaped == true { reaped = true }
             }
         }
@@ -56,27 +76,33 @@ public actor LocalThermalAdapterBackend: ThermalControlBackend {
         let deadline = ContinuousClock.now + .milliseconds(Int(seconds * 1000))
         repeat {
             receive()
-            if child?.isRunning != true { receive(); return true }
+            if child?.isRunning != true { receive(); if recordPackets { note("exit", exitCode: child?.terminationStatus) }; return true }
             try? await Task.sleep(for: .milliseconds(20))
         } while ContinuousClock.now < deadline
+        if recordPackets { note("timeout", failure: .deadline) }
         return false // Never race a potentially live writer with a new restore.
     }
     public func inhibitAdapter(operationID: UUID) async -> Bool {
-        guard !runningCall, child?.isRunning != true else { return false }
+        guard !runningCall, child?.isRunning != true else { note("failed", failure: .backendBusy); return false }
+        diagnosticHistory = AdapterDiagnosticHistory(); note("admission")
         runningCall = true; defer { runningCall = false }
-        guard let intent = await ledger.snapshot, intent.operationID == operationID, intent.unresolved else { return false }
+        guard let intent = await ledger.snapshot, intent.operationID == operationID, intent.unresolved else { note("failed", failure: .missingIntent); return false }
         do {
             try start("--cycle")
             operation = operationID
             try owner?.fileHandleForWriting.write(contentsOf: Data((operationID.uuidString + "\n").utf8))
-            let deadline = ContinuousClock.now + .seconds(2)
+            note("dispatch")
+            // Startup allowance only: the guardian starts its unchanged two-second
+            // hardware lease after the prepared worker's READY/G handoff.
+            let deadline = ContinuousClock.now + .seconds(5)
             repeat {
                 receive()
                 if latest?.phase == "inhibited", latest?.key == 8, latest?.outcome == 0 { return true }
-                if child?.isRunning != true { return false }
+                if child?.isRunning != true { note("exit", exitCode: child?.terminationStatus); return false }
                 try? await Task.sleep(for: .milliseconds(20))
             } while ContinuousClock.now < deadline
-        } catch { }
+            note("timeout", failure: .deadline)
+        } catch { note("failed", failure: error is ThermalSigningError ? .signature : .dispatchFailed) }
         try? owner?.fileHandleForWriting.close()
         return false
     }
@@ -98,13 +124,13 @@ public actor LocalThermalAdapterBackend: ThermalControlBackend {
         try? owner?.fileHandleForWriting.close()
         guard !runningCall else { return false }
         if child == nil { return true } // Restart recovery: guardian lock still prevents overlapping writes.
-        return await waitForExit(seconds: 7) && (reaped || childIsReadOnly)
+        return await waitForExit(seconds: 12) && (reaped || childIsReadOnly)
     }
     public func restoreAdapter() async -> UInt64? {
         guard !runningCall, child?.isRunning != true else { return nil }
         runningCall = true; defer { runningCall = false }
         guard await ledger.snapshot?.unresolved == true else { return nil }
-        do { try start("--recover") } catch { return nil }
+        do { try start("--recover") } catch { note("failed", failure: error is ThermalSigningError ? .signature : .dispatchFailed); return nil }
         guard await waitForExit(seconds: 6), latest?.phase == "restored", latest?.key == 0,
               latest?.outcome == 0 else { return nil }
         return latest?.sampledAt
@@ -116,8 +142,20 @@ public actor LocalThermalAdapterBackend: ThermalControlBackend {
             adapterSupplyingPower: packet.adapter == true, sourceObservedAt: sourceAt, now: SampleClock.nowNanoseconds())
     }
     public func freshInspection() async -> AdapterPacket? {
+        if let inspectionFlight { return await inspectionFlight.value }
         guard !runningCall, child?.isRunning != true else { return nil }
-        runningCall = true; defer { runningCall = false }
+        // Reserve exclusion before creating the task; writers cannot slip into
+        // the actor while concurrent readers join the same uncached inspection.
+        runningCall = true
+        let flight = Task { await self.performInspection() }
+        inspectionFlight = flight
+        let packet = await flight.value
+        inspectionFlight = nil
+        runningCall = false
+        return packet
+    }
+    private func performInspection() async -> AdapterPacket? {
+        if let inspectionOverride { return await inspectionOverride() }
         do { try start("--inspect") } catch { return nil }
         guard await waitForExit(seconds: 2), let packet = latest, packet.phase == "inspection", packet.outcome == 0 else { return nil }
         return packet

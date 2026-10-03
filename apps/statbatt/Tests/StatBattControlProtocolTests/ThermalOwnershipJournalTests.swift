@@ -1,6 +1,28 @@
 import Foundation
 import Testing
+import Darwin
 @testable import StatBattControlProtocol
+
+@Test func nativeRequestFenceSurvivesReloadAndRejectsCorruption() throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent("native-fence-" + UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let owner = UUID()
+    do {
+        let storage = try FileThermalOwnershipJournal(directory: directory)
+        #expect(try storage.loadNativeRequest() == nil)
+        try storage.saveNativeRequest(owner)
+        #expect(try storage.load() == nil)
+    }
+    do {
+        let storage = try FileThermalOwnershipJournal(directory: directory)
+        #expect(try storage.loadNativeRequest() == owner)
+        try storage.saveNativeRequest(nil)
+        #expect(try storage.loadNativeRequest() == nil)
+        let file = directory.appendingPathComponent("native-request.json")
+        try Data("{\"version\":2}".utf8).write(to: file)
+        #expect(throws: (any Error).self) { try storage.loadNativeRequest() }
+    }
+}
 
 private final class ThermalMemoryJournal: ThermalOwnershipJournalStorage, @unchecked Sendable {
     var record: ThermalOwnershipRecord?

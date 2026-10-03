@@ -94,6 +94,7 @@ public actor ThermalControlOrchestrator {
         value.awake = supplied.awake && !sleeping
         if let session {
             value.sessionStartedAt = session.started; value.sessionDeadline = session.deadline
+            value.minimumSampleTime = max(value.minimumSampleTime, session.started)
         }
         value.pauseStartedAt = operation?.started; value.lastRestoredAt = lastRestored
         return value

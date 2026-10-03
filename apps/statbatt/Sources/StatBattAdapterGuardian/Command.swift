@@ -38,6 +38,10 @@ private func emit(_ packet: AdapterPacket) {
     }
 }
 
+private func diagnose(_ reason: AdapterFailure) {
+    var packet = AdapterPacket(phase: "rejected"); packet.failure = reason; emit(packet)
+}
+
 private func lockDirectory(sharedWorker: Bool = false) -> Int32 {
     for path in ["/Library", "/Library/Application Support"] {
         var info = stat()
@@ -86,28 +90,32 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
         // Losing the daemon/output consumer must never terminate recovery.
         // This also applies to workers whose guardian disappears.
         ignoreBrokenOutput()
+        // A stalled reader must not block a worker before its restoration defer.
+        let stdoutFlags = fcntl(STDOUT_FILENO, F_GETFL)
+        guard stdoutFlags >= 0, fcntl(STDOUT_FILENO, F_SETFL, stdoutFlags | O_NONBLOCK) == 0 else { exit(1) }
         guard getuid() == 0, geteuid() == 0,
-              CommandLine.arguments.count == 2 else { exit(64) }
+              CommandLine.arguments.count == 2 else { diagnose(.identityOrGate); exit(64) }
         let mode = CommandLine.arguments[1]
         let enabled = ["--cycle", "--worker-inhibit"].contains(mode) ? (guardianQualificationEnabled && guardianRecoveryEnabled) :
             ["--recover", "--worker-restore"].contains(mode) ? guardianRecoveryEnabled : ["--inspect", "--worker-inspect"].contains(mode)
-        guard enabled else { exit(64) }
+        guard enabled else { diagnose(.identityOrGate); exit(64) }
         guard ["--cycle", "--recover", "--inspect", "--worker-inhibit", "--worker-restore", "--worker-inspect"].contains(mode),
               let executable = Bundle.main.executableURL else { exit(64) }
-        try AdapterExecutableIdentity.verify(url: executable, ownIdentifier: AdapterExecutableIdentity.identifier)
+        do { try AdapterExecutableIdentity.verify(url: executable, ownIdentifier: AdapterExecutableIdentity.identifier) }
+        catch { diagnose(.signature); throw error }
         let platform = PlatformProbe.readOnly()
         guard platform.model == "Mac16,13", platform.architecture == "arm64", platform.operatingSystemVersion == "27.0.1",
-              platform.operatingSystemBuild == "26A434", platform.firmwareVersion == "mBoot-20457.1.29" else { exit(1) }
+              platform.operatingSystemBuild == "26A434", platform.firmwareVersion == "mBoot-20457.1.29" else { diagnose(.platform); exit(1) }
         if mode.hasPrefix("--worker-") { worker(mode); return }
-        let fd = lockDirectory(); guard fd >= 0 else { exit(1) }; defer { close(fd) }
+        let fd = lockDirectory(); guard fd >= 0 else { diagnose(.ownershipLock); exit(1) }; defer { close(fd) }
         var intentInfo = stat()
         let hasIntent = fstatat(fd, "intent.json", &intentInfo, AT_SYMLINK_NOFOLLOW) == 0
         if hasIntent && (intentInfo.st_uid != 0 || intentInfo.st_mode & S_IFMT != S_IFREG || intentInfo.st_mode & 0o077 != 0) { exit(1) }
-        if mode == "--recover" && !hasIntent { exit(1) }
+        if mode == "--recover" && !hasIntent { diagnose(.ownershipJournal); exit(1) }
         if mode == "--cycle" && hasIntent {
             guard let saved = try? Data(contentsOf: URL(fileURLWithPath: directory + "/intent.json")),
                   saved.count <= 4096, let object = try? JSONSerialization.jsonObject(with: saved) as? [String: Any],
-                  object["phase"] as? String == "restored" else { exit(1) }
+                  object["phase"] as? String == "restored" else { diagnose(.ownershipJournal); exit(1) }
         }
         let flags = fcntl(STDIN_FILENO, F_GETFL)
         guard flags >= 0, fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK) == 0 else { exit(1) }
@@ -136,14 +144,14 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
             CFRunLoopRunInMode(.defaultMode, 0.01, false)
         }
         guard let text = String(data: input, encoding: .utf8), let operation = UUID(uuidString: text.trimmingCharacters(in: .whitespacesAndNewlines)),
-              journal(fd, operation: operation, phase: "inhibitionIntent") else { exit(1) }
+              journal(fd, operation: operation, phase: "inhibitionIntent") else { diagnose(.ownerToken); exit(1) }
         let sleep = SleepState(); var port: IONotificationPortRef?; var notifier: io_object_t = 0
         sleep.connection = IORegisterForSystemPower(Unmanaged.passUnretained(sleep).toOpaque(), &port, callback, &notifier)
-        guard sleep.connection != 0, let port else { exit(1) }
+        guard sleep.connection != 0, let port else { diagnose(.sleepNotification); exit(1) }
         let source = IONotificationPortGetRunLoopSource(port).takeUnretainedValue()
         CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .defaultMode)
         var assertion: UInt32 = 0
-        guard sb_control_prevent_idle_sleep(&assertion) == 0 else { exit(1) }
+        guard sb_control_prevent_idle_sleep(&assertion) == 0 else { diagnose(.sleepAssertion); exit(1) }
         defer {
             sleep.acknowledge()
             _ = sb_control_release_idle_sleep(assertion)
@@ -172,18 +180,20 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
 
     private static func runWorker(_ executable: URL, _ mode: String, seconds: Double,
                                   stop: () -> Bool = { false }, report: (AdapterPacket) -> Void = { _ in }) -> (packet: AdapterPacket?, reaped: Bool) {
-        let process = Process(), output = Pipe()
+        let process = Process(), output = Pipe(), commands = Pipe()
         // Acquire BEFORE spawn and inherit as fd0: there is no launch-to-lock gap
         // in which a guardian crash could leave an untracked future writer.
         // Workers never read or close stdin. flock ownership survives dup/exec.
+        // A separate private pipe is mapped to fd2 for owner EOF/stop commands.
         let writerLease = lockDirectory(sharedWorker: true)
-        guard writerLease >= 0 else { return (nil, true) }
+        guard writerLease >= 0 else { diagnose(.ownershipLock); return (nil, true) }
         defer { close(writerLease) }
         process.executableURL = executable; process.arguments = [mode]
         process.environment = ["PATH": "/usr/bin:/bin", "HOME": "/var/root"]
         process.standardInput = FileHandle(fileDescriptor: writerLease, closeOnDealloc: false)
-        process.standardOutput = output; process.standardError = FileHandle.nullDevice
-        do { try process.run() } catch { return (nil, true) }
+        process.standardOutput = output; process.standardError = commands.fileHandleForReading
+        defer { try? commands.fileHandleForWriting.close() }
+        do { try process.run() } catch { diagnose(.workerLaunch); return (nil, true) }
         let fd = output.fileHandleForReading.fileDescriptor
         _ = fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK)
         var data = Data(), packet: AdapterPacket?
@@ -196,9 +206,29 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
                 if let decoded = try? JSONDecoder().decode(AdapterPacket.self, from: line) { packet = decoded; report(decoded) }
             }
         }
-        let deadline = ContinuousClock.now + .milliseconds(Int(seconds * 1000))
+        let inhibition = mode == "--worker-inhibit"
+        var armed = !inhibition
+        var deadline = ContinuousClock.now + (inhibition ? .seconds(3) : .milliseconds(Int(seconds * 1000)))
         while process.isRunning && ContinuousClock.now < deadline && !stop() {
-            drain(); CFRunLoopRunInMode(.defaultMode, 0.01, false)
+            drain()
+            if inhibition && !armed && packet?.phase == "writerReady" {
+                if stop() { break }
+                // Start the fixed hold only after signed worker setup/preflight.
+                do { try commands.fileHandleForWriting.write(contentsOf: Data([0x47])) }
+                catch { break }
+                armed = true; deadline = ContinuousClock.now + .seconds(2)
+            }
+            CFRunLoopRunInMode(.defaultMode, 0.01, false)
+        }
+        if inhibition && process.isRunning {
+            // Cooperative EOF lets the worker restore even if its guardian dies.
+            // Four seconds covers its bounded source-settling attempt; it never
+            // authorizes more inhibition. A stalled worker is still killed/reaped.
+            try? commands.fileHandleForWriting.close()
+            let recoveryDeadline = ContinuousClock.now + .seconds(4)
+            while process.isRunning && ContinuousClock.now < recoveryDeadline {
+                drain(); CFRunLoopRunInMode(.defaultMode, 0.01, false)
+            }
         }
         if process.isRunning { kill(process.processIdentifier, SIGKILL) }
         let reapDeadline = ContinuousClock.now + .seconds(1)
@@ -207,19 +237,73 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
         return (packet, !process.isRunning)
     }
 
+    private static func inhibitionRejection(_ before: BatterySnapshot, now: UInt64) -> AdapterFailure? {
+        guard before.batteryPresent.value == true, before.batteryPresent.isFresh(at: now, maximumAgeSeconds: 2) else { return .batteryMissingOrStale }
+        guard before.supplyingSource.value == .adapter, before.supplyingSource.isFresh(at: now, maximumAgeSeconds: 2),
+              before.adapterAttached.value == true, before.adapterAttached.isFresh(at: now, maximumAgeSeconds: 2) else { return .externalPowerMissingOrStale }
+        guard let soc = before.stateOfChargePercent.value, soc.isFinite, (50...100).contains(soc),
+              before.stateOfChargePercent.isFresh(at: now, maximumAgeSeconds: 2) else { return .reserveMissingOrStale }
+        guard before.thermalPressure.value == .nominal, before.thermalPressure.isFresh(at: now, maximumAgeSeconds: 2) else { return .thermalNotNominalOrStale }
+        return nil
+    }
+
     @MainActor private static func worker(_ mode: String) {
         let lock = lockDirectory(sharedWorker: true)
-        guard lock >= 0 else { return }
+        guard lock >= 0 else { diagnose(.ownershipLock); return }
         defer { close(lock) }
         let reader = PublicTelemetry()
-        let before = reader.snapshot(), now = SampleClock.nowNanoseconds()
+        var gate = WorkerRecoveryGate()
+        let workerSleep = SleepState()
+        var workerPort: IONotificationPortRef?
+        var workerNotifier: io_object_t = 0
+        var workerAssertion: UInt32 = 0
+        var workerSource: CFRunLoopSource?
+        defer {
+            workerSleep.acknowledge()
+            if workerAssertion != 0 { _ = sb_control_release_idle_sleep(workerAssertion) }
+            if let workerPort {
+                IODeregisterForSystemPower(&workerNotifier)
+                if let workerSource { CFRunLoopRemoveSource(CFRunLoopGetCurrent(), workerSource, .defaultMode) }
+                if workerSleep.connection != 0 { IOServiceClose(workerSleep.connection) }
+                IONotificationPortDestroy(workerPort)
+            }
+        }
+        func ownerGone() -> Bool {
+            var byte: UInt8 = 0
+            let count = read(STDERR_FILENO, &byte, 1)
+            return count >= 0 || (errno != EAGAIN && errno != EINTR)
+        }
         if mode == "--worker-inhibit" {
-            guard before.batteryPresent.value == true, before.batteryPresent.isFresh(at: now, maximumAgeSeconds: 2),
-                  before.supplyingSource.value == .adapter, before.supplyingSource.isFresh(at: now, maximumAgeSeconds: 2),
-                  before.adapterAttached.value == true, before.adapterAttached.isFresh(at: now, maximumAgeSeconds: 2),
-                  let soc = before.stateOfChargePercent.value, soc.isFinite, (50...100).contains(soc),
-                  before.stateOfChargePercent.isFresh(at: now, maximumAgeSeconds: 2),
-                  before.thermalPressure.value == .nominal, before.thermalPressure.isFresh(at: now, maximumAgeSeconds: 2) else { return }
+            let flags = fcntl(STDERR_FILENO, F_GETFL)
+            guard flags >= 0, fcntl(STDERR_FILENO, F_SETFL, flags | O_NONBLOCK) == 0 else { diagnose(.inputChannel); return }
+            if let reason = inhibitionRejection(reader.snapshot(), now: SampleClock.nowNanoseconds()) { diagnose(reason); return }
+            workerSleep.connection = IORegisterForSystemPower(Unmanaged.passUnretained(workerSleep).toOpaque(), &workerPort, callback, &workerNotifier)
+            guard workerSleep.connection != 0, let workerPort else { diagnose(.sleepNotification); return }
+            workerSource = IONotificationPortGetRunLoopSource(workerPort).takeUnretainedValue()
+            CFRunLoopAddSource(CFRunLoopGetCurrent(), workerSource, .defaultMode)
+            guard sb_control_prevent_idle_sleep(&workerAssertion) == 0 else { diagnose(.sleepAssertion); return }
+            emit(AdapterPacket(phase: "writerReady"))
+            let readyDeadline = ContinuousClock.now + .seconds(3)
+            var receivedGate = false
+            while ContinuousClock.now < readyDeadline && !workerSleep.sleeping {
+                var byte: UInt8 = 0
+                let count = read(STDERR_FILENO, &byte, 1)
+                if count == 1 { receivedGate = byte == 0x47; break }
+                if count == 0 || (count < 0 && errno != EAGAIN && errno != EINTR) { break }
+                CFRunLoopRunInMode(.defaultMode, 0.01, false)
+            }
+            guard receivedGate, gate.begin(now: SampleClock.nowNanoseconds(), ownerGone: ownerGone(), sleeping: workerSleep.sleeping) else { diagnose(.ownerToken); return }
+            if let reason = inhibitionRejection(reader.snapshot(), now: SampleClock.nowNanoseconds()) { diagnose(reason); return }
+        }
+        // The worker is an independent restorer on normal completion or guardian
+        // EOF. Its own assertion and sleep callback remain alive through this call.
+        defer {
+            if mode == "--worker-inhibit" {
+                var packet = AdapterPacket(phase: "workerRestoring")
+                packet.recoveryCause = gate.cause
+                emit(packet)
+                worker("--worker-restore")
+            }
         }
         let raw = sb_adapter_control(mode == "--worker-inhibit" ? 3 : mode == "--worker-restore" ? 4 : 0)
         var keyAt = SampleClock.nowNanoseconds()
@@ -230,6 +314,17 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
             let sample = reader.snapshot()
             var packet = AdapterPacket(phase: mode == "--worker-inhibit" ? "inhibited" : mode == "--worker-restore" ? "restored" : "inspection")
             packet.key = key; packet.outcome = outcome; packet.sampledAt = keyAt
+            packet.baselineKey = raw.baseline_value
+            if outcome != 0 { packet.failure = .hardware }
+            let steps: [SBAdapterStep] = [raw.metadata, raw.baseline, raw.restore, raw.readback]
+            if let step = steps.first(where: { step in
+                let badTransport = step.transport != 0 || step.length != 80
+                let badResponse = step.smc_result != 0 || step.smc_status != 0
+                return step.attempted == 1 && (badTransport || badResponse)
+            }) {
+                packet.transport = step.transport
+                if step.transport == 0 && step.length == 80 { packet.smcResult = step.smc_result; packet.smcStatus = step.smc_status }
+            }
             packet.sourceAt = sample.supplyingSource.sampledAtContinuousNanoseconds
             let observed = sample.supplyingSource.quality == .observed && sample.supplyingSource.isFresh(at: SampleClock.nowNanoseconds(), maximumAgeSeconds: 2, minimumSampleNanoseconds: keyAt)
             packet.adapter = observed && sample.supplyingSource.value == .adapter
@@ -238,12 +333,14 @@ private func journal(_ directoryFD: Int32, operation: UUID, phase: String) -> Bo
             packet.temperatureEstimated = sample.batteryTemperatureCelsius.quality == .estimated
             packet.stateOfCharge = sample.stateOfChargePercent.value
             emit(packet)
-            if mode == "--worker-inspect" || raw.outcome != 0 || (mode == "--worker-restore" && packet.adapter == true) { break }
+            if mode == "--worker-inhibit" {
+                if gate.shouldRestore(now: SampleClock.nowNanoseconds(), ownerGone: ownerGone(), sleeping: workerSleep.sleeping, hardwareFailed: outcome != 0) { break }
+            } else if mode == "--worker-inspect" || raw.outcome != 0 || packet.adapter == true { break }
             CFRunLoopRunInMode(.defaultMode, 0.1, false)
             if mode == "--worker-inhibit" {
                 let fresh = sb_adapter_control(0)
                 key = fresh.baseline_value; outcome = fresh.outcome; keyAt = SampleClock.nowNanoseconds()
             }
-        } while ContinuousClock.now < end
+        } while mode == "--worker-inhibit" ? !gate.restorationStarted : ContinuousClock.now < end
     }
 }

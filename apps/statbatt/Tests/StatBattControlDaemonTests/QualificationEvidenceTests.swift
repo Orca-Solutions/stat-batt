@@ -3,6 +3,10 @@ import Testing
 import StatBattControlProtocol
 @testable import StatBattControlDaemon
 
+@Test func oneShotQualificationDoesNotEnableAutomaticPolicy() {
+    #expect(ThermalAutomaticQualification.current == nil)
+}
+
 @Test func qualificationRequiresFreshPhysicalTransitionAndExactOwnership() {
     let operation = UUID(), boot = UUID()
     func observation(_ source: Bool, _ time: UInt64, owner: UUID? = nil) -> ThermalInhibitionObservation {

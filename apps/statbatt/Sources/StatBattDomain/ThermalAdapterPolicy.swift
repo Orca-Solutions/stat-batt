@@ -63,12 +63,24 @@ public struct ThermalAdapterInput: Sendable {
     public var pauseStartedAt: UInt64?
     /// Verified restoration time, used to avoid rapid repeated adapter cycling.
     public var lastRestoredAt: UInt64?
+    /// Trusted provider admission, never supplied by a client policy. An estimate
+    /// remains an estimate; this permits a convenience policy, not protection.
+    public var estimatedTemperatureAdmission: EstimatedTemperatureAdmission?
     public init(policy: ThermalAdapterPolicy, capabilities: CapabilitySnapshot,
                 telemetry: BatterySnapshot, bootID: UUID, now: UInt64,
                 sessionStartedAt: UInt64, sessionDeadline: UInt64) {
         self.policy = policy; self.capabilities = capabilities; self.telemetry = telemetry
         self.bootID = bootID; self.now = now; self.sessionStartedAt = sessionStartedAt
         self.sessionDeadline = sessionDeadline
+    }
+}
+
+public struct EstimatedTemperatureAdmission: Sendable {
+    public let platform: PlatformFingerprint
+    public let source: String
+    public let bounds: ClosedBounds
+    public init(platform: PlatformFingerprint, source: String, bounds: ClosedBounds) {
+        self.platform = platform; self.source = source; self.bounds = bounds
     }
 }
 
@@ -81,9 +93,16 @@ public enum ThermalAdapterReducer {
         guard i.policy.isValid else { return restore(.invalidConfiguration) }
         guard i.authorized else { return restore(.authorizationMissing) }
         guard i.recoveryComplete else { return restore(.recoveryRequired) }
-        guard i.capabilities.supportsBoundedAdapterInhibition,
-              i.capabilities.canObserveBatteryTemperature.isVerified,
-              let bounds = i.capabilities.verifiedBatteryTemperatureBoundsCelsius,
+        let estimate = i.estimatedTemperatureAdmission
+        let acceptsEstimate = estimate.map {
+            $0.platform != .unknown && $0.platform == i.capabilities.platform &&
+            !$0.source.isEmpty && $0.source == i.telemetry.batteryTemperatureCelsius.source &&
+            i.telemetry.batteryTemperatureCelsius.quality == .estimated
+        } ?? false
+        let temperatureQualified = acceptsEstimate || i.capabilities.canObserveBatteryTemperature.isVerified
+        let temperatureBounds = acceptsEstimate ? estimate?.bounds : i.capabilities.verifiedBatteryTemperatureBoundsCelsius
+        guard i.capabilities.supportsBoundedAdapterInhibition, temperatureQualified,
+              let bounds = temperatureBounds,
               bounds.contains(i.policy.disconnectAtCelsius), bounds.contains(i.policy.reconnectAtCelsius) else {
             return restore(.unqualified)
         }
@@ -114,7 +133,10 @@ public enum ThermalAdapterReducer {
         guard t.thermalPressure.value == .nominal || t.thermalPressure.value == .fair else {
             return restore(.systemThermalPressure)
         }
-        guard fresh(t.batteryTemperatureCelsius), let temperature = t.batteryTemperatureCelsius.value,
+        let temperatureFresh = acceptsEstimate
+            ? t.batteryTemperatureCelsius.isFresh(at: i.now, maximumAgeSeconds: 2, minimumSampleNanoseconds: i.minimumSampleTime)
+            : fresh(t.batteryTemperatureCelsius)
+        guard temperatureFresh, let temperature = t.batteryTemperatureCelsius.value,
               bounds.contains(temperature) else { return restore(.temperatureUnavailable) }
         switch i.observation {
         case .inhibitedByThisSession:

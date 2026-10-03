@@ -1,4 +1,4 @@
-StatBatt local development build 9
+StatBatt local development build 10
 
 This Apple Development-signed application is for this Mac's local testing. The
 Installer package is unsigned and not notarized for public distribution.
@@ -23,3 +23,21 @@ Estimated temperature is labeled as such. Control sessions never auto-restart.
 Use Stop & restore before removing the service. Do not delete or replace a service
 bundle while an operation or recovery is pending. A verified update/uninstall flow
 is required before replacing a previous local service installation.
+
+Local updates: stop and confirm adapter restoration, quit the app, then use the
+signed client’s protected service-unregister operation. The LOCAL-UPDATE package
+requires the service absent, the app stopped, trusted existing code, a resolved
+ownership journal and fresh zero/AC inspection. Do not reopen the app during
+installation. Register the updated service from the app afterward.
+
+Removal: service unregistration requires a safe-to-exit acknowledgement. Use the bundled removal guide when available; do not remove root-owned files or
+journals manually while recovery is unresolved. Shortcuts are user-owned and preserved.
+
+Guided removal (available in the next bundle built from current source): open
+Contents/Resources/Remove StatBatt Local.command from the installed application.
+The signed client must first obtain safeToExit and unregister the service. Quit
+StatBatt, confirm REMOVE in the guide, then approve the macOS administrator prompt.
+The privileged helper independently rechecks restoration, trusted installation and
+stopped processes before removing only the local bundle and its launcher. It does
+not delete user shortcuts, history, preferences or durable recovery evidence.
+If any check fails, removal stops; do not work around it with manual deletion.

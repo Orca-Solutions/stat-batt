@@ -12,7 +12,7 @@ The native charging baseline follows [decision 0004](decisions/0004-native-charg
 | UX | Native keyboard-accessible controls, text state, unavailable controls removed from primary workflow | Full VoiceOver, both appearances and scaling sweep; CUA cannot bind this app reliably |
 | Resource use | Build 5 closed-window 10-minute sample: 0.1583% CPU, 79.23 MB peak RSS | Installer candidate has not repeated the long-duration resource measurement |
 | Distribution | Repeatable local app/package build; bundled integrity checks; public pipeline fails closed without signing configuration; read-only image acceptance script | Apple Development identity exists for local builds. Public Developer ID signing/notarization is explicitly deferred by the owner. Clean-account install/update/remove remains unexecuted |
-| Optional adapter-temperature control | Scoped cut/restore, owner-loss and sleep lab evidence; local UI/XPC/recovery integration and fixed two-second Swift guardian candidate implemented; normal package write gates closed | New guardian and app-to-daemon hardware qualification, estimated-sensor convenience admission, recurring policy and protected update/removal remain outstanding |
+| Optional adapter-temperature control | Scoped cut/restore, owner-loss and sleep lab evidence; local UI/XPC/recovery integration and fixed two-second Swift guardian candidate implemented; normal package write gates closed | Build 11 implements worker recovery, estimated-sensor convenience admission, recurring session/lease plumbing and protected update/removal; exact-build hardware/lifecycle and longer-pause qualification remain outstanding |
 
 The application is a local v1 candidate. A local ad-hoc signature or package does not mean public release readiness. Exact charging qualification remains Mac16,13 / arm64 / macOS 27.0.1 / 26A434 / mBoot-20457.1.29. No privileged helper is installed or needed for the native baseline. Any helper or guardian required by optional temperature control must pass its own security and recovery acceptance before shipping.
 
@@ -49,3 +49,7 @@ public-notarization rows above.
 ## Local background integration follow-up
 
 See [local integration and remaining gates](research/THERMAL_LOCAL_INTEGRATION.md). Build 9 is a local development integration candidate, not an accepted automatic temperature controller. Its protected first-install package preserves the existing native app and shortcuts. A separate source-gated one-shot candidate may test one two-second adapter interval; passing that test cannot enable automatic policy. Public notarization is deferred and is not the reason temperature control remains unavailable.
+
+## Build 11 follow-up
+
+Build 10 is installed and restored, but is not complete v1 temperature control. Build 11 is prepared with 218 passing software tests and installer admission fixtures. Automatic admission remains disabled pending exact-build electrical and lifecycle qualification. Public signing/notarization are deferred by owner direction, not blockers to this local test. See [integration checkpoint](research/THERMAL_LOCAL_INTEGRATION.md) and [fixed candidate](research/THERMAL_APP_ONE_SHOT_CANDIDATE.md).

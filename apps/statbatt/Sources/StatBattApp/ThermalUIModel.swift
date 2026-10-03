@@ -15,9 +15,12 @@ import StatBattDomain
     @Published var disconnectAt: Double = 40 { didSet { normalizeAndSave() } }
     @Published var reconnectAt: Double = 37 { didSet { normalizeAndSave() } }
     @Published private(set) var nativeBlocked = false
+    @Published private(set) var lastQualificationResult: String? = UserDefaults.standard.string(forKey: "thermalLastQualificationResult")
+    @Published private(set) var statusCheckMessage: String?
     private var connection: NSXPCConnection?
     private var connectionID: UUID?
     private var monitor: Task<Void, Never>?
+    private var refreshTask: (id: UUID, epoch: UInt64, task: Task<(ThermalControlStatus, Date), Error>)?
     private var pending: [UUID: CheckedContinuation<ThermalControlStatus, Error>] = [:]
     private var deadlines: [UUID: Task<Void, Never>] = [:]
     private var normalizing = false
@@ -71,20 +74,46 @@ import StatBattDomain
             while !Task.isCancelled {
                 guard let self else { return }
                 if !self.busy && self.pending.isEmpty { await self.refresh() }
-                try? await Task.sleep(for: .seconds(1))
+                // Status reads launch a signed read-only inspection. Keep idle
+                // monitoring at the v1 budget; active sessions heartbeat at 5s.
+                try? await Task.sleep(for: .seconds(self.active || self.recoveryPending ? 5 : 30))
             }
         }
     }
-    func refreshFromUI() { Task { await refresh() } }
-    private func refresh() async {
+    func refreshFromUI() {
+        guard !busy else { return }
+        busy = true; statusCheckMessage = "Checking background service…"
+        Task { defer { busy = false }; await refresh(manual: true) }
+    }
+    private func refresh(manual: Bool = false) async {
         serviceStatus = SMAppService.daemon(plistName: ThermalServiceContract.daemonPlistName).status
-        guard serviceStatus == .enabled else { return }
-        let epoch = commandEpoch
-        do {
-            let reply = try await call(active ? .heartbeat : .status)
-            if epoch == commandEpoch { accept(reply) }
+        guard serviceStatus == .enabled else {
+            if manual { statusCheckMessage = "Checked \(Date().formatted(date: .omitted, time: .standard)): background service is not enabled." }
+            return
         }
-        catch { errorMessage = "Background service could not be reached. Active control or restoration is not confirmed." }
+        // Manual checks join an automatic read already in flight. One request per
+        // connection prevents the service's admission guard rejecting a duplicate.
+        let shared: (id: UUID, epoch: UInt64, task: Task<(ThermalControlStatus, Date), Error>)
+        if let existing = refreshTask { shared = existing }
+        else {
+            let action: ThermalControlAction = active ? .heartbeat : .status
+            shared = (UUID(), commandEpoch, Task { (try await call(action), Date()) })
+            refreshTask = shared
+        }
+        defer { if refreshTask?.id == shared.id { refreshTask = nil } }
+        do {
+            let (reply, receivedAt) = try await shared.task.value
+            guard shared.epoch == commandEpoch else {
+                if manual { statusCheckMessage = "Status check superseded by a control request. Check again when it completes." }
+                return
+            }
+            accept(reply)
+            if manual { statusCheckMessage = "Service responded at \(receivedAt.formatted(date: .omitted, time: .standard))."; errorMessage = nil }
+        } catch {
+            guard shared.epoch == commandEpoch else { return }
+            if manual { statusCheckMessage = "Status check failed at \(Date().formatted(date: .omitted, time: .standard))." }
+            errorMessage = "Background service could not be reached. Active control or restoration is not confirmed."
+        }
     }
     func setupService() {
         if awaitingApproval { SMAppService.openSystemSettingsLoginItems(); return }
@@ -120,17 +149,38 @@ import StatBattDomain
             } catch { errorMessage = "The start request was not confirmed. Stop and restore before trying again." }
         }
     }
+    /// Called only by the explicit disclosure confirmation in ThermalControlView.
+    func reconcileNativeFromUI() {
+        guard status?.nativeReconciliationRequired == true, !busy else { return }
+        busy = true; errorMessage = nil
+        commandEpoch &+= 1
+        let epoch = commandEpoch
+        Task {
+            defer { busy = false }
+            do {
+                let reply = try await call(.reconcileNative)
+                guard epoch == commandEpoch else { return }
+                accept(reply)
+                if reply.nativeReconciliationRequired == true { errorMessage = reply.message }
+            } catch { errorMessage = "The prior Apple request has not been reconciled. Its safety block remains in place." }
+        }
+    }
     func qualifyFromUI() {
         guard status?.qualificationAvailable == true, !busy, !nativeBlocked, !recoveryPending else { return }
         busy = true; uncertain = true; errorMessage = nil
+        rememberQualification("Test requested; outcome not yet confirmed.")
         commandEpoch &+= 1
         let epoch = commandEpoch
         Task {
             defer { busy = false }
             do {
                 let reply = try await call(.qualifyAdapterOneShot)
+                rememberQualification(reply.qualificationResult ?? reply.message)
                 if epoch == commandEpoch { accept(reply) }
-            } catch { errorMessage = "The adapter test outcome is not confirmed. Stop and restore before continuing." }
+            } catch {
+                rememberQualification("Test outcome unknown: the service did not return a confirmed result. Stop and restore before continuing.")
+                errorMessage = "The adapter test outcome is not confirmed. Stop and restore before continuing."
+            }
         }
     }
     func stopFromUI() { Task { _ = await stopAndVerify() } }
@@ -182,8 +232,18 @@ import StatBattDomain
     }
     func sleeping() { Task { _ = await stopAndVerify() } }
     func woke() { Task { await refresh() } }
+    private func rememberQualification(_ message: String) {
+        let result = "\(Date().formatted(date: .abbreviated, time: .standard)): \(message)"
+        lastQualificationResult = result
+        UserDefaults.standard.set(result, forKey: "thermalLastQualificationResult")
+    }
+    private var lastServerQualificationResult: String?
     private func accept(_ reply: ThermalControlStatus) {
         status = reply
+        if let result = reply.qualificationResult, result != lastServerQualificationResult {
+            lastServerQualificationResult = result
+            rememberQualification(result)
+        }
         if reply.safeToExit && (reply.phase == .off || reply.phase == .unavailable) { uncertain = false }
         if reply.phase == .watching || reply.phase == .paused || reply.phase == .restoring || reply.phase == .qualifying || reply.phase == .recoveryRequired { uncertain = true }
     }

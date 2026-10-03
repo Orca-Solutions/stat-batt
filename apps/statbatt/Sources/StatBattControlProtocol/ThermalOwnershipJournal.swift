@@ -140,6 +140,25 @@ public final class FileThermalOwnershipJournal: ThermalOwnershipJournalStorage, 
     }
     deinit { close(directoryFD) }
     public func load() throws -> ThermalOwnershipRecord? {
+        guard let data = try readData(name: name) else { return nil }
+        let result = try JSONDecoder().decode(ThermalOwnershipRecord.self, from: data)
+        try result.validate()
+        return result
+    }
+    private struct NativeRequest: Codable {
+        let version: Int
+        let connection: UUID?
+    }
+    public func loadNativeRequest() throws -> UUID? {
+        guard let data = try readData(name: "native-request.json") else { return nil }
+        let result = try JSONDecoder().decode(NativeRequest.self, from: data)
+        guard result.version == 1 else { throw ThermalJournalError.unavailable }
+        return result.connection
+    }
+    public func saveNativeRequest(_ connection: UUID?) throws {
+        try writeData(JSONEncoder().encode(NativeRequest(version: 1, connection: connection)), name: "native-request.json")
+    }
+    private func readData(name: String) throws -> Data? {
         let fd = openat(directoryFD, name, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
         if fd < 0 { if errno == ENOENT { return nil }; throw ThermalJournalError.unavailable }
         defer { close(fd) }
@@ -157,18 +176,18 @@ public final class FileThermalOwnershipJournal: ThermalOwnershipJournalStorage, 
             guard count > 0 else { throw ThermalJournalError.unavailable }
             offset += count
         }
-        let result = try JSONDecoder().decode(ThermalOwnershipRecord.self, from: Data(bytes))
-        try result.validate()
-        return result
+        return Data(bytes)
     }
     public func save(_ record: ThermalOwnershipRecord) throws {
         try record.validate()
+        try writeData(JSONEncoder().encode(record), name: name)
+    }
+    private func writeData(_ bytes: Data, name: String) throws {
         var existing = stat()
         if fstatat(directoryFD, name, &existing, AT_SYMLINK_NOFOLLOW) == 0 {
             guard existing.st_mode & S_IFMT == S_IFREG, existing.st_uid == geteuid(),
                   existing.st_mode & 0o077 == 0, existing.st_nlink == 1 else { throw ThermalJournalError.unavailable }
         } else if errno != ENOENT { throw ThermalJournalError.unavailable }
-        let bytes = try JSONEncoder().encode(record)
         guard bytes.count <= 16_384 else { throw ThermalJournalError.unavailable }
         let temporary = ".thermal-" + UUID().uuidString
         let fd = openat(directoryFD, temporary, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, 0o600)

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ThermalControlView: View {
     @ObservedObject var model: ThermalUIModel
+    @State private var confirmingNativeReconciliation = false
     var body: some View {
         GroupBox("Temperature control") {
             VStack(alignment: .leading, spacing: 10) {
@@ -38,6 +39,19 @@ struct ThermalControlView: View {
                     Text("One brief interval on battery power, followed by adapter restoration. This does not enable automatic temperature control.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
+                if model.status?.nativeReconciliationRequired == true {
+                    Text("A previous Apple shortcut request lost its connection. Finish or stop that shortcut before clearing its safety block.")
+                        .font(.callout).fixedSize(horizontal: false, vertical: true)
+                    Button("Resolve previous Apple request…") { confirmingNativeReconciliation = true }
+                        .disabled(model.busy)
+                }
+                if let result = model.lastQualificationResult {
+                    Text("Last adapter test: \(result)").font(.callout).textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if let checked = model.statusCheckMessage {
+                    Text(checked).font(.caption).foregroundStyle(.secondary)
+                }
                 if model.awaitingApproval {
                     Text("Allow StatBatt in macOS Background Items, then return here. Installing the service does not enable temperature control.")
                         .font(.caption).foregroundStyle(.secondary)
@@ -48,5 +62,11 @@ struct ThermalControlView: View {
             }.frame(maxWidth: .infinity, alignment: .leading).padding(10)
         }
         .task { model.beginMonitoring() }
+        .alert("Confirm the previous shortcut has stopped", isPresented: $confirmingNativeReconciliation) {
+            Button("Cancel", role: .cancel) { }
+            Button("I confirm it has finished or stopped") { model.reconcileNativeFromUI() }
+        } message: {
+            Text("Check Shortcuts and ensure the previous Apple charge-limit shortcut has finished or been stopped. This clears only the abandoned request block; it does not run a shortcut, change Apple's limit, or enable temperature control.")
+        }
     }
 }

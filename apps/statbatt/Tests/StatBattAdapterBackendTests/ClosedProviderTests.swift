@@ -32,6 +32,61 @@ private final class MemoryJournal: ThermalOwnershipJournalStorage, @unchecked Se
     #expect(await ledger.snapshot == nil)
 }
 
+@Test func adapterFailureHistoryIsBoundedAndRejectsArbitraryStrings() throws {
+    var history = AdapterDiagnosticHistory()
+    var packet = AdapterPacket(phase: "/private/sensitive/path")
+    packet.failure = .thermalNotNominalOrStale; packet.outcome = 5
+    for index in 0..<100 { history.append(.init(event: "arbitrary user text", at: UInt64(index), packet: packet)) }
+    #expect(history.entries.count == 64)
+    #expect(history.entries.first?.at == 36)
+    #expect(history.entries.last?.phase == "rejected")
+    #expect(history.entries.last?.event == "failed")
+    #expect(history.entries.last?.failure == .thermalNotNominalOrStale)
+    #expect(history.entries.last?.outcome == 5)
+    let encoded = try JSONEncoder().encode(history.entries)
+    #expect(!String(decoding: encoded, as: UTF8.self).contains("sensitive"))
+}
+
+private actor InspectionFixture {
+    var calls = 0
+    func inspect() async -> AdapterPacket? {
+        calls += 1
+        try? await Task.sleep(for: .milliseconds(100))
+        var packet = AdapterPacket(phase: "inspection")
+        packet.sampledAt = UInt64(calls); packet.sourceAt = UInt64(calls)
+        packet.outcome = 0; packet.key = 0; packet.adapter = true
+        return packet
+    }
+}
+
+@Test func concurrentInspectionReadersShareOneUncachedSample() async throws {
+    let fixture = InspectionFixture()
+    let ledger = try ThermalOwnershipLedger(storage: MemoryJournal(), bootID: UUID())
+    let backend = LocalThermalAdapterBackend(ledger: ledger, bootID: UUID(), inspection: { await fixture.inspect() })
+    async let first = backend.freshInspection()
+    async let second = backend.freshInspection()
+    let samples = await (first, second)
+    #expect(await fixture.calls == 1)
+    #expect(samples.0?.sampledAt == 1)
+    #expect(samples.1?.sampledAt == 1)
+    #expect(samples.0?.sourceAt == samples.1?.sourceAt)
+    let later = await backend.freshInspection()
+    #expect(await fixture.calls == 2)
+    #expect(later?.sampledAt == 2)
+}
+
+@Test func inspectionReservesBackendBeforeLaunchingSharedTask() async throws {
+    let fixture = InspectionFixture()
+    let ledger = try ThermalOwnershipLedger(storage: MemoryJournal(), bootID: UUID())
+    let operation = try await ledger.prepareInhibition(sessionID: UUID(), now: 1)
+    let backend = LocalThermalAdapterBackend(ledger: ledger, bootID: UUID(), inspection: { await fixture.inspect() })
+    let inspection = Task { await backend.freshInspection() }
+    while await fixture.calls == 0 { await Task.yield() }
+    #expect(await backend.inhibitAdapter(operationID: operation) == false)
+    #expect(await backend.diagnosticSnapshot().last?.failure == .backendBusy)
+    #expect(await inspection.value?.sampledAt == 1)
+}
+
 @Test func inheritedWriterLeaseSurvivesParentDescriptorClosure() throws {
     let path = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     let lease = open(path.path, O_RDWR | O_CREAT | O_EXCL | O_CLOEXEC, 0o600)

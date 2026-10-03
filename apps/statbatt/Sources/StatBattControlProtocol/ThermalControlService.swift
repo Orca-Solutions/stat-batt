@@ -7,7 +7,7 @@ import StatBattDomain
 @objc public protocol ThermalCombinedService: ThermalStatusService, ThermalControlService {}
 
 public enum ThermalControlAction: String, Codable, Sendable {
-    case status, start, heartbeat, stop, prepareNative, finishNative, prepareUninstall, qualifyAdapterOneShot
+    case status, start, heartbeat, stop, prepareNative, finishNative, prepareUninstall, qualifyAdapterOneShot, reconcileNative
 }
 public enum ThermalControlPhase: String, Codable, Sendable {
     case unavailable, off, watching, paused, restoring, recoveryRequired, qualifying
@@ -32,7 +32,7 @@ public struct ThermalControlRequest: WirePayload {
 }
 
 public struct ThermalControlStatus: WirePayload {
-    public static let allowedFields: Set<String> = ["version", "phase", "controlAvailable", "qualificationAvailable", "nativeMayProceed", "adapterRestored", "safeToExit", "message", "temperatureCelsius", "estimatedTemperature", "policy"]
+    public static let allowedFields: Set<String> = ["version", "phase", "controlAvailable", "qualificationAvailable", "nativeMayProceed", "adapterRestored", "safeToExit", "message", "temperatureCelsius", "estimatedTemperature", "policy", "qualificationResult", "nativeReconciliationRequired"]
     public static var nestedFields: [String: Set<String>] { ["$.policy": thermalPolicyFields] }
     public let version: UInt16
     public let phase: ThermalControlPhase
@@ -45,21 +45,25 @@ public struct ThermalControlStatus: WirePayload {
     public let temperatureCelsius: Double?
     public let estimatedTemperature: Bool
     public let policy: ThermalAdapterPolicy?
+    public let qualificationResult: String?
+    public let nativeReconciliationRequired: Bool?
     public init(phase: ThermalControlPhase, controlAvailable: Bool, qualificationAvailable: Bool = false, nativeMayProceed: Bool = false,
                 adapterRestored: Bool = false, safeToExit: Bool = false, message: String, temperatureCelsius: Double? = nil,
-                estimatedTemperature: Bool = true, policy: ThermalAdapterPolicy? = nil) {
+                estimatedTemperature: Bool = true, policy: ThermalAdapterPolicy? = nil, qualificationResult: String? = nil, nativeReconciliationRequired: Bool? = nil) {
         version = 1; self.phase = phase; self.controlAvailable = controlAvailable
         self.qualificationAvailable = qualificationAvailable
         self.nativeMayProceed = nativeMayProceed; self.adapterRestored = adapterRestored
         self.safeToExit = safeToExit
         self.message = message; self.temperatureCelsius = temperatureCelsius
         self.estimatedTemperature = estimatedTemperature; self.policy = policy
+        self.qualificationResult = qualificationResult
+        self.nativeReconciliationRequired = nativeReconciliationRequired
     }
     public func validate() throws {
         guard version == 1 else { throw WireFailure(.protocolMismatch) }
-        guard message.utf8.count <= 1024, policy?.isValid != false,
+        guard message.utf8.count <= 1024, qualificationResult.map({ $0.utf8.count <= 1024 }) ?? true, policy?.isValid != false,
               temperatureCelsius.map({ $0.isFinite && (-40...120).contains($0) }) ?? true,
-              !nativeMayProceed || safeToExit,
+              !nativeMayProceed || (!qualificationAvailable && nativeReconciliationRequired != true && (phase == .off || phase == .unavailable)),
               !(phase == .watching || phase == .paused) || controlAvailable else {
             throw WireFailure(.malformedRequest)
         }

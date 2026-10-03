@@ -16,7 +16,59 @@ public struct AdapterPacket: Codable, Sendable {
     public var temperatureCelsius: Double?
     public var temperatureEstimated: Bool?
     public var stateOfCharge: Double?
+    public var failure: AdapterFailure?
+    public var baselineKey: UInt8?
+    public var transport: UInt32?
+    public var smcResult: UInt8?
+    public var smcStatus: UInt8?
+    public var recoveryCause: AdapterRecoveryCause?
     public init(phase: String) { self.phase = phase }
+}
+
+public enum AdapterRecoveryCause: String, Codable, Sendable { case ownerEOF, sleep, deadline, hardwareFailure }
+
+public enum AdapterFailure: String, Codable, Sendable {
+    case identityOrGate, signature, platform, ownershipLock, ownershipJournal, inputChannel, ownerToken
+    case sleepNotification, sleepAssertion, workerLaunch, writerUnreaped
+    case batteryMissingOrStale, externalPowerMissingOrStale, reserveMissingOrStale, thermalNotNominalOrStale
+    case backendBusy, missingIntent, dispatchFailed, deadline, hardware
+}
+
+public struct AdapterDiagnostic: Codable, Sendable {
+    public let event: String
+    public let at: UInt64
+    public let phase: String?
+    public let failure: AdapterFailure?
+    public let key: UInt8?
+    public let baselineKey: UInt8?
+    public let outcome: UInt8?
+    public let transport: UInt32?
+    public let smcResult: UInt8?
+    public let smcStatus: UInt8?
+    public let adapter: Bool?
+    public let battery: Bool?
+    public let exitCode: Int32?
+    public let recoveryCause: AdapterRecoveryCause?
+    public init(event: String, at: UInt64, packet: AdapterPacket? = nil, failure: AdapterFailure? = nil, exitCode: Int32? = nil) {
+        let events: Set<String> = ["admission", "launch", "dispatch", "packet", "exit", "timeout", "failed", "restoreLaunch"]
+        let phases: Set<String> = ["inhibited", "restored", "inspection", "writerReady", "workerRestoring", "writerReaped", "writerUnreapedUnknown", "rejected"]
+        self.event = events.contains(event) ? event : "failed"; self.at = at
+        phase = packet.flatMap { phases.contains($0.phase) ? $0.phase : "rejected" }
+        self.failure = failure ?? packet?.failure
+        key = packet?.key; baselineKey = packet?.baselineKey; outcome = packet?.outcome
+        transport = packet?.transport; smcResult = packet?.smcResult; smcStatus = packet?.smcStatus
+        adapter = packet?.adapter; battery = packet?.battery; self.exitCode = exitCode
+        recoveryCause = packet?.recoveryCause
+    }
+}
+
+public struct AdapterDiagnosticHistory: Sendable {
+    public private(set) var entries: [AdapterDiagnostic] = []
+    public init() {}
+    public mutating func append(_ entry: AdapterDiagnostic) {
+        if entries.count == 64 { entries.removeFirst() }
+        entries.append(entry)
+    }
 }
 
 public enum AdapterExecutableIdentity {
