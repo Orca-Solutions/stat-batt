@@ -65,11 +65,20 @@ public actor ThermalSleepRecovery {
     }
 
     public func prepareForSleep(operationID: UUID, now: UInt64) async -> ThermalSleepRecoveryResult {
+        await recover(operationID: operationID, now: now, sleeping: true)
+    }
+
+    /// Ordinary cooling restoration does not simulate a sleep/wake cycle.
+    public func restoreOwnedOperation(operationID: UUID, now: UInt64) async -> ThermalSleepRecoveryResult {
+        await recover(operationID: operationID, now: now, sleeping: false)
+    }
+
+    private func recover(operationID: UUID, now: UInt64, sleeping: Bool) async -> ThermalSleepRecoveryResult {
         waitingCallerCount += 1
         defer { waitingCallerCount -= 1 }
         generation &+= 1
         authorized = false
-        asleep = true
+        if sleeping { asleep = true }
         if let existing = flight {
             guard existing.operationID == operationID else { return .noOwnedOperation }
             return await existing.task.value
