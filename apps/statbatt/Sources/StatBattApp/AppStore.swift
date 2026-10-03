@@ -24,6 +24,7 @@ final class AppStore: ObservableObject {
         message: "Checking native shortcut setup…")
     var nativeCoordinator: NativeLimitCoordinator?
     @Published var nativeTaskInProgress = false
+    var nativeRefreshTask: Task<Void, Never>?
     let platform = PlatformProbe.readOnly()
     private let telemetry = PublicTelemetry()
     private var history: HistoryStore?
@@ -44,8 +45,8 @@ final class AppStore: ObservableObject {
             result.canSetNativeChargeLimit = Capability(status: ready ? .verified : .temporarilyUnavailable,
                 scope: .appleDelegated,
                 reasonCode: ready ? nil : nativePresentation.message ?? "Native setup or prior execution reconciliation required",
-                evidence: [EvidenceReference(identifier: "native80-app-setting-readback",
-                    provenance: "observedSettingOnly", reference: "docs/research/NATIVE_APP_FLOW_RESULT.md"),
+                evidence: [EvidenceReference(identifier: "native80-100-setting-readback",
+                    provenance: "observedSettingOnly", reference: "docs/research/NATIVE_LIMIT_LAB.md"),
                     EvidenceReference(identifier: "mutable-user-workflow-trust", provenance: "ownerApproved",
                         reference: "docs/decisions/0003-two-target-native-limit.md")],
                 verifiedAtUTC: Date())
@@ -53,12 +54,14 @@ final class AppStore: ObservableObject {
         return result
     }
     var shouldPresentInitialDashboard: Bool {
-        !preferences.launchAtLogin && !UserDefaults.standard.bool(forKey: "initialDashboardShown")
+        ProcessInfo.processInfo.arguments.contains("--show-charging") ||
+            (!preferences.launchAtLogin && !UserDefaults.standard.bool(forKey: "initialDashboardShown"))
     }
     func dashboardPresented() {
         UserDefaults.standard.set(true, forKey: "initialDashboardShown")
     }
     init() {
+        if ProcessInfo.processInfo.arguments.contains("--show-charging") { selectedDashboardTab = .charging }
         do {
             let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                                        appropriateFor: nil, create: true)

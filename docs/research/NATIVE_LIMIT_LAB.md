@@ -29,3 +29,14 @@ After the owner approved the mutable-shortcut trust exception, the owned empty a
 
 
 A later separately authorized owner-assisted build4 menu flow is now complete; see [NATIVE_APP_FLOW_RESULT](NATIVE_APP_FLOW_RESULT.md). The historical creation/saved-without-running statements above describe their earlier checkpoints, not the later execution.
+
+
+## October 2 follow-up — simple charge switching, build 7
+
+Took over the clean app implementation at 77b9bdb on a new local branch, codex/simple-charge-controls. The prior chat confirmed its actual blocker was the normal 100% allowlist and its one-use qualification path. The owner clarified that the prior visible 100% was manually set in Settings, so that earlier trial is not positive effect evidence.
+
+At the owner's request to get two-state switching working, inspected both installed shortcuts through Shortcuts UI (single Apple setter, corresponding 80/100 value, Set Until Tomorrow off), checked both identities against recorded trust, and verified no Energiza process in the process listing. Observed Apple's charge-limit slider at 100, executed the trusted 80 UUID through the fixed CLI (exit 0), observed slider 80, executed the trusted 100 UUID (exit 0), observed slider 100. No manual slider writes were made. No journal observations were fabricated from these tool observations.
+
+Enabled both fixed limits on the same exact platform fingerprint; removed the one-use trial path/UI while retaining old journal metadata. Preserved trust, durable pre-dispatch intent, identity/controller checks, no replay, and genuine interrupted-request recovery. Read-only activation refresh now has a separate task; accepted actions show progress and await it instead of silently returning. Fresh setup becomes one Enable charge buttons action with explicit trust/controller copy; existing setup needs no action. Unavailable feature mock controls are collapsed into explanatory text. Added --show-charging for opening the rebuilt local app directly to its controls. Build number 7.
+
+Build 7 app-path check: the owner clicked Set to 80%, then Set to 100%, and compared Apple's Battery settings as requested; they reported “Both buttons work.” This supplies the app-path effect evidence missing from build 6. CUA itself could not bind the StatBatt window. Full physical cutoff, sleep/crash lifecycle and other-device qualification are not inferred.

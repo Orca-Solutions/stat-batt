@@ -1,5 +1,8 @@
 # Implementation checkpoint — October 2, 2026
 
+**Latest follow-up: build 7** enables ordinary 80% / 100% switching on the exact target after a visibly observed fixed-shortcut round trip. Existing trust is reused; no one-use trial or repeated setup is required. Activation refresh no longer discards accepted clicks. See the latest WORKING_RECORD.md entry and USER_GUIDE.md. Historical checkpoints below remain evidence for their original builds. Full custom charge/discharge control is still unavailable.
+
+
 > Monorepo paths: app sources and commands now live in `apps/statbatt/`; historical verification commands below describe their original location. See [current app instructions](../apps/statbatt/README.md).
 
 Owner authorized the agreed v1 implementation and team in the current Codex conversation. This supersedes discovery-only status in the October 1 documents. The implementation remains in progress; hardware lab authorization, helper installation, and release authority were not implied by that approval.

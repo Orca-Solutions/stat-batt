@@ -42,15 +42,14 @@ extension AppStore {
     }
 
     func refreshNativeLimit() {
-        guard let coordinator = nativeCoordinator, !nativeTaskInProgress else { return }
-        nativeTaskInProgress = true
-        Task {
-            defer { nativeTaskInProgress = false }
-            await refreshNativePresentation(coordinator)
+        guard let coordinator = nativeCoordinator, !nativeTaskInProgress, nativeRefreshTask == nil else { return }
+        nativeRefreshTask = Task {
+            defer { nativeRefreshTask = nil }
+            await refreshNativePresentation(coordinator, background: true)
         }
     }
 
-    private func refreshNativePresentation(_ coordinator: NativeLimitCoordinator) async {
+    private func refreshNativePresentation(_ coordinator: NativeLimitCoordinator, background: Bool = false) async {
         var discovered: Set<NativeFixedLimit> = []
         var discoveryFailed = false
         for limit in NativeFixedLimit.allCases {
@@ -59,20 +58,27 @@ extension AppStore {
             } catch { discoveryFailed = true }
         }
         let state = await coordinator.status()
-        updateNativePresentation(state, discovered: discovered, preflight: await nativePreflight())
+        let preflight = await nativePreflight()
+        // A click can arrive while discovery is suspended. Do not overwrite its progress.
+        guard !background || !nativeTaskInProgress else { return }
+        updateNativePresentation(state, discovered: discovered, preflight: preflight)
         if discoveryFailed && state.journalHealthy && nativePresentation.message == nil {
             nativePresentation.message = "Shortcut discovery is unavailable. Open Shortcuts, then refresh StatBatt. Refresh does not apply a limit."
         }
     }
 
-    func configureNativeLimit(for limit: NativeFixedLimit, inspected: Bool, controllersStopped: Bool) {
-        guard inspected, controllersStopped, let coordinator = nativeCoordinator, !nativeTaskInProgress else { return }
+    func configureNativeLimits() {
+        guard let coordinator = nativeCoordinator, !nativeTaskInProgress else { return }
         nativeTaskInProgress = true
         Task {
             defer { nativeTaskInProgress = false }
+            // Finish read-only discovery before entering the coordinator; never discard a click.
+            await nativeRefreshTask?.value
             do {
-                _ = try await coordinator.configureTrustedShortcut(for: limit,
-                    acknowledgement: .approvedMutableUserWorkflow, confirmedOtherControllersStopped: true)
+                for limit in NativeFixedLimit.allCases {
+                    _ = try await coordinator.configureTrustedShortcut(for: limit,
+                        acknowledgement: .approvedMutableUserWorkflow, confirmedOtherControllersStopped: true)
+                }
                 await refreshNativePresentation(coordinator)
             } catch { await displayNativeFailure(coordinator) }
         }
@@ -93,7 +99,10 @@ extension AppStore {
         beginNativeRequest(limit)
         Task {
             defer { nativeTaskInProgress = false }
+            // Finish read-only discovery before entering the coordinator; never discard a click.
+            await nativeRefreshTask?.value
             do {
+                guard !sleeping else { throw NativeLimitFailure.preflightUnavailable }
                 _ = try await coordinator.request(limit)
                 await refreshNativePresentation(coordinator)
             } catch { await displayNativeFailure(coordinator) }
@@ -105,32 +114,7 @@ extension AppStore {
         nativePresentation.phase = .applying
         nativePresentation.lastRequestedLimit = limit
         nativePresentation.canForgetSetup = false
-        nativePresentation.canRunSupervised100Qualification = false
         nativePresentation.message = nil
-    }
-
-    var canRunSupervised100Qualification: Bool {
-        #if STATBATT_NATIVE_100_QUALIFICATION
-        return nativeCoordinator != nil && !nativeTaskInProgress && !sleeping &&
-            nativePresentation.canRunSupervised100Qualification &&
-            nativePresentation.discoveredLimits.contains(.hundred) && nativePresentation.conflictingControllerResolved
-        #else
-        return false
-        #endif
-    }
-
-    func runSupervised100Qualification() {
-        #if STATBATT_NATIVE_100_QUALIFICATION
-        guard canRunSupervised100Qualification, let coordinator = nativeCoordinator else { return }
-        beginNativeRequest(.hundred)
-        Task {
-            defer { nativeTaskInProgress = false }
-            do {
-                _ = try await coordinator.requestSupervised100Qualification()
-                await refreshNativePresentation(coordinator)
-            } catch { await displayNativeFailure(coordinator) }
-        }
-        #endif
     }
 
     func confirmNativeVisibleLimit(_ limit: NativeFixedLimit) {
@@ -155,6 +139,8 @@ extension AppStore {
         nativeTaskInProgress = true
         Task {
             defer { nativeTaskInProgress = false }
+            // Finish read-only discovery before entering the coordinator; never discard a click.
+            await nativeRefreshTask?.value
             do {
                 _ = try await action(coordinator)
                 await refreshNativePresentation(coordinator)
@@ -192,7 +178,6 @@ extension AppStore {
             conflictingControllerResolved: preflight == .clear,
             lastRequestedLimit: state.lastRequestedLimit, lastObservedLimit: state.lastObservedLimit,
             canForgetSetup: state.journalHealthy && !state.requiresManualRecovery,
-            canRunSupervised100Qualification: state.canRunSupervised100Qualification,
             message: preflight == .conflictingController
                 ? "Stop other charge-management apps and helpers before changing the limit. StatBatt does not stop them for you."
                 : preflight == .unavailable ? "The controller check is unavailable. Setting a limit is disabled." : nil)

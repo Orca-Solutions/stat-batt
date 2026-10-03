@@ -20,7 +20,7 @@ public struct DiagnosticReport: Codable, Sendable {
         self.capabilities = capabilities ?? CapabilityProbe.readOnly(platform: platform, snapshot: telemetry)
         self.nativeState = nativeState
         helperState = "notInstalled"
-        limitations = ["Private charging controls are unqualified and disabled. A configured trusted user shortcut may request the qualified Apple80% setting; completion is unverified until visibly confirmed.",
+        limitations = ["Private charging controls are unqualified and disabled. Configured trusted user shortcuts request Apple limits on the qualified target; command completion is not a current-limit reading.",
                        "Pack temperature is estimated on the qualified target; current polarity remains unverified. Health is derived from reported physical capacities.",
                        "Public battery readings do not reveal why macOS paused charging.",
                        "No helper, private SMC writes or external telemetry is used. Native restoration is manual and user-confirmed; cutoff and lifecycle behavior remain unqualified."]

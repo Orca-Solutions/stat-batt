@@ -28,17 +28,17 @@ To include the running app's native-workflow state, export from StatBatt. The st
 
 ## Apple charge-limit buttons
 
-The new flow offers **Set to 80%** and **Set to 100%** in the menu and Charging. Each needs separate one-time trust and qualification. Currently80% is qualified only on **Mac16,13 / arm64 / macOS27.0.1 / build26A434 / firmwaremBoot-20457.1.29**;100% remains unavailable until its supervised app test. Monitoring needs no setup.
+Use **Set to 80%** for everyday use and **Set to 100%** for a full charge, in either the menu or Charging. Both fixed Apple shortcuts have been observed changing the displayed setting on **Mac16,13 / arm64 / macOS 27.0.1 / build 26A434 / firmware mBoot-20457.1.29**. Existing trusted setup carries over automatically; there is no trial to unlock or confirmation loop after each click.
 
-1. In Charging, inspect **StatBatt — Apple Limit 80** or **StatBatt — Apple Limit 100**. Each must contain exactly one Apple **Set Battery Charge Limit** action at its named value, with **Set Until Tomorrow** off. Do not run it during setup.
-2. Record trust for that target only after inspection and stopping other charging apps/helpers. Setup saves declarations without execution. Reinspect if you later change the workflow; StatBatt cannot detect every edit. Existing80% trust does not cover100%.
-3. Use either enabled menu button. A completed request allows the next deliberate click, without mandatory review or manual return. StatBatt cannot read the current limit. Optional Battery settings observations remain historical.
+For a fresh setup, create **StatBatt — Apple Limit 80** and **StatBatt — Apple Limit 100** in Shortcuts. Each contains one Apple **Set Battery Charge Limit** action at its named value, with **Set Until Tomorrow** off. Inspect them, stop other charging apps/helpers, then click **Enable charge buttons** once in Charging. This records trust without running either shortcut. Later edits can change what runs and cannot all be detected.
+
+Click either button and wait for its request to complete. StatBatt reports the requested value, not a live reading of Apple's setting. Opening Battery settings to check is optional during ordinary use. Monitoring needs no setup.
 
 Uncertain execution disables both buttons. Check that the prior shortcut finished, or stop it in Shortcuts. Inspect the displayed80% or100% setting and record both facts in Charging to resume. A visible value or killing the CLI alone does not prove completion. Startup never repeats a request.
 
 If the recovery record cannot be read/saved, inspect Battery settings, check or stop the shortcut, preserve the record and resolve storage before restarting. Forgetting setup does not change Apple's limit or bypass unresolved execution. Apple retains its setting after exit. No lower threshold, automatic expiry, precise electrical cutoff or active custom/discharge/temperature control is provided yet.
 
-The separate qualification build may expose a clearly labeled one-use supervised100% test, used only after explicit authorization and100% trust. It does not enable the normal100% button by itself.
+Build 7 removes the one-use qualification screen. The old trial marker is retained only as historical data and no longer disables the 100% button.
 
 ## Close, quit, and troubleshoot
 

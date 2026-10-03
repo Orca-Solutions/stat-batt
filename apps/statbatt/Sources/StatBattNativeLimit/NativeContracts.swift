@@ -38,7 +38,6 @@ public struct NativeLimitStatus: Sendable {
     public let requiresManualRecovery: Bool
     public let canRequest80: Bool
     public let canRequest100: Bool
-    public let canRunSupervised100Qualification: Bool
     public let qualification100AttemptedAtUTC: Date?
 }
 
@@ -48,9 +47,10 @@ public enum NativeTargetQualification {
         platform.operatingSystemVersion == "27.0.1" && platform.operatingSystemBuild == "26A434" &&
         platform.firmwareVersion == "mBoot-20457.1.29"
     }
-    /// A supervised trial is deliberately excluded from this production evidence allowlist.
+    /// Both fixed setters observed through Apple Battery settings on the exact target.
+    /// See docs/research/NATIVE_LIMIT_LAB.md; this does not qualify custom control.
     public static func qualifiedLimits(_ platform: PlatformFingerprint) -> Set<NativeFixedLimit> {
-        qualifies(platform) ? [.eighty] : []
+        qualifies(platform) ? [.eighty, .hundred] : []
     }
 }
 public struct NativeShortcutIdentity: Sendable, Equatable {

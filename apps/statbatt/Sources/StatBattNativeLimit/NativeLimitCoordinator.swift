@@ -54,15 +54,7 @@ public actor NativeLimitCoordinator {
             journalHealthy: journalHealthy, requiresManualRecovery: journal.requiresManualRecovery,
             canRequest80: available && trustedLimits.contains(.eighty) && qualifiedLimits.contains(.eighty),
             canRequest100: available && trustedLimits.contains(.hundred) && qualifiedLimits.contains(.hundred),
-            canRunSupervised100Qualification: available && trustedLimits.contains(.hundred) && Self.supervised100Build && journal.qualification100AttemptedAtUTC == nil,
             qualification100AttemptedAtUTC: journal.qualification100AttemptedAtUTC)
-    }
-    private static var supervised100Build: Bool {
-        #if STATBATT_NATIVE_100_QUALIFICATION
-        true
-        #else
-        false
-        #endif
     }
     public func discoverConfiguredShortcut(for limit: NativeFixedLimit) async throws -> Bool {
         try ensureIdleAndHealthy()
@@ -77,7 +69,7 @@ public actor NativeLimitCoordinator {
             return matches.count == 1
         } catch { throw record(error) }
     }
-    /// Non-actuating setup.100 trust can be recorded before qualification without enabling production100.
+    /// Non-actuating setup. Existing trusted identities are preserved across upgrades.
     public func configureTrustedShortcut(for limit: NativeFixedLimit,
                                          acknowledgement: NativeTrustAcknowledgement,
                                          confirmedOtherControllersStopped: Bool) async throws -> NativeLimitStatus {
@@ -108,24 +100,10 @@ public actor NativeLimitCoordinator {
         } catch { throw record(error) }
     }
     public func request(_ limit: NativeFixedLimit) async throws -> NativeLimitStatus {
-        try await performRequest(limit, supervised100: false)
-    }
-    #if STATBATT_NATIVE_100_QUALIFICATION
-    /// Separate, explicit one-use trial in the identified supervised candidate; never production qualification.
-    public func requestSupervised100Qualification() async throws -> NativeLimitStatus {
-        try await performRequest(.hundred, supervised100: true)
-    }
-    #endif
-    private func performRequest(_ limit: NativeFixedLimit, supervised100: Bool) async throws -> NativeLimitStatus {
         try ensureIdleAndHealthy()
         guard NativeTargetQualification.qualifies(platform) else { throw record(NativeLimitFailure.unqualifiedTarget) }
         guard !journal.requiresManualRecovery else { throw record(NativeLimitFailure.manualRecoveryRequired) }
-        if supervised100 {
-            guard Self.supervised100Build, limit == .hundred else { throw record(NativeLimitFailure.unqualifiedTarget) }
-            guard journal.qualification100AttemptedAtUTC == nil else { throw record(NativeLimitFailure.qualificationAlreadyAttempted) }
-        } else {
-            guard NativeTargetQualification.qualifiedLimits(platform).contains(limit) else { throw record(NativeLimitFailure.unqualifiedTarget) }
-        }
+        guard NativeTargetQualification.qualifiedLimits(platform).contains(limit) else { throw record(NativeLimitFailure.unqualifiedTarget) }
         guard let trust = journal.trust(for: limit) else { throw record(NativeLimitFailure.trustNotApproved) }
         busy = true; defer { busy = false }
         do {
@@ -138,7 +116,6 @@ public actor NativeLimitCoordinator {
             requested.requestedAtUTC = try currentTime()
             requested.priorShortcutCompletedOrStoppedAtUTC = nil
             // Keep prior observations historical; a new request does not refresh them.
-            if supervised100 { requested.qualification100AttemptedAtUTC = requested.requestedAtUTC }
             try persist(requested)
             lastError = nil
             let result = await transport.executeTrusted(TrustedNativeShortcut(id: selected.id, limit: limit))
@@ -172,7 +149,7 @@ public actor NativeLimitCoordinator {
         try ensureIdleAndHealthy()
         guard !journal.requiresManualRecovery else { throw record(NativeLimitFailure.manualRecoveryRequired) }
         var next = NativeLimitJournal(ownerUID: journal.ownerUID)
-        // Trust revocation must not replenish a consumed supervised trial.
+        // Retain historical trial metadata for compatibility with earlier builds.
         next.qualification100AttemptedAtUTC = journal.qualification100AttemptedAtUTC
         try persist(next); lastError = nil
         return status()

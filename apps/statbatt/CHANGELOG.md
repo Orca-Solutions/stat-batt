@@ -49,3 +49,11 @@
 
 - Created project brief, report, feature parity research, product/UX/spec/API/architecture, build/test/security plans, and foundational ADR.
 - Recorded read-only macOS/architecture observations and redacted Energiza helper failure evidence.
+
+## 0.1.0 (7) — simpler Apple limit switching
+
+- Enable both normal 80% and 100% buttons on the observed Mac after visible shortcut and owner app-path checks.
+- Preserve existing setup; replace fresh setup checklists with one Enable charge buttons action.
+- Remove the one-use qualification flow, retain interrupted-request recovery and startup no-replay behavior.
+- Prevent activation refresh from silently rejecting an otherwise eligible click.
+- Collapse unavailable controls and add --show-charging for a direct local launch.

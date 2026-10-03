@@ -48,7 +48,6 @@ private actor FakeTransport: NativeShortcutTransport {
         #expect(journal?.operationID != nil)
         #expect(journal?.requestedLimit == shortcut.limit)
         #expect(journal?.trust(for: shortcut.limit)?.shortcutUUID == shortcut.id)
-        if shortcut.limit == .hundred { #expect(journal?.qualification100AttemptedAtUTC != nil) }
         for waiter in startedWaiters { waiter.resume() }; startedWaiters = []
         if holdExecution { return await withCheckedContinuation { release = $0 } }
         return result
@@ -78,7 +77,7 @@ private func expectFailure(_ failure: NativeLimitFailure, _ action: () async thr
     catch { #expect(error as? NativeLimitFailure == failure) }
 }
 
-@Test func separateOwnerTrustPrecedesAnyDispatchAndDoesNotGrant100Qualification() async throws {
+@Test func separateOwnerTrustPrecedesEitherTargetDispatch() async throws {
     let store = MemoryJournal(); let transport = FakeTransport(store: store)
     let coordinator = try coordinator(store: store, transport: transport)
     #expect(try await coordinator.discoverConfiguredShortcut(for: .eighty))
@@ -91,11 +90,10 @@ private func expectFailure(_ failure: NativeLimitFailure, _ action: () async thr
     let originalTrust = try #require(try store.load()?.trust80)
     let state = try await configure(coordinator, .hundred)
     #expect(state.trustedLimits == [.eighty, .hundred])
-    #expect(state.qualifiedLimits == [.eighty])
-    #expect(state.canRequest80 && !state.canRequest100)
+    #expect(state.qualifiedLimits == [.eighty, .hundred])
+    #expect(state.canRequest80 && state.canRequest100)
     #expect(try store.load()?.trust80?.shortcutUUID == originalTrust.shortcutUUID)
     #expect(try store.load()?.trust80?.approvedAtUTC == originalTrust.approvedAtUTC)
-    await expectFailure(.unqualifiedTarget) { try await coordinator.request(.hundred) }
     #expect(await transport.executions.isEmpty)
 }
 @Test func durableAcknowledgementAllowsNextExplicitRequestAndSurvivesRestartWithoutReplay() async throws {
@@ -182,7 +180,7 @@ private func expectFailure(_ failure: NativeLimitFailure, _ action: () async thr
         do { _ = try await coordinator.discoverConfiguredShortcut(for: limit); Issue.record("Replaced discovery accepted") }
         catch { #expect(error as? NativeLimitFailure == .shortcutIdentityChanged) }
         await expectFailure(.shortcutIdentityChanged) { try await configure(coordinator, limit) }
-        if limit == .eighty { await expectFailure(.shortcutIdentityChanged) { try await coordinator.request(limit) } }
+        await expectFailure(.shortcutIdentityChanged) { try await coordinator.request(limit) }
         #expect(await transport.executions.isEmpty)
     }
 }
@@ -218,46 +216,29 @@ private func expectFailure(_ failure: NativeLimitFailure, _ action: () async thr
     #expect(await transport.executions == [.eighty])
 }
 
-#if STATBATT_NATIVE_100_QUALIFICATION
-@Test func supervisedTrialUses100IdentityButNeverProductionQualificationAndSurvivesRestartAndForget() async throws {
+@Test func twoTargetsAlternateAcrossRestartWithoutReplayOrObservationGate() async throws {
     let store = MemoryJournal(); let transport = FakeTransport(store: store)
     let first = try coordinator(store: store, transport: transport)
     _ = try await configure(first); _ = try await configure(first, .hundred)
-    #expect(await first.status().canRunSupervised100Qualification)
-    await expectFailure(.unqualifiedTarget) { try await first.request(.hundred) }
-    let receipt = try await first.requestSupervised100Qualification()
-    #expect(receipt.lastRequestedLimit == .hundred && receipt.phase == .acknowledgedUnverified)
-    #expect(receipt.qualifiedLimits == [.eighty] && !receipt.canRequest100 && !receipt.canRunSupervised100Qualification)
+    _ = try await first.request(.eighty)
+    _ = try await first.request(.hundred)
     let restarted = try coordinator(store: store, transport: transport)
-    await expectFailure(.qualificationAlreadyAttempted) { try await restarted.requestSupervised100Qualification() }
+    #expect(await transport.executions == [.eighty, .hundred])
+    #expect(await restarted.status().canRequest80)
+    #expect(await restarted.status().canRequest100)
+    #expect(await restarted.status().lastObservedLimit == nil)
     _ = try await restarted.request(.eighty)
-    _ = try await restarted.forgetSetup()
-    _ = try await configure(restarted, .hundred)
-    #expect(!((await restarted.status()).canRunSupervised100Qualification))
-    await expectFailure(.qualificationAlreadyAttempted) { try await restarted.requestSupervised100Qualification() }
-    #expect(await transport.executions == [.hundred, .eighty])
+    #expect(await transport.executions == [.eighty, .hundred, .eighty])
 }
-@Test func trialMarkerPrecedesExecutionAndRemainsUsedAfterResultPersistenceFailure() async throws {
+@Test func consumedLegacyTrialDoesNotDisableNormal100Button() async throws {
     let store = MemoryJournal(); let transport = FakeTransport(store: store)
     let first = try coordinator(store: store, transport: transport)
-    _ = try await configure(first, .hundred); store.failSave(3)
-    await expectFailure(.journalUnavailable) { try await first.requestSupervised100Qualification() }
-    #expect(try store.load()?.qualification100AttemptedAtUTC != nil)
-    store.failSave(nil)
+    _ = try await configure(first, .hundred)
+    var saved = try #require(try store.load())
+    saved.qualification100AttemptedAtUTC = Date()
+    try store.save(saved)
     let restarted = try coordinator(store: store, transport: transport)
-    #expect(await restarted.status().requiresManualRecovery)
-    await expectFailure(.manualRecoveryRequired) { try await restarted.requestSupervised100Qualification() }
-    _ = try await restarted.reconcileVisibleLimit(.hundred, priorShortcutCompletedOrStopped: true)
-    await expectFailure(.qualificationAlreadyAttempted) { try await restarted.requestSupervised100Qualification() }
+    #expect(await restarted.status().canRequest100)
+    _ = try await restarted.request(.hundred)
     #expect(await transport.executions == [.hundred])
 }
-#else
-@Test func normalBuildHasNoTrialEligibilityEvenWith100Trust() async throws {
-    let store = MemoryJournal(); let transport = FakeTransport(store: store)
-    let coordinator = try coordinator(store: store, transport: transport)
-    _ = try await configure(coordinator, .hundred)
-    #expect(!((await coordinator.status()).canRunSupervised100Qualification))
-    await expectFailure(.unqualifiedTarget) { try await coordinator.request(.hundred) }
-    #expect(await transport.executions.isEmpty)
-}
-#endif

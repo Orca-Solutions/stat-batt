@@ -16,7 +16,6 @@ struct NativeLimitPresentation: Equatable {
     var lastRequestedLimit: NativeFixedLimit? = nil
     var lastObservedLimit: NativeFixedLimit? = nil
     var canForgetSetup = false
-    var canRunSupervised100Qualification = false
     var message: String? = nil
 
     func disabledReason(for limit: NativeFixedLimit, requestEnabled: Bool) -> String? {
@@ -102,19 +101,14 @@ struct NativeLimitView: View {
     let presentation: NativeLimitPresentation
     let request80Enabled: Bool
     let request100Enabled: Bool
-    let supervised100Enabled: Bool
     let onOpenShortcuts: () -> Void
     let onOpenBatterySettings: () -> Void
-    let onConfigure: (NativeFixedLimit, Bool, Bool) -> Void
+    let onConfigure: () -> Void
     let onApply: (NativeFixedLimit) -> Void
     let onConfirmVisible: (NativeFixedLimit) -> Void
     let onReconcile: (NativeFixedLimit, Bool) -> Void
-    let onSupervised100Qualification: () -> Void
     let onForgetSetup: () -> Void
 
-    @State private var inspectedTrusted80 = false
-    @State private var inspectedTrusted100 = false
-    @State private var otherControllersStopped = false
     @State private var priorShortcutCompletedOrStopped = false
 
     var body: some View {
@@ -145,72 +139,39 @@ struct NativeLimitView: View {
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if presentation.canForgetSetup && presentation.phase != .applying {
-                    Button("Forget shortcut setup") {
-                        inspectedTrusted80 = false
-                        inspectedTrusted100 = false
-                        otherControllersStopped = false
-                        priorShortcutCompletedOrStopped = false
-                        onForgetSetup()
+                    DisclosureGroup("Shortcut settings") {
+                        Button("Forget shortcut setup") {
+                            priorShortcutCompletedOrStopped = false
+                            onForgetSetup()
+                        }
+                        .help("Forgets StatBatt’s shortcut trust without changing Apple’s limit")
+                        Text("Uses your trusted Apple shortcuts. If you edit their actions, what runs can change.").font(.caption).foregroundStyle(.secondary)
                     }
-                    .help("Forgets StatBatt’s shortcut trust without changing Apple’s limit")
                 }
-                #if STATBATT_NATIVE_100_QUALIFICATION
-                if presentation.trustedLimits.contains(.hundred) && !presentation.qualifiedLimits.contains(.hundred) {
-                    Divider()
-                    Text("Supervised qualification · 100% remains unqualified")
-                        .font(.subheadline.weight(.medium))
-                    Text("This trial changes Apple's limit to 100%. Run only during the explicitly authorized, supervised qualification session. It does not enable the normal 100% button.")
-                        .font(.caption).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Button("Run supervised 100% qualification trial") { onSupervised100Qualification() }
-                        .disabled(!supervised100Enabled)
-                }
-                #endif
             }.frame(maxWidth: .infinity, alignment: .leading).padding(10)
         }
         .onChange(of: presentation.phase) { _, _ in
             priorShortcutCompletedOrStopped = false
         }
-        .onChange(of: presentation.discoveredLimits) { _, discovered in
-            if !discovered.contains(.eighty) { inspectedTrusted80 = false }
-            if !discovered.contains(.hundred) { inspectedTrusted100 = false }
-        }
     }
 
     private var setupContent: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             Divider()
-            Text("One-time trusted shortcut setup").font(.subheadline.weight(.medium))
-            Text("Create or inspect each named shortcut with exactly one Apple Set Battery Charge Limit action at its stated percentage. Keep Set Until Tomorrow off. You do not need to run it manually.")
-                .font(.callout).fixedSize(horizontal: false, vertical: true)
-            Button("Open Shortcuts for setup") { onOpenShortcuts() }
-            Text("StatBatt cannot detect every later edit. Changing a shortcut can change what runs. Reinspect it if edited.")
-                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Toggle("Other charge-management apps are stopped.", isOn: $otherControllersStopped)
-            Text("StatBatt checks known controllers, but cannot identify or stop every one.")
-                .font(.caption).foregroundStyle(.secondary)
-            if !presentation.trustedLimits.contains(.eighty) {
-                shortcutSetup(.eighty, inspected: $inspectedTrusted80)
+            Text("Connect Apple Shortcuts once").font(.subheadline.weight(.medium))
+            Text("Each shortcut should contain one Set Battery Charge Limit action at the named percentage, with Set Until Tomorrow off.")
+                .font(.callout)
+            ForEach(NativeFixedLimit.allCases, id: \.self) { limit in
+                Label(limit.expectedShortcutName,
+                      systemImage: presentation.discoveredLimits.contains(limit) ? "checkmark.circle" : "circle.dashed")
             }
-            if !presentation.trustedLimits.contains(.hundred) {
-                shortcutSetup(.hundred, inspected: $inspectedTrusted100)
-            }
-            Text("Recording trust does not change charging. Each target also needs qualification on this Mac.")
+            Button("Open Shortcuts") { onOpenShortcuts() }
+            Text("Enabling confirms you trust these two shortcuts and have stopped other charging apps. Edits to a shortcut can change what runs; StatBatt cannot detect every edit.")
                 .font(.caption).foregroundStyle(.secondary)
-        }
-    }
-
-    private func shortcutSetup(_ limit: NativeFixedLimit, inspected: Binding<Bool>) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(limit.expectedShortcutName).font(.subheadline.weight(.medium))
-            Label(presentation.discoveredLimits.contains(limit) ? "Shortcut found" : "Waiting for the named shortcut",
-                  systemImage: presentation.discoveredLimits.contains(limit) ? "checkmark.circle" : "magnifyingglass")
+            Button("Enable charge buttons") { onConfigure() }
+                .disabled(!canConfigure)
+            Text("This saves setup without changing your charge limit.")
                 .font(.caption).foregroundStyle(.secondary)
-            Toggle("I inspected the single \(limit.rawValue)% action and trust this shortcut. I will keep it unchanged.", isOn: inspected)
-                .disabled(!presentation.discoveredLimits.contains(limit))
-            Button("Record \(limit.rawValue)% shortcut trust") {
-                onConfigure(limit, inspected.wrappedValue, otherControllersStopped)
-            }.disabled(!canConfigure(limit, inspected: inspected.wrappedValue))
         }
     }
 
@@ -245,9 +206,9 @@ struct NativeLimitView: View {
         }
     }
 
-    private func canConfigure(_ limit: NativeFixedLimit, inspected: Bool) -> Bool {
+    private var canConfigure: Bool {
         presentation.phase != .applying && presentation.phase != .recoveryRequired && presentation.phase != .unavailable &&
             presentation.deviceQualified && presentation.conflictingControllerResolved &&
-            presentation.discoveredLimits.contains(limit) && inspected && otherControllersStopped
+            Set(NativeFixedLimit.allCases).isSubset(of: presentation.discoveredLimits)
     }
 }

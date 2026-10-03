@@ -56,10 +56,6 @@ struct MenuPanel: View {
             BatteryHeader(store: store, compact: true)
             Divider()
             nativeLimitActions
-            HStack {
-                Button("Charge to full once") {}.disabled(true)
-                Button("Discharge to…") {}.disabled(true)
-            }.help("Requires a verified backend and safe restoration on this Mac")
             HStack(alignment: .top) {
                 MiniStat(title: "Temperature", value: store.format(store.displaySnapshot.batteryTemperatureCelsius, unit: "°C", temperature: true), explanation: "A tilde means an estimated battery sensor reading.")
                 Spacer()
@@ -253,65 +249,23 @@ struct ChargingView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 Text("Charging").font(.title2.bold())
-                Text("Apple limiting delegates charging to macOS. Custom hold and discharge need separate verification on this Mac.")
+                Text("Choose 80% for everyday use or 100% when you need a full charge.")
                     .foregroundStyle(.secondary)
                 NativeLimitView(presentation: store.nativePresentation,
                     request80Enabled: store.canSetNativeLimit80,
                     request100Enabled: store.canSetNativeLimit100,
-                    supervised100Enabled: store.canRunSupervised100Qualification,
                     onOpenShortcuts: { store.openNativeShortcutSetup() },
                     onOpenBatterySettings: { store.openBatterySettings() },
-                    onConfigure: { store.configureNativeLimit(for: $0, inspected: $1, controllersStopped: $2) },
+                    onConfigure: { store.configureNativeLimits() },
                     onApply: { store.setNativeLimit($0) },
                     onConfirmVisible: { store.confirmNativeVisibleLimit($0) },
                     onReconcile: { store.reconcileNativeLimit($0, priorShortcutCompletedOrStopped: $1) },
-                    onSupervised100Qualification: { store.runSupervised100Qualification() },
                     onForgetSetup: { store.forgetNativeSetup() })
-                GroupBox("Custom charge band") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Label("Unavailable · charge gate unverified", systemImage: "lock")
-                        Text("Proposed defaults · inactive").font(.caption).foregroundStyle(.secondary)
-                        HStack {
-                            Text("Resume charging at 70%"); Spacer(); Text("Hold charging at 80%")
-                        }.foregroundStyle(.secondary)
-                        Text("Stops charging while retaining external power. Setting an upper target below the current charge does not discharge the battery.")
-                            .font(.callout)
-                        Toggle("Enable custom charging control", isOn: .constant(false)).disabled(true)
-                    }.padding(10)
+                DisclosureGroup("Other charging features") {
+                    Text("Custom charge bands, forced discharge, one-time charging and temperature control are not available on this Mac yet. Apple manages charging; temperature alerts are available in Settings.")
+                        .font(.callout).foregroundStyle(.secondary).padding(.vertical, 8)
                 }
-                GroupBox("Discharge to a target") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Label("Unavailable · adapter restoration unverified", systemImage: "lock")
-                        Text("Uses ordinary workload on battery while the adapter remains plugged in. Requires a verified cutoff, reserve protection, timeout, and recovery through sleep and crashes.")
-                        Button("Discharge to 70%") {}.disabled(true)
-                    }.frame(maxWidth: .infinity, alignment: .leading).padding(10)
-                }
-                GroupBox("One-time charging actions") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Label("Unavailable · charge gate and return policy unverified", systemImage: "lock")
-                        Text("Charging to a target or full needs a verified charge gate, a bounded expiry, and a safe return to the enabled policy. Stopping charging retains external power. These actions are not available through the Apple limit shortcut.")
-                            .font(.callout)
-                        HStack {
-                            Button("Charge to 80% once") {}.disabled(true)
-                            Button("Charge to full once") {}.disabled(true)
-                        }
-                        Button("Stop charging now") {}.disabled(true)
-                    }.frame(maxWidth: .infinity, alignment: .leading).padding(10)
-                }
-                GroupBox("Temperature protection") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Label("Unavailable · thermal charge control unverified", systemImage: "lock")
-                        Text("Proposed defaults · inactive").font(.caption).foregroundStyle(.secondary)
-                        Text("Pause at \(store.displayTemperature(40).formatted(.number.precision(.fractionLength(0)))) \(store.temperatureSuffix) · resume at \(store.displayTemperature(37).formatted(.number.precision(.fractionLength(0)))) \(store.temperatureSuffix)")
-                            .foregroundStyle(.secondary)
-                        Text("Requires validated, fresh battery temperature and a verified charge gate. Missing readings must release custom control. StatBatt does not disconnect the adapter for temperature protection.")
-                            .font(.callout)
-                        Toggle("Enable temperature protection", isOn: .constant(false)).disabled(true)
-                        Text("Temperature notifications are available in Settings when readings are available. Notifications do not control charging; Apple's hardware protections remain active.")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }.frame(maxWidth: .infinity, alignment: .leading).padding(10)
-                }
-                GroupBox("Helper & compatibility") {
+                DisclosureGroup("Compatibility & diagnostics") {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Privileged helper: not installed · custom controls unavailable")
                         Text("\(store.platform.model) · \(store.platform.architecture) · macOS \(store.platform.operatingSystemVersion) (\(store.platform.operatingSystemBuild))")
