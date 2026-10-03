@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import StatBattDomain
+import StatBattNativeLimit
 
 @main
 struct StatBattApplication: App {
@@ -49,7 +50,7 @@ struct MenuPanel: View {
             HStack {
                 Text("StatBatt").font(.headline)
                 Spacer()
-                Text(store.nativePresentation.phase == .confirmed ? "LAST CONFIRMED 80%" : "MONITOR").font(.caption2.bold()).foregroundStyle(.secondary)
+                Text(store.nativePresentation.lastObservedLimit.map { "LAST OBSERVED \($0.rawValue)%" } ?? "MONITOR").font(.caption2.bold()).foregroundStyle(.secondary)
                     .padding(.horizontal, 8).padding(.vertical, 4).background(.quaternary, in: Capsule())
             }
             BatteryHeader(store: store, compact: true)
@@ -80,48 +81,22 @@ struct MenuPanel: View {
 
     @ViewBuilder private var nativeLimitActions: some View {
         VStack(alignment: .leading, spacing: 8) {
-            switch store.nativePresentation.phase {
-            case .ready:
-                Label("Apple charge limit", systemImage: "slider.horizontal.3")
-                    .font(.subheadline.weight(.medium))
-                Button("Apply 80% limit") { store.applyNativeLimit80() }
-                    .disabled(!store.canApplyNativeLimit80)
-                    .help("Runs your trusted Apple shortcut once; confirm the limit in Battery settings")
-                Text("Uses your trusted shortcut. Reinspect it if edited. Returning to 100% is manual in Battery settings.")
-                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            case .applying:
-                HStack {
-                    ProgressView().controlSize(.small)
-                    Text("Requesting an 80% limit…")
-                }
-                Text("The setting has not been confirmed.")
-                    .font(.caption).foregroundStyle(.secondary)
-            case .awaitingConfirmation:
-                Label("Request completed · setting unconfirmed", systemImage: "questionmark.circle")
-                    .font(.subheadline.weight(.medium))
-                Text("Open Charging to check Battery settings and record what you see.")
-                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            case .confirmed:
-                Label("Apple 80% setting last confirmed by you", systemImage: "checkmark.circle")
-                    .font(.subheadline.weight(.medium))
-                Text("StatBatt cannot read the current Apple limit. Review or restore it in Charging.")
-                    .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            case .recoveryRequired:
-                Label("Review and restore the Apple limit", systemImage: "exclamationmark.triangle")
-                    .font(.subheadline.weight(.medium))
-                Text("Open Charging for instructions before another request.")
-                    .font(.caption).foregroundStyle(.secondary)
-            case .setup, .unavailable:
-                Label("Apple limit setup & charging controls", systemImage: "info.circle")
-                    .font(.subheadline.weight(.medium))
-                Text("Configure Apple limiting in Charging. Custom hold and discharge are untested.")
+            Label("Apple charge limit", systemImage: "slider.horizontal.3")
+                .font(.subheadline.weight(.medium))
+            NativeLimitActionButtons(presentation: store.nativePresentation,
+                request80Enabled: store.canSetNativeLimit80,
+                request100Enabled: store.canSetNativeLimit100,
+                onApply: { store.setNativeLimit($0) })
+            NativeLimitStatusView(presentation: store.nativePresentation)
+            if store.nativePresentation.phase == .ready || store.nativePresentation.phase == .completed {
+                Text("Uses your trusted shortcuts. Reinspect them if edited.")
                     .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             if let message = store.nativePresentation.message, !message.isEmpty {
                 Label(message, systemImage: "info.circle")
                     .font(.caption).fixedSize(horizontal: false, vertical: true)
             }
-            Button("Charging settings…") { show(.charging) }
+            Button("Charging…") { show(.charging) }
         }
     }
 
@@ -198,7 +173,7 @@ struct Dashboard: View {
             HStack {
                 Text("StatBatt").font(.title2.bold())
                 Spacer()
-                Label(store.nativePresentation.phase == .confirmed ? "Apple limit · last confirmed by you" : "Monitoring", systemImage: "eye").font(.subheadline).foregroundStyle(.secondary)
+                Label(store.nativePresentation.lastObservedLimit != nil ? "Apple limit · last observed by you" : "Monitoring", systemImage: "eye").font(.subheadline).foregroundStyle(.secondary)
                 Button { store.refresh() } label: { Image(systemName: "arrow.clockwise") }.help("Refresh").accessibilityLabel("Refresh battery readings")
             }.padding(24)
             if let message = store.message {
@@ -277,17 +252,20 @@ struct ChargingView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Charging setup").font(.title2.bold())
+                Text("Charging").font(.title2.bold())
                 Text("Apple limiting delegates charging to macOS. Custom hold and discharge need separate verification on this Mac.")
                     .foregroundStyle(.secondary)
                 NativeLimitView(presentation: store.nativePresentation,
-                    requestEnabled: store.canApplyNativeLimit80,
+                    request80Enabled: store.canSetNativeLimit80,
+                    request100Enabled: store.canSetNativeLimit100,
+                    supervised100Enabled: store.canRunSupervised100Qualification,
                     onOpenShortcuts: { store.openNativeShortcutSetup() },
                     onOpenBatterySettings: { store.openBatterySettings() },
-                    onConfigure: { store.configureNativeLimit(inspected: $0, baselineConfirmed: $1, controllersStopped: $2) },
-                    onApply: { store.applyNativeLimit80() },
-                    onConfirm80: { store.confirmNativeLimit80() },
-                    onConfirmRestored100: { store.confirmNativeRestored100(priorShortcutCompletedOrStopped: $0) },
+                    onConfigure: { store.configureNativeLimit(for: $0, inspected: $1, controllersStopped: $2) },
+                    onApply: { store.setNativeLimit($0) },
+                    onConfirmVisible: { store.confirmNativeVisibleLimit($0) },
+                    onReconcile: { store.reconcileNativeLimit($0, priorShortcutCompletedOrStopped: $1) },
+                    onSupervised100Qualification: { store.runSupervised100Qualification() },
                     onForgetSetup: { store.forgetNativeSetup() })
                 GroupBox("Custom charge band") {
                     VStack(alignment: .leading, spacing: 12) {

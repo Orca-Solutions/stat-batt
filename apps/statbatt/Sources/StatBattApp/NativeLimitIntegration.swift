@@ -9,8 +9,7 @@ extension AppStore {
         case .setup: "notConfigured"
         case .ready: "ready"
         case .applying: "requested"
-        case .awaitingConfirmation: "acknowledgedUnverified"
-        case .confirmed: "manuallyConfirmed80"
+        case .completed: "historicalRequestReceipt"
         case .recoveryRequired: "manualReconciliationRequired"
         case .unavailable: "unavailable"
         }
@@ -47,68 +46,102 @@ extension AppStore {
         nativeTaskInProgress = true
         Task {
             defer { nativeTaskInProgress = false }
-            let state = await coordinator.status()
-            let preflight = await nativePreflight()
-            do {
-                let found = try await coordinator.discoverConfiguredShortcut()
-                updateNativePresentation(state, discovered: found, preflight: preflight)
-            } catch {
-                updateNativePresentation(state, discovered: false, preflight: preflight)
-                guard state.journalHealthy else { return }
-                nativePresentation.message = state.requiresManualRecovery
-                    ? "Shortcut discovery is unavailable. The prior request still needs review in Shortcuts and Battery settings."
-                    : "Shortcut discovery is unavailable. Open Shortcuts, then refresh StatBatt. This refresh does not apply a limit."
-            }
+            await refreshNativePresentation(coordinator)
         }
     }
 
-    func configureNativeLimit(inspected: Bool, baselineConfirmed: Bool, controllersStopped: Bool) {
-        guard inspected, baselineConfirmed, controllersStopped,
-              let coordinator = nativeCoordinator, !nativeTaskInProgress else { return }
+    private func refreshNativePresentation(_ coordinator: NativeLimitCoordinator) async {
+        var discovered: Set<NativeFixedLimit> = []
+        var discoveryFailed = false
+        for limit in NativeFixedLimit.allCases {
+            do {
+                if try await coordinator.discoverConfiguredShortcut(for: limit) { discovered.insert(limit) }
+            } catch { discoveryFailed = true }
+        }
+        let state = await coordinator.status()
+        updateNativePresentation(state, discovered: discovered, preflight: await nativePreflight())
+        if discoveryFailed && state.journalHealthy && nativePresentation.message == nil {
+            nativePresentation.message = "Shortcut discovery is unavailable. Open Shortcuts, then refresh StatBatt. Refresh does not apply a limit."
+        }
+    }
+
+    func configureNativeLimit(for limit: NativeFixedLimit, inspected: Bool, controllersStopped: Bool) {
+        guard inspected, controllersStopped, let coordinator = nativeCoordinator, !nativeTaskInProgress else { return }
         nativeTaskInProgress = true
         Task {
             defer { nativeTaskInProgress = false }
             do {
-                let state = try await coordinator.configureTrusted80Shortcut(
-                    acknowledgement: .approvedMutableUserWorkflow, confirmedBaselinePercent: 100,
-                    confirmedOtherControllersStopped: true)
-                updateNativePresentation(state, discovered: true, preflight: await nativePreflight())
-            } catch {
-                await displayNativeFailure(coordinator)
-            }
+                _ = try await coordinator.configureTrustedShortcut(for: limit,
+                    acknowledgement: .approvedMutableUserWorkflow, confirmedOtherControllersStopped: true)
+                await refreshNativePresentation(coordinator)
+            } catch { await displayNativeFailure(coordinator) }
         }
     }
 
-    var canApplyNativeLimit80: Bool {
+    var canSetNativeLimit80: Bool { canSetNativeLimit(.eighty) }
+    var canSetNativeLimit100: Bool { canSetNativeLimit(.hundred) }
+
+    private func canSetNativeLimit(_ limit: NativeFixedLimit) -> Bool {
         nativeCoordinator != nil && !nativeTaskInProgress && !sleeping &&
-            nativePresentation.phase == .ready && nativePresentation.deviceQualified &&
-            nativePresentation.shortcutDiscovered && nativePresentation.conflictingControllerResolved
+            (nativePresentation.phase == .ready || nativePresentation.phase == .completed) &&
+            nativePresentation.qualifiedLimits.contains(limit) && nativePresentation.trustedLimits.contains(limit) &&
+            nativePresentation.discoveredLimits.contains(limit) && nativePresentation.conflictingControllerResolved
     }
 
-    func applyNativeLimit80() {
-        guard canApplyNativeLimit80, let coordinator = nativeCoordinator else { return }
+    func setNativeLimit(_ limit: NativeFixedLimit) {
+        guard canSetNativeLimit(limit), let coordinator = nativeCoordinator else { return }
+        beginNativeRequest(limit)
+        Task {
+            defer { nativeTaskInProgress = false }
+            do {
+                _ = try await coordinator.request(limit)
+                await refreshNativePresentation(coordinator)
+            } catch { await displayNativeFailure(coordinator) }
+        }
+    }
+
+    private func beginNativeRequest(_ limit: NativeFixedLimit) {
         nativeTaskInProgress = true
         nativePresentation.phase = .applying
+        nativePresentation.lastRequestedLimit = limit
         nativePresentation.canForgetSetup = false
+        nativePresentation.canRunSupervised100Qualification = false
         nativePresentation.message = nil
+    }
+
+    var canRunSupervised100Qualification: Bool {
+        #if STATBATT_NATIVE_100_QUALIFICATION
+        return nativeCoordinator != nil && !nativeTaskInProgress && !sleeping &&
+            nativePresentation.canRunSupervised100Qualification &&
+            nativePresentation.discoveredLimits.contains(.hundred) && nativePresentation.conflictingControllerResolved
+        #else
+        return false
+        #endif
+    }
+
+    func runSupervised100Qualification() {
+        #if STATBATT_NATIVE_100_QUALIFICATION
+        guard canRunSupervised100Qualification, let coordinator = nativeCoordinator else { return }
+        beginNativeRequest(.hundred)
         Task {
             defer { nativeTaskInProgress = false }
             do {
-                let state = try await coordinator.request80Percent()
-                updateNativePresentation(state, discovered: true, preflight: await nativePreflight())
-            } catch {
-                await displayNativeFailure(coordinator)
-            }
+                _ = try await coordinator.requestSupervised100Qualification()
+                await refreshNativePresentation(coordinator)
+            } catch { await displayNativeFailure(coordinator) }
         }
+        #endif
     }
 
-    func confirmNativeLimit80() {
-        updateNativeConfirmation { try await $0.confirmVisibleLimit80() }
+    func confirmNativeVisibleLimit(_ limit: NativeFixedLimit) {
+        updateNativeConfirmation { try await $0.confirmVisibleLimit(limit) }
     }
 
-    func confirmNativeRestored100(priorShortcutCompletedOrStopped: Bool) {
+    func reconcileNativeLimit(_ limit: NativeFixedLimit, priorShortcutCompletedOrStopped: Bool) {
         guard priorShortcutCompletedOrStopped else { return }
-        updateNativeConfirmation { try await $0.confirmRestored100(priorShortcutCompletedOrStopped: true) }
+        updateNativeConfirmation {
+            try await $0.reconcileVisibleLimit(limit, priorShortcutCompletedOrStopped: true)
+        }
     }
 
     func forgetNativeSetup() {
@@ -123,53 +156,53 @@ extension AppStore {
         Task {
             defer { nativeTaskInProgress = false }
             do {
-                let state = try await action(coordinator)
-                let found = (try? await coordinator.discoverConfiguredShortcut()) ?? false
-                updateNativePresentation(state, discovered: found, preflight: await nativePreflight())
-            } catch {
-                await displayNativeFailure(coordinator)
-            }
+                _ = try await action(coordinator)
+                await refreshNativePresentation(coordinator)
+            } catch { await displayNativeFailure(coordinator) }
         }
     }
 
     private func displayNativeFailure(_ coordinator: NativeLimitCoordinator) async {
-        let state = await coordinator.status()
-        let found = (try? await coordinator.discoverConfiguredShortcut()) ?? false
-        updateNativePresentation(state, discovered: found, preflight: await nativePreflight())
-        guard state.journalHealthy else { return }
-        nativePresentation.message = state.requiresManualRecovery
-            ? "The result needs manual review. Check or stop the shortcut, then verify the limit in Battery settings and restore 100% before another request."
-            : "Native setup or request could not proceed. Check the configured shortcut and other charging controllers, then refresh."
+        await refreshNativePresentation(coordinator)
+        guard nativePresentation.phase != .unavailable else { return }
+        if nativePresentation.phase == .recoveryRequired {
+            nativePresentation.message = "The shortcut may still be running. Check or stop it in Shortcuts, then inspect the displayed limit in Battery settings before resuming the buttons."
+        } else if nativePresentation.message == nil {
+            nativePresentation.message = "Native setup or request could not proceed. Check the configured shortcut and other charging controllers, then refresh."
+        }
     }
 
-    private func updateNativePresentation(_ state: NativeLimitStatus, discovered: Bool,
+    private func updateNativePresentation(_ state: NativeLimitStatus, discovered: Set<NativeFixedLimit>,
                                           preflight: NativePreflightResult) {
         let phase: NativeLimitPhase
-        switch state.phase {
-        case .notConfigured: phase = .setup
-        case .ready, .restoredUserConfirmed100: phase = state.canRequest80 ? .ready : .unavailable
-        case .requested: phase = .recoveryRequired
-        case .acknowledgedUnverified: phase = .awaitingConfirmation
-        case .outcomeUnknown: phase = .recoveryRequired
-        case .manuallyConfirmed80: phase = .confirmed
+        if !state.journalHealthy { phase = .unavailable }
+        else if state.requiresManualRecovery { phase = .recoveryRequired }
+        else {
+            switch state.phase {
+            case .notConfigured: phase = .setup
+            case .ready: phase = .ready
+            case .requested, .outcomeUnknown: phase = .recoveryRequired
+            case .acknowledgedUnverified: phase = .completed
+            case .ownerReconciled: phase = .ready
+            }
         }
         nativePresentation = NativeLimitPresentation(phase: phase,
-            shortcutDiscovered: discovered, deviceQualified: state.qualifiedTarget,
+            discoveredLimits: discovered, trustedLimits: state.trustedLimits,
+            qualifiedLimits: state.qualifiedLimits, deviceQualified: state.qualifiedTarget,
             conflictingControllerResolved: preflight == .clear,
+            lastRequestedLimit: state.lastRequestedLimit, lastObservedLimit: state.lastObservedLimit,
+            canForgetSetup: state.journalHealthy && !state.requiresManualRecovery,
+            canRunSupervised100Qualification: state.canRunSupervised100Qualification,
             message: preflight == .conflictingController
-                ? "Stop Energiza and its helper before applying a native limit. StatBatt does not stop them for you."
-                : preflight == .unavailable ? "The controller check is unavailable. Applying a limit is disabled." : nil,
-            canForgetSetup: state.lastError != .journalUnavailable &&
-                (state.phase == .ready || state.phase == .restoredUserConfirmed100))
+                ? "Stop other charge-management apps and helpers before changing the limit. StatBatt does not stop them for you."
+                : preflight == .unavailable ? "The controller check is unavailable. Setting a limit is disabled." : nil)
         if !state.journalHealthy {
-            nativePresentation.message = "The recovery record could not be saved. Check or stop the shortcut and restore 100% in Battery settings. Resolve local storage and restart StatBatt before recording recovery."
+            nativePresentation.message = "The recovery record could not be saved. Check or stop the shortcut and inspect Battery settings. Resolve local storage and restart StatBatt before recording recovery."
         }
         if let failure = state.lastError {
             notifyNativeFailure(id: "native:\(failure.rawValue)", message: state.requiresManualRecovery || !state.journalHealthy
-                ? "Charging recovery needs your attention. Check or stop the shortcut, then verify and restore 100% in Battery settings."
+                ? "Charging recovery needs your attention. Check or stop the shortcut, then inspect the limit in Battery settings."
                 : "Charging setup or request could not proceed. Open StatBatt for details.")
-        } else {
-            clearNativeFailureNotification()
-        }
+        } else { clearNativeFailureNotification() }
     }
 }

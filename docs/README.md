@@ -25,6 +25,7 @@ Foundation established October 1; owner authorized implementation October 2, 202
 | [BUILD_PLAN.md](BUILD_PLAN.md) | Execute bounded feasibility and implementation stages |
 | [TEST_PLAN.md](TEST_PLAN.md) | Verify requirements and qualify exact target hardware |
 | [SECURITY_OPERATIONS.md](SECURITY_OPERATIONS.md) | Authenticate, install, recover, update, uninstall and handle local data |
+| [decisions/0003-two-target-native-limit.md](decisions/0003-two-target-native-limit.md) | Read the two-button native flow and separate100% qualification gate |
 | [decisions/0002-trusted-user-native-shortcut.md](decisions/0002-trusted-user-native-shortcut.md) | Read the owner-approved mutable-shortcut trust exception and retained boundaries |
 | [decisions/0001-capability-based-native-app.md](decisions/0001-capability-based-native-app.md) | Understand the proposed foundational decision and alternatives |
 | [research/ENERGIZA_PARITY.md](research/ENERGIZA_PARITY.md) | Compare sourced Energiza features against planned behavior |

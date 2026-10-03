@@ -67,3 +67,7 @@ apps/statbatt/scripts/swift-local.sh run statbatt-hardware-probe
 ```
 
 It accepts no arguments, reads only fixed source-backed control metadata and conditional baseline bytes, and stops on permission denial. It never writes, installs a helper, runs a shortcut or promotes control support. [Qualification evidence](research/SMC_READ_ONLY_QUALIFICATION.md) and [third-party notices](../apps/statbatt/THIRD_PARTY_NOTICES.md) define its scope. Preserve notices if distributing the standalone diagnostic. The normal StatBatt app does not link this probe.
+
+## Separate native qualification candidate
+
+`apps/statbatt/scripts/build-native-qualification-app.sh` builds and locally signs `apps/statbatt/dist/native-100-qualification/StatBatt.app`; it never launches a shortcut. About identifies0.1.0-qualification build6. It contains a separate durable one-use100% trial and leaves normal100% capability unqualified. Actual use requires the explicit supervised authorization and target-specific trust in [LAB_PROTOCOL](LAB_PROTOCOL.md). Quit the old app before opening it; after schema2 migration, older schema1 builds cannot use the newer native journal. Neither this local ad-hoc build nor the ordinary build is a notarized release.

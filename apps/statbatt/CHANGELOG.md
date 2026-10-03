@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.0 build6 two-target candidate — 2026-10-02
+
+- Add menu and Charging **Set to 80%** / **Set to 100%** buttons with separate one-time shortcut trust. Normal receipts permit the next deliberate request without a manual restoration loop.
+- Preserve unknown-execution fencing and no startup replay; migrate schema1 trust and recovery to schema2 atomically without granting100% trust.
+- Production100% remains unqualified. A separate compile-flag candidate offers one durable supervised100% trial, without promoting production capability. Actual100% trust and hardware test remain pending.
+- Software checks and fresh-context review are recorded in WORKING_RECORD. Original full-v1 and distribution acceptance stay open.
+
 ## 0.1.0 build5 menu-label comparison — 2026-10-02
 
 - Skip menu label body updates when its text, symbol and accessibility description are unchanged; preserve the same content and actions.

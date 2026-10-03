@@ -12,7 +12,7 @@ private func temporaryDirectory() throws -> URL {
 
 @Test func listingParsesObservedParenthesizedUUIDFormatWithoutLosingNames() throws {
     let id = UUID()
-    let name = NativeLimitCoordinator.expectedShortcutName
+    let name = NativeFixedLimit.eighty.expectedShortcutName
     let data = Data((name + " (" + id.uuidString + ")\nOther (synthetic) name (" + UUID().uuidString + ")\n").utf8)
     let list = try ShortcutListingParser.parse(data)
     #expect(list.count == 2)

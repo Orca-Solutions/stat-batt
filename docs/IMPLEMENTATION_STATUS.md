@@ -101,3 +101,7 @@ Owner confirmed windows/menu closed while build4 kept running. The subsequent600
 The three-input Equatable menu label preserves the same text/icon/accessibility content and skips unchanged label-body work. Fresh-context source review cleared f72adff; release compilation and strict local ad-hoc signature passed. Broader UI/accessibility parity remains unverified; the131-test result belongs to the preceding build4 software suite and no test rerun is claimed for this small UI experiment.
 
 Owner-confirmed closed-window build5 run completed600.010sec:0.1583% onecore CPU,79.233024MB peak RSS,26.902528MB final RSS and0 observed Internet sockets with0 observation errors. This run meets app CPU/RSS targets. Restart/retained-view/host-workload differences prevent claiming the label alone fixed the earlier miss. History still recorded20 valid readings in eight completed minutes. Full result, exact build/hash and limits: [resource evidence](research/RESOURCE_OBSERVATION.md). No hardware request occurred during the comparison.
+
+### Two-target follow-up
+
+Owner confirms the later23:05UTC80% request was their deliberate Apply click. Its unknown execution still needs reconciliation; it is not evidence of automatic replay. The owner requested one-click Set to80% / Set to100%, superseding the normal manual return loop in [decision0003](decisions/0003-two-target-native-limit.md). Separate100% software/trust/actual qualification is in progress, not a verified production capability. Original full-v1 acceptance remains open.

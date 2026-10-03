@@ -31,3 +31,7 @@ Native desktop binding still fails for StatBatt, and earlier Activity Monitor id
 The owner asked for a scope recommendation. The team's recommendation is to keep full-v1 criteria open and treat monitoring plus native80% control as a preview milestone. This recommendation does not change the accepted scope.
 
 The follow-up preparation encountered an apparent shortcut-library execution during inspection; subsequent native settings showed80%. Permanent100% restoration was performed and reopened, then the owner confirmed the100% baseline before the menu test. This incident is recorded in LAB_PROTOCOL and remains separate from the later successful owner-assisted app path.
+
+### Two-target follow-up
+
+Owner confirms the later23:05UTC80% request was their deliberate Apply click. Its unknown execution still needs reconciliation; it is not evidence of automatic replay. The owner requested one-click Set to80% / Set to100%, superseding the normal manual return loop in [decision0003](decisions/0003-two-target-native-limit.md). Separate100% software/trust/actual qualification is in progress, not a verified production capability. Original full-v1 acceptance remains open.

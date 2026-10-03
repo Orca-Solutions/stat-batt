@@ -23,7 +23,7 @@ final class AppStore: ObservableObject {
     @Published var nativePresentation = NativeLimitPresentation(phase: .unavailable,
         message: "Checking native shortcut setup…")
     var nativeCoordinator: NativeLimitCoordinator?
-    var nativeTaskInProgress = false
+    @Published var nativeTaskInProgress = false
     let platform = PlatformProbe.readOnly()
     private let telemetry = PublicTelemetry()
     private var history: HistoryStore?
@@ -37,18 +37,17 @@ final class AppStore: ObservableObject {
 
     var capabilities: CapabilitySnapshot {
         var result = CapabilityProbe.readOnly(platform: platform, snapshot: snapshot)
-        result.nativeRestorationMode = "explicitUserConfirmationInBatterySettings"
+        result.nativeRestorationMode = "deliberateTrustedTargetRequestOrManualSettings"
         if nativePresentation.deviceQualified {
-            let ready = nativePresentation.phase == .ready &&
-                nativePresentation.shortcutDiscovered && nativePresentation.conflictingControllerResolved
-            result.allowedNativeLimitsPercent = [80]
+            let ready = canSetNativeLimit80 || canSetNativeLimit100
+            result.allowedNativeLimitsPercent = nativePresentation.qualifiedLimits.map(\.percent).sorted()
             result.canSetNativeChargeLimit = Capability(status: ready ? .verified : .temporarilyUnavailable,
                 scope: .appleDelegated,
-                reasonCode: ready ? nil : nativePresentation.message ?? "Native setup or manual reconciliation required",
-                evidence: [EvidenceReference(identifier: "native80-lab-setting-readback",
-                    provenance: "observedSettingOnly", reference: "docs/research/NATIVE_LIMIT_LAB.md"),
+                reasonCode: ready ? nil : nativePresentation.message ?? "Native setup or prior execution reconciliation required",
+                evidence: [EvidenceReference(identifier: "native80-app-setting-readback",
+                    provenance: "observedSettingOnly", reference: "docs/research/NATIVE_APP_FLOW_RESULT.md"),
                     EvidenceReference(identifier: "mutable-user-workflow-trust", provenance: "ownerApproved",
-                        reference: "docs/decisions/0002-trusted-user-native-shortcut.md")],
+                        reference: "docs/decisions/0003-two-target-native-limit.md")],
                 verifiedAtUTC: Date())
         }
         return result

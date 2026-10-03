@@ -36,8 +36,8 @@ public struct ShortcutsProcessTransport: NativeShortcutTransport {
         default: throw NativeLimitFailure.transportUnavailable
         }
     }
-    public func executeTrusted80(_ shortcut: TrustedNative80Shortcut) async -> NativeExecutionResult {
-        let result = await executeFixedJob(.native80(shortcut.id))
+    public func executeTrusted(_ shortcut: TrustedNativeShortcut) async -> NativeExecutionResult {
+        let result = await executeFixedJob(.nativeLimit(shortcut.id))
         return executionResult(result.end)
     }
 }
@@ -72,7 +72,7 @@ public enum NativeKnownControllerProbe {
 
 private enum FixedNativeJob: Sendable {
     case list
-    case native80(UUID)
+    case nativeLimit(UUID)
     case energizaProbe
     #if DEBUG
     case testFixture(NativeProcessFixture, timeout: Double)
@@ -87,7 +87,7 @@ private enum FixedNativeJob: Sendable {
     var arguments: [String] {
         switch self {
         case .list: return ["list", "--show-identifiers"]
-        case .native80(let id): return ["run", id.uuidString]
+        case .nativeLimit(let id): return ["run", id.uuidString]
         case .energizaProbe: return ["print", "system/de.appgineers.energiza.helper"]
         #if DEBUG
         case .testFixture(let fixture, _): return fixture.arguments

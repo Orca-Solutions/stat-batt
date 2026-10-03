@@ -37,3 +37,7 @@ The earlier shortcut-library preparation incident and its100% restoration are re
 ## Later state observation
 
 Read-only inspection during a subsequent build5 resource comparison found a separate native intent dated2026-10-02T23:05:07.957Z, phase outcomeUnknown. It predates build5 preparation. Startup preserves pending intent/timestamps as an unknown result without replay; source inspection does not identify who invoked the newer request or prove execution/current setting. After the resource run, the freshly opened Apple Charging sheet visibly showed80%, with no agent setting change. Owner reconciliation is pending. The100% return above is an observation at22:32, not a guarantee of the current limit; this later record does not erase the earlier bounded flow evidence.
+
+### Two-target follow-up
+
+Owner confirms the later23:05UTC80% request was their deliberate Apply click. Its unknown execution still needs reconciliation; it is not evidence of automatic replay. The owner requested one-click Set to80% / Set to100%, superseding the normal manual return loop in [decision0003](../decisions/0003-two-target-native-limit.md). Separate100% software/trust/actual qualification is in progress, not a verified production capability. Original full-v1 acceptance remains open.
