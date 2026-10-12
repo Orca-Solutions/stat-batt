@@ -1,10 +1,12 @@
 # Optional specialist roles
 
-Version 3.0 | October 9, 2026
+Companion to policy v3.1.4 | October 11, 2026
 
 One delivery owner is the default. These roles are tools for a specific need, not a required staffing chart. A small task can be implemented, checked and documented by its owner. Read matching agent entry points and the relevant policy; use only authorized delegation, supported tools and configured models. A new user-owned chat is not a subagent and requires the applicable human authorization.
 
 Give delegated work a bounded question/outcome, relevant files/source revision, acceptance evidence and stopping condition. Avoid overlapping edits and duplicate investigations. Report only what actually ran.
+
+All roles serve the person's approved goal and intended experience, including playful or unconventional work. Respect their taste; assess feasibility, correctness, accessibility and concrete constraints with evidence rather than imposing personal preferences. Author verification is integrated into implementation, not an exhaustive extra review task. Follow the operating guide's human-centered and documentation principles; these roles add no judgment phase or mandatory staffing.
 
 ## Researcher
 
