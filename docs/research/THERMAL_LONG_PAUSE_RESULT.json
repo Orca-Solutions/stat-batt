@@ -1,0 +1,31 @@
+{
+  "qualified": true,
+  "guardianExit": 0,
+  "errorType": null,
+  "samples": 1140,
+  "recovery": {
+    "result": "independentRestorationVerified",
+    "fallbackUsed": false,
+    "inspection": {
+      "exit": 0,
+      "packets": [
+        {
+          "reaped": true,
+          "adapter": true,
+          "sourceAt": 279121085285375,
+          "outcome": 0,
+          "temperatureEstimated": true,
+          "battery": false,
+          "key": 0,
+          "stateOfCharge": 80,
+          "baselineKey": 0,
+          "phase": "inspection",
+          "sampledAt": 279121085241708,
+          "temperatureCelsius": 30.69
+        }
+      ]
+    }
+  },
+  "journalRestored": true,
+  "automaticControlEnabled": false
+}

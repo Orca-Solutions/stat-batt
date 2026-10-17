@@ -1,6 +1,8 @@
-# StatBatt monorepo
+# StatBatt — archived project
 
-StatBatt is a native Apple silicon macOS menu bar battery app, with a separate static landing page. The app is in local development; this organization does not change its feature availability or qualify a public release.
+Development ended on **October 17, 2026**. StatBatt is preserved as an unfinished native Apple silicon macOS menu bar battery app. No further development, support, or public app release is planned. The landing page remains as a project archive.
+
+Start with [the archive record](ARCHIVE.md) for the final app state, preserved work, known limitations, and hosting handoff. Older plans and acceptance gates are historical records, not active commitments.
 
 Owned by Orca Solutions. This project is [proprietary, all rights reserved](LICENSE). The organization repository is [Orca-Solutions/stat-batt](https://github.com/Orca-Solutions/stat-batt).
 
@@ -21,7 +23,7 @@ apps/statbatt/scripts/build-app.sh
 open apps/statbatt/dist/StatBatt.app
 ```
 
-App sources and scripts are self-contained in `apps/statbatt/`. Generated SwiftPM caches and the app bundle stay in that directory. See the [app README](apps/statbatt/README.md) for native 80% workflow requirements, current qualification, and recovery limitations.
+App sources and scripts are self-contained in `apps/statbatt/`. Generated SwiftPM caches and the app bundle stay in that directory. These commands are retained for source inspection and local development; there is no supported installer. See the [app README](apps/statbatt/README.md) and [final build-14 evidence](docs/research/THERMAL_BUILD14_LOCAL_ACCEPTANCE.md).
 
 ## Landing page
 
@@ -41,3 +43,7 @@ Open `http://127.0.0.1:4187/`. No install or build step is required. Only `apps/
 - [Working record](WORKING_RECORD.md): dated progress, verification, and handoffs.
 
 The Git repository remains at this root. App bundle identity and the existing `~/Library/Application Support/StatBatt` data location are preserved. Historical ignored root `.build/` evidence and the previously running root `dist/StatBatt.app` are retained; new builds use `apps/statbatt/`. Commit the source folders, not generated native artifacts or personal data.
+
+## Delivery workflow
+
+The [delivery workflow](docs/WORKFLOW.md) is retained with the other project records. It does not imply ongoing maintenance.

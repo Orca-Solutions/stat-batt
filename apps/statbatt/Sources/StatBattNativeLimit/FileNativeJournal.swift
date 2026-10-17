@@ -126,7 +126,13 @@ public final class FileNativeLimitInstanceLock: NativeLimitInstanceLock, @unchec
         }
         descriptor = fd
     }
-    deinit { close(descriptor) }
+    deinit {
+        // flock is shared by duplicated/inherited descriptors. O_CLOEXEC closes a spawned
+        // child's copy only at exec, so close alone can leave a released instance's lock
+        // briefly held by that child. Explicitly end our ownership before closing.
+        if acquired { _ = flock(descriptor, LOCK_UN) }
+        close(descriptor)
+    }
     public func acquire() throws {
         stateLock.lock(); defer { stateLock.unlock() }
         guard !acquired else { throw NativeLimitFailure.anotherInstance }

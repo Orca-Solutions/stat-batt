@@ -186,7 +186,7 @@ public final class PublicTelemetry {
             self?.refresh()
         }
     }
-    public static func sysctlString(_ key: String) -> String? {
+    nonisolated public static func sysctlString(_ key: String) -> String? {
         var size: Int = 0
         guard sysctlbyname(key, nil, &size, nil, 0) == 0, size > 0, size < 1024 else { return nil }
         var buffer = [CChar](repeating: 0, count: size)

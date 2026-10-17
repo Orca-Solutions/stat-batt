@@ -15,15 +15,16 @@ public struct DiagnosticReport: Codable, Sendable {
 
     public init(platform: PlatformFingerprint, telemetry: BatterySnapshot,
                 capabilities: CapabilitySnapshot? = nil, nativeState: String = "notConfigured") {
-        schemaVersion = 1; applicationVersion = "0.1.0"
+        schemaVersion = 1
+        applicationVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "development"
         generatedAtUTC = Date(); self.platform = platform; self.telemetry = telemetry
         self.capabilities = capabilities ?? CapabilityProbe.readOnly(platform: platform, snapshot: telemetry)
         self.nativeState = nativeState
-        helperState = "notInstalled"
-        limitations = ["Private charging controls are unqualified and disabled. A configured trusted user shortcut may request the qualified Apple80% setting; completion is unverified until visibly confirmed.",
+        helperState = "notQueried"
+        limitations = ["This read-only report does not query temperature-control service admission. Configured trusted user shortcuts request Apple limits on the qualified target; command completion is not a current-limit reading.",
                        "Pack temperature is estimated on the qualified target; current polarity remains unverified. Health is derived from reported physical capacities.",
                        "Public battery readings do not reveal why macOS paused charging.",
-                       "No helper, private SMC writes or external telemetry is used. Native restoration is manual and user-confirmed; cutoff and lifecycle behavior remain unqualified."]
+                       "This diagnostic does not query helper installation or perform SMC writes. Native reconciliation is user-confirmed; precise physical charge cutoff is not established."]
     }
     public func encoded() throws -> Data {
         let encoder = JSONEncoder()
@@ -78,13 +79,13 @@ public enum CapabilityProbe {
                     provenance: "observed", reference: "IOPowerSources")], verifiedAtUTC: Date())
         }
         result.canSetNativeChargeLimit = Capability(status: .unknown,
-            reasonCode: "Native80% lab setting/readback passed on the recorded target; trusted runtime setup and manual reconciliation are required.")
+            reasonCode: "Native80%/100% setting/readback passed on the recorded target; trusted runtime setup and manual reconciliation are required.")
         result.canHoldChargePreservingAC.reasonCode = "No charge-gate backend has passed exact-device verification."
-        result.canInhibitAdapter.reasonCode = "Adapter inhibition and crash/sleep restoration are untested."
-        result.canReadControlState.reasonCode = "No qualified control readback provider."
-        result.canRestoreOwnedControl.reasonCode = "No owned hardware changes; restoration provider untested."
+        result.canInhibitAdapter = Capability(status: .unknown, reasonCode: "Consult the authenticated temperature-control service for exact-build admission; this report does not query it.")
+        result.canReadControlState = Capability(status: .unknown, reasonCode: "This report does not query the privileged control readback provider.")
+        result.canRestoreOwnedControl = Capability(status: .unknown, reasonCode: "This report does not query owned control or recovery state.")
         result.canObserveBatteryTemperature = Capability(status: .unknown,
-            reasonCode: "Thermal control requires validated sensor units and bounds.")
+            reasonCode: "Pack temperature remains estimated; optional convenience-policy admission is separate from verified sensor accuracy.")
         return result
     }
 }

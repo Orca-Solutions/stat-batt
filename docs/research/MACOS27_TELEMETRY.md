@@ -28,3 +28,7 @@ Read-only coconutBattery4 accessibility inspection identified the same Mac/model
 The UI labels approximate sensor/health values, separates reported capacity and OS condition, and makes provenance available in diagnostics. The history/notification flows do not enforce thermal protection. Further synchronized comparison and sensor bounds remain qualification work before using these values for control.
 
 The separate native80% test subsequently proceeded after the owner stopped Energiza's helper. Supported Apple action/readback and manual100% restoration passed; see [native lab result](NATIVE_LIMIT_LAB.md). Reading these metrics did not itself resolve that controller conflict or establish cutoff behavior.
+
+### Later temperature comparison during adapter-policy preparation
+
+On October 2, coconutBattery's accessible window reported 93.2°F (34°C), while a subsequent StatBatt diagnostic at 2026-10-03T04:23:05.959Z read 34°C from the existing estimated pack source. This is consistency evidence only: UI read and diagnostic were not simultaneous, and other UI values appeared older than current public telemetry. Temperature remains estimated and capability unqualified. The dormant thermal policy rejects estimated temperature until appropriate sensor qualification; SOC legitimately remains derived from public current/max capacity and is accepted as such.

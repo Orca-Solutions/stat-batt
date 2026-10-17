@@ -1,5 +1,48 @@
 # Working record
 
+## Project archive — October 17, 2026
+
+The owner discontinued development and requested preserving all work, bringing
+the checkout up to date, and retaining the landing page as an archive.
+[ARCHIVE.md](ARCHIVE.md) now owns final status; earlier next steps and authority
+records below retain their original historical scope.
+
+Fetched origin: the local app history was 34 commits ahead of `origin/main`,
+with no remote-main divergence. Preserved all 15 modified/untracked build-14
+files in signed commit `045995e` on `codex/archive-statbatt`. Merged the comparison
+branch (`fedef75`) and workflow branch (`16c6e8a`), preserving both histories and
+resolving overlapping documentation by keeping app evidence and comparison notes.
+All previously outstanding remote branch heads are ancestors of the archive
+candidate. Original branches and ignored local artifacts are retained.
+
+Updated the root/app/landing READMEs and document entry points to identify the
+project as discontinued. Added visible archive notices, final build-14 status,
+and no-release wording to the landing page. The comparison retains its dated
+October 2 table, explicitly labeled historical. Original layout/artwork remain;
+[archive preview](apps/landing/archive-preview.jpg) records the new notice.
+No new runtime edits, helper operations, charging changes, release packages,
+hosting settings, CI changes, or hardware trials were performed for the archive.
+The pre-existing code is preserved as unfinished source, not qualified for release.
+
+Verification: 230 Swift tests (69 XCTest + 161 Swift Testing), 37 mocked Python
+tests across six scripts, and installer preflight/native-request fixtures passed.
+Both HTML pages passed local asset/fragment checks (27 targets); Markdown links
+were checked across the complete tracked documentation. Browser checks verified
+the archive notice, final-status navigation, download FAQ, comparison navigation,
+loaded artwork, and mobile reflow at a 390px viewport. Neither page overflows
+the viewport; only the comparison table scrolls horizontally. Whitespace checks
+passed. No hardware behavior or new installed-app acceptance is claimed.
+
+GitHub reports the repository public and not read-only, with Pages configured for
+`statbatt.orcasolutions.dev`. The existing `main` workflow serves only
+`apps/landing/dist/`. The consolidated source-archive PR supersedes #2, #3, and #4.
+Owner merge remains pending; that merge triggers the Pages deployment. Verify the
+deployed notices/routes before enabling GitHub read-only archive status.
+
+## Workflow adoption — October 9, 2026
+
+Practical workflow v3.0: one delivery owner, proportionate author verification, focused review for high-risk behavior/concrete concerns and delta-based evidence reuse. Existing product requirements, configured signing, recorded permissions and repository protections are preserved. Dated verification/history below retains its original scope; it does not impose a blanket review gate on new routine work. No application merge, deployment or provider acceptance is established by this documentation update.
+
 Date: 2026-10-02. Stage: local implementation checkpoint, not completed v1/release candidate.
 
 ## Authority and state
@@ -172,3 +215,194 @@ Added root LICENSE with proprietary/all-rights-reserved terms for Orca Solutions
 The setup PR targets the initial app-checkpoint base and includes monorepo/landing/license/docs changes. There is no new native runtime change or CI configuration. App software evidence remains the prior verified102 tests, release build, strict signature and independent relocation review; no redundant Swift test run is claimed for licensing/documentation/footer changes. Source privacy and local-asset/link/fence checks are performed before pushing. GitHub PR creation/attachment and terminal state are verified after creation. No merge, deployment, app release, hardware request, or paid service is performed by this repository/PR step.
 
 The owner explicitly permitted handing documentation to **Implement the v1 spec**. That chat independently source-reviewed and updated only the two guides' native portions: exact target qualification, current buttons, missing-shortcut setup, manual recovery and failed restoration-record handling, and app-versus-standalone diagnostic behavior. It verified links/fences/whitespace and reported completion; checkout/landing/deployment content and runtime sources remain untouched. Root restaged the final reviewed guides for the setup PR. Publication scope audit found86 tracked files at the check, no native build artifacts, internal operating documents or detected credential tokens; native inputs were re-compared with the original checkpoint and remain unchanged apart from the optional hook comment. The current local landing response remains200.
+
+
+## App v1 completion resumed — October 2, 2026
+
+Owner requested a team to take the app through full v1 completion. Work is isolated from the landing checkout in the managed statbatt-v1-completion worktree, branch codex/app-v1-completion, starting at origin/main 01178b9. Product design, notification hardening, platform investigation, and a fresh-context final reviewer have separate ownership. Existing one-time native80% hardware authorization was already consumed; this request authorizes implementation, not undeclared privileged experiments. Full acceptance remains conditional on real backend and lifecycle evidence.
+
+Implemented a monitor presentation validity boundary (60 seconds, separate from active-control15 seconds), localized numeric formatting and sanitized UI readings; explicit historical native labels; readable history chart summaries and source/charging observations; disabled custom one-time/thermal surfaces with prerequisites. Notification reducer coalesces bounded pending categories, preserves crossings through the cooldown, reports source transitions and native failures, resets baselines for sleep/mute/settings, and fences delayed permission replies.
+
+Added a standalone nonactuating exact-target SMC metadata diagnostic with a closed8-key catalog, command9 metadata and conditional command5 reads only. No arbitrary key/value/command API, mutation command, capability promotion, root helper, private entitlement or GPL code adoption. BSD/MIT reference notices are preserved; the APSL header is not copied. No live probe or hardware action has yet been performed in this increment.
+
+Integrated software suite passes121 tests (60 XCTest+61 Swift Testing), release packaging passes before build-number-only follow-up. Build3 identifies the resumed candidate. Source and GUI review, compiled probe inspection/runtime read-only results and final signature verification follow; no completion or release claim is made. Native app binding failed with 'native pipe closed before response'; keyboard/VoiceOver/live Apply/recovery remain unverified. Read-only signing check found0 valid code-signing identities, so Developer ID/notarized distribution remains unavailable.
+
+
+Completion-team final regression run passes130 tests (69 XCTest+61 Swift Testing), zero failures. Build3 release packaging and `codesign --verify --deep --strict` pass. Binary SHA256 is9ec6d842954bf1d7ea17d3238c4caf56273bf5ebe383a5143cde5633c8062448. Logs remain /private/tmp/statbatt-v1-completion-final-tests.log and -final-build.log.
+
+Fresh-context independent review of b664fbe found V1R-01 denial continued to subsequent keys, V1R-02 sleep lost queued failure with retained dedup, V1R-03 exact timestamps incorrectly handled minute-bucket sleep gaps. All were repaired; reviewer source-rechecked denial cleanup, reset/preserved-failure semantics and new HistoryTimeline with SQLite/boundary/missing-value regressions. Final commit review disposition follows. Exact pinned MIT header/license was fetched into ignored .build/provenance and ABI independently confirmed.
+
+Reviewed release probe ran once normal-user: service/client open/close0; CHTE/CH0C metadata SMC result132; CHIE size1/hex_/D4 baseline00 read-success; CH0J permission-denied0xe00002c1, then catalog stopped. Remaining keys unattempted. Compiled symbol inspection matches read-only IO calls; C source has no write command or arbitrary input. No helper/shortcut/battery write. Evidence and remaining recovery gap are in docs/research/SMC_READ_ONLY_QUALIFICATION.md.
+
+Native GUI binding still fails. Finder and Activity Monitor are accessible, but Activity Monitor identifies97086 at the old app path while shell read-only pgrep reports9095 at that same path. No ambiguous process was killed or live/native acceptance claimed. A proposed app-path80%/100% test is concrete in LAB_PROTOCOL but not yet authorized/executed. New hardware experiments were not inferred from broad completion authorization. No valid Developer ID identity exists locally. Full v1 acceptance remains open; no release or accepted feature reduction is claimed.
+
+
+Final fresh-context review rechecked c4596ddd4046005f2147fd24df4298ea7f4214bd versus01178b9 and resolved V1R-01/02/03 with no remaining blocking/material finding within this increment. Reviewer inspected root130-test/build evidence and live read-only report, independently computed exact pinned ABI layout, and ran no hardware/build/edit. Review disposition is docs/handoffs/2026-10-02-v1-completion-review.md. Tracked Markdown audit passes125 local links across38 files before this final handoff addition; final link/whitespace/scope checks follow. Owner has pending questions for the separately authorized native app80%/100% flow with manual assistance and whether to keep original v1 acceptance open or explicitly accept a reduced scope. No response or reduced acceptance is assumed.
+
+### Authorized native app-path follow-up — preparation only
+
+- Owner explicitly authorized one build3 app-path Apple80% apply, visible verification, restart without replay, and manual permanent100% restoration/verification. This is separate from the completed first lab test; no adapter write or helper installation is authorized.
+- Candidate source4455ae3eb8779e3e4f7c16967eacfdb92b2d0ff5, build0.1.0(3), binarySHA2569ec6d842954bf1d7ea17d3238c4caf56273bf5ebe383a5143cde5633c8062448 identified before execution.
+- Read-only native UI inspection currently shows Battery settings charge-limit slider100%, optimized charging on, and shortcut editor UUID167E2AAB-4EDC-4195-8B33-271EBEE9619E with exactly one visible Set charge limit action at80%. No shortcut was run and no setting changed during preparation.
+- Read-only process check shows the older checkout app still running. StatBatt desktop binding again failed with native pipe closed; owner assistance requested to quit it before verifying exit and launching the identified candidate. No ambiguous process was killed.
+- Draft app PR3 created and attached: https://github.com/Orca-Solutions/stat-batt/pull/3. Software acceptance remains open. Recommendation is to retain full-v1 criteria and use the monitoring/native80% increment as a preview milestone; owner has not approved a scope reduction.
+- Final documentation audit:39 tracked Markdown files,128 local links,zero missing targets; whitespace check passed. Live test remains unexecuted pending owner UI assistance.
+
+### Correction: shortcut inspection may have executed the native action
+
+The earlier preparation assertion that no shortcut ran was not justified. A library accessibility button click returned no immediate selection change, but the later selected card exposed Play semantics. Subsequent native Battery settings showed80%, compared with the earlier100% observation. This may have executed the Apple80% action during inspection. The agent acknowledged the mistake to the owner; no successful StatBatt app-flow test is claimed.
+
+Owner reported100% all morning while plugged in, then85%. Read-only local history contains347 minute summaries:100% with source adapter, then99% at11:15PDT and gradual decline to90% at11:39, all reporting adapter/not charging. These summaries are not a physical circuit trace. Native80% limiting may explain the decline, but exact cause and execution timing remain unproven. StatBatt has no enabled private adapter cutoff backend and no CHIE write was dispatched.
+
+The old StatBatt process is now absent in the process check. Shortcuts editor showed Run, not Stop. Under the owner's baseline-restoration authorization, Battery settings was set permanently100% using Set Limit to100% (not Allow Until Tomorrow), Done, then Charging detail reopened and verified100%, optimized charging on. Settings reported Charging89%; pmset still reported AC attached/not charging89%. Requested owner-visible100% confirmation because tool observations disagree. No further limit action, candidate launch or fabricated in-app confirmation occurred. Prior app-path authorization remains pending actual app execution; do not automatically replay a shortcut.
+
+### Direct menu action — owner clarification and build4 preparation
+
+Owner affirmed the value of menu-icon → Apply80% convenience and instructed us to finish. Product design audit MENU-01 found the current panel only opened Charging; build4 now exposes Apply80% directly after trusted setup. Menu and Charging share AppStore.canApplyNativeLimit80 and the existing guarded request80 operation. Pending/confirmed/recovery states show status/review rather than reapply; messages surface inline. Manual100% return and mutable-shortcut trust remain disclosed. This clarification does not approve a scope reduction or new private hardware backend.
+
+Build4 initial packaging/signature passed. Integrated test rerun passed69 XCTest cases and60/61 Swift Testing cases; sameAccountInstanceLockExcludesCooperatingInstances failed on owner release. A teammate is investigating inherited file-description lifetime and a deterministic regression; this candidate is not yet fully verified. No charging dispatch occurred. The build3 process launched despite UI binding timeout; owner was asked to quit it and verify the permanent100% return baseline before candidate replacement. The one bounded app-path operation remains pending.
+
+### Instance-lock lifetime repair and final menu software checks
+
+Teammate proved the lifecycle defect deterministically: Darwin dup/fork descriptors share flock ownership, and close-only deinit can leave ownership held by a retained copy. A unique-inode fixture duplicated the lock descriptor with CLOEXEC, held it alive, and required reacquisition after the original owner released. It failed with anotherInstance before repair; acquired-owner explicit LOCK_UN before close fixes it while third-instance exclusion remains enforced. The exact transient child behind the earlier integrated failure is unproven.
+
+Eight native boundary tests passed after repair. One subsequent integrated suite passed131 tests (69 XCTest+62 Swift Testing), zero failures; /private/tmp/statbatt-menu4-final-tests.log. Before/after deterministic evidence remains in /private/tmp/statbatt-lock-regression-before.log and /private/tmp/statbatt-lock-regression-after.log. Menu commit ce68c962fd501eee5c7c7137ef74776fa4eb7855 was independently reviewed in fresh context with no material/blocking finding; the lock repair and final packaging still await independent recheck. No hardware control is promoted by these software checks.
+
+### Build4 review-ready software candidate
+
+Fresh-context same-family reviewer cleared menu ce68c96 and lock repair782c021 with no remaining material/blocking finding within this increment. Reviewer read the before/after and integrated logs and independently verified strict local signature, bundle version4, and binarySHA256f6ccb0354d699c72d711532310467daa49f80254142a80e4406da8577424cae3. Final release build passed2.60sec. Reviewer did not independently run tests/build/UI/hardware. Full disposition: docs/handoffs/2026-10-02-menu-convenience-review.md.
+
+The next authorized lab candidate is0.1.0(4), reviewed source782c021fcbadc6af25d89ac1b77e5e5227130f71, binaryhash above. No limit request has been made from StatBatt. The running build3 must be quit, owner-visible permanent100% baseline confirmed, and build4 identity verified before one menu80% request. Owner assistance remains pending because StatBatt UI automation times out. Original full-v1 gaps and release acceptance remain open; no merge, new backend, signing purchase or publication is authorized.
+
+### Completed owner-assisted native menu test — October2
+
+Owner confirmed the app closed and permanent Charge Limit100%, then used the verified build4 candidate. Trusted setup was recorded and journal phase ready corroborated Apply enabled. Owner clicked menu Apply80% once, reported Battery settings80% and confirmed in StatBatt; journal manuallyConfirmed80 requested2026-10-02T22:28:02.270Z/confirmed22:28:13.811Z. Normal quit/reopen changed the app process while preserving operation digest and request/confirmation timestamps; owner still saw the saved historical80% confirmation, with no replay observed. Owner subsequently followed finished/stopped check → permanent Set Limitto100% → Done/reopen100% → app restoration declaration and reported done. Journal restoredUserConfirmed100 records both finished/stopped and restoration at22:32:23.080Z, original operation unchanged.
+
+The actual UI was owner-operated because native StatBatt binding remains unreliable. Fresh evidence audit confirmed this bounded qualification, preserving two limits: the finished/stopped declaration was recorded during restoration, not independently before restart; the local packet's earlier timestamp is preparation time, not completed-flow capture. Exact cutoff/current, abnormal crash/sleep/reboot, custom/thermal control, unattended return and broader targets remain unproved. No additional setting request or private key write is authorized from this result. Authoritative result: docs/research/NATIVE_APP_FLOW_RESULT.md. Original inspection incident is excluded and baseline was independently owner-confirmed before this flow.
+
+A10-minute ordinary-session resource observation is running read-only. UI idle/closed state is not instrumented; a separate3-second stack sample occurred during the observation, so it must not be represented as a controlled-idle budget pass. Source/stack triage found no runaway loop or attributed hot path and made no source change. Concrete redundant bounded history reads exist but their materiality was not established. Final resource values and disposition follow when the observation ends.
+
+### Resource observation result and next verification
+
+Build4 ordinary-session observation completed600.048sec: meanCPU0.7933% of one logicalcore, peakRSS104.0469MiB/final102.1719MiB, no Internet sockets observed in roughly5sec snapshots. These values exceed proposed targets in this session, but UI closed/idle condition was not confirmed and3sec stack sampling can perturb CPU. This does not certify an idle budget pass/failure or absence of brief network activity. Triage found ordinary event waits/no attributed hotpath; repeated bounded history reads exist but no justified optimization was established. No source change. Authoritative result: docs/research/RESOURCE_OBSERVATION.md.
+
+Requested owner close Details/menu but leave the app running before a controlled-idle rerun, without concurrent stack sampling. No battery setting change or additional native request is involved. Original full-v1/backend, accessibility/notification/retention and distribution gates remain open; the native bounded workflow is now separately qualified.
+
+### Native evidence recheck clarification
+
+Evidence auditor cleared the native and resource claim boundaries with one phrase requiring clarification: a pre-restart process check after manuallyConfirmed80 did observe the original candidate process and no shortcuts-run CLI, but this was CLI absence, not independent observation of library completion. NATIVE_APP_FLOW_RESULT now says exactly that; the later finished/stopped declaration remains correctly scoped to restoration. Private filtered packet stores pre-restart CLI-absence evidence and before/after candidate PIDs. No source/test/build/hardware change followed.
+
+### Owner-confirmed closed-window resource result
+
+Owner replied closed/still running. Same identified build4 process remained running through600.043sec observation, with no agent UI interaction, stack sampling, build or charging action. CPU1.4716% onecore exceeds0.5% target; peakRSS60.9375MiB/63.8976MB meets100MB; final37.9375MiB. Approximately5sec socket snapshots observed0 with0errors; brief connections are not excluded. Ordinary Mac use was allowed, and host sleep/system workload were not independently instrumented. Artifact is /private/tmp/statbatt-build4-idle-resource-check.json; raw rows remain temporary/private.
+
+Source/cadence teammate found two samples/minute, no autonomous animation/feedback loop or periodic native subprocess launch. No cost was attributed by the earlier3sec stack. After completion, one longer stack diagnostic is authorized read-only to distinguish telemetry/history/framework costs; it is excluded from budget evidence. No speculative source optimization or performance acceptance is claimed. Full-v1 gates remain open and native baseline remains owner-verified100%.
+
+### Bounded menu-label comparison prepared
+
+The separate70sec/1ms attribution diagnostic observed telemetry/history, retained dashboard body and menu/framework/status-replication work, with no Charts/HistoryTimeline path. Inclusive stack residency is not CPU share and no dominant defect was established. Instrumented CPU1.89sec/70.0033sec is excluded from budget evidence. Raw stacks remain temporary/private. Architecture consultation recommended only a small Equatable label experiment, acknowledging the appearance-driven framework path can bypass app-driven label evaluation.
+
+Extracted StatusItemLabel with immutable text/symbol/accessibilityDescription and .equatable(), preserving the same Label and accessibility content. No menu action, telemetry, history or native implementation changed. Build5 uniquely identifies the experiment; release compilation passed4.01sec, strict local ad-hoc signature passed, binarySHA256f92357afeaa2f3f0c52477903b1672502b560235f66a4dbde712a5117c54be02. Separate ignored bundle apps/statbatt/dist/label-experiment/StatBatt.app leaves the running qualified build4 unchanged. Source independent review, owner-visible parity and a clean600sec comparison are pending; no CPU repair, regression-suite rerun or hardware qualification is claimed.
+
+Fresh-context same-family reviewer cleared the exact15insertions/3deletions runtime/plist diff againstf5fd180 with no blocking/material finding. Synthesized equality includes all threeStrings, so changes to text, icon or accessibility-only description remain observable. Reviewer read the4.01sec compile log and independently checked whitespace, without running build/tests/UI/hardware. Reviewed sourceSHA256bd2e209240e17c214c4a177ca4051ba84b6745fd1a4b83940247a616d3f687df/plist4b2c8b730be9057e65f20e1436b264384e73a95cf89cfb1f5dd768a6cb68ec8f. Runtime parity and CPU benefit remain unverified. Finder is opened to the experimental folder for owner-assisted normalQuit/relaunch; reliable native StatBatt binding remains unavailable. No setting action is requested.
+
+### Build5 resource check completed
+
+Owner reported the app running without open windows. Exact experimental build5 process/path, bundle version and binaryhash were verified; the build4 process was absent. Source reviewer subsequently cleared named commitf72adff, matching both previously reviewed file hashes. One600.010sec read-only closed-window observation completed with no agent UI/build/stack-sample/charging action: meanCPU0.1583% onecore, peakRSS75.5625MiB/79.233024MB, final25.65625MiB/26.902528MB,0observed Internet sockets and0observation errors. App CPU/RSS targets are met in this run. Restart/retained-view/host-activity differences prevent attributing the improvement solely to the Equatable label. No helper/policy budget, continuousnetworktrace or broader runtime accessibility pass is claimed. Artifact /private/tmp/statbatt-build5-idle-resource-check.json remains temporary/private. After completion, read-only history found20validpercentage readings across8completedminutes, counts2–3/minute; monitoring continued.
+
+### Newer native intent discovered; current limit requires owner reconciliation
+
+Read-only journal inspection during measurement found a newer intent2026-10-02T23:05:07.957Z, phase outcomeUnknown, distinct from the qualified22:28 request/22:32 restoration. The newer timestamp predates build5 preparation. Startup journalmtime23:38 is consistent with converting pending/unknown to outcomeUnknown while preserving timestamps, with no replay. Source audit of f72 found the sole production request caller is the owner Apply path; only request80Percent writes nonnil requestedAtUTC, before durable intent/execution. This proves no automatic source route, not who invoked the later intent or whether execution succeeded.
+
+After the resource observation ended, CUA opened the Apple Charging detail sheet read-only; slider80/text charge-to80 were visible. No slider, setter, Done or shortcut action occurred. Apple UI currently shows80%, while StatBatt's newer request is unconfirmed/recovery-required. Earlier100% return is historical qualification, not a current guarantee. Owner was asked whether they applied80% again around16:05PDT; response remains pending. No owner confirmation, agent80% execution or further100% restoration is invented. Current-state claims were corrected; full-v1 and release gates remain open.
+
+Evidence auditor rechecked the build5 resource packet and current working documentation with no material chronology/claim/scope issue: measured targets met only in this run, no causal/network overclaim, newer80% tool observation separated from owner confirmation and original build4 qualification. Source remained unchanged; no UI/build/profiling/hardware/write by the auditor. Whitespace check passed;42trackedMarkdown files/147local targets/0missing. Commit/push follows on the existing draft PR; no software test rerun is claimed for documentation.
+
+### Owner-requested two-button native flow
+
+Owner confirms the23:05UTC80% intent was their deliberate Apply click, not unexplained automatic replay. Its execution outcome still needs finished/stopped and visible-setting reconciliation. Owner requests one-click Set to80% / Set to100%. Product design and architecture consultation informs decision0003, superseding mandatory normal manual100% return while retaining genuine unknown fencing. Core/schema/tests and UI have separate team owners; lead owns integration/docs. A separate100% shortcut was prepared and visually inspected with one Apple setter at100%, Set Until Tomorrow off; it was not run.100% trust and new hardware authorization remain pending. No user journal was edited manually or private hardware control used.
+
+### Two-target software checks
+
+Default integrated suite passes137 tests (69 XCTest +68 Swift Testing), zero failures; qualification-flag suite passes138 (69+69), zero failures. Initial compile caught throwing load calls inside test macros; the test author repaired them before the passing runs. Production release build passes6.49sec and strict ad-hoc signature verification; binarySHA256dc13523b9519ccdb213e4df56ba96a596148b195013e54673de05e646c2a6bd5.100% remains absent from production qualification. Separate qualification packaging/review and actual owner-assisted flow are next; software success is not hardware proof. Neither new candidate has been launched; active build5 is untouched.
+
+### Two-target candidate prepared and reviewed
+
+Fresh-context same-family reviewer cleared named source commitdc5c8993c39986fee0c14ce564de476e74575eee againsta0729e2 with no blocking/material finding across core/schema/safety/tests/app/UI/packaging/docs. Reviewer read test/build logs and independently checked whitespace; did not rerun tests or touch UI/hardware/live journal. Separate qualification build passes9.40sec release compilation and strict local signature; About0.1.0-qualification(6), binarySHA25675c7b0d9e2fe1086337db946666d3c608dd625908c4f8404486e7fae1ee1ffcb. Package path apps/statbatt/dist/native-100-qualification/StatBatt.app. Neither candidate launched; old5PID53738 remains.43trackedMarkdown files/157localtargets/0missing and zsh syntax check pass. New runtime UI and actual100% flow remain unvalidated. Owner authorization/trust and initial genuine-unknown reconciliation are next; no new hardware action occurred.
+
+### Owner authorized the prepared100% test
+
+After the concrete build6 packet and pending authorization request, the owner said “lets go,” authorizing the prepared one100% app trial, visible verification, normal reopen without replay and deliberate80% return. Exact qualification binaryhash still matches75c7b0d9e2fe1086337db946666d3c608dd625908c4f8404486e7fae1ee1ffcb; process67506 runs that separate bundle. Owner screenshots show the new two-button menu, ordinary80% receipt and historical80% observation. Read-only schema2 journal now acknowledges a later owner80% request at2026-10-03T02:00:53.932Z; historical observation80% recorded01:58:54.240Z. The old unknown fence was reconciled through the app; no journal was manually edited.100% trust remains absent and trial unused. Exact-path native UI binding still fails with native pipe closed, so owner-assisted trust/test interaction is necessary. No100% dispatch has happened; next step is inspect/record100% trust and use the one supervised trial button.
+
+
+## October 2 follow-up — simple charge switching, build 7
+
+Took over the clean app implementation at 77b9bdb on a new local branch, codex/simple-charge-controls. The prior chat confirmed its actual blocker was the normal 100% allowlist and its one-use qualification path. The owner clarified that the prior visible 100% was manually set in Settings, so that earlier trial is not positive effect evidence.
+
+At the owner's request to get two-state switching working, inspected both installed shortcuts through Shortcuts UI (single Apple setter, corresponding 80/100 value, Set Until Tomorrow off), checked both identities against recorded trust, and verified no Energiza process in the process listing. Observed Apple's charge-limit slider at 100, executed the trusted 80 UUID through the fixed CLI (exit 0), observed slider 80, executed the trusted 100 UUID (exit 0), observed slider 100. No manual slider writes were made. No journal observations were fabricated from these tool observations.
+
+Enabled both fixed limits on the same exact platform fingerprint; removed the one-use trial path/UI while retaining old journal metadata. Preserved trust, durable pre-dispatch intent, identity/controller checks, no replay, and genuine interrupted-request recovery. Read-only activation refresh now has a separate task; accepted actions show progress and await it instead of silently returning. Fresh setup becomes one Enable charge buttons action with explicit trust/controller copy; existing setup needs no action. Unavailable feature mock controls are collapsed into explanatory text. Added --show-charging for opening the rebuilt local app directly to its controls. Build number 7.
+
+Initial software check passed 138 tests (69 XCTest, 69 Swift Testing), including both-target alternation/restart/no-replay and consumed legacy trial compatibility. Final packaging and app verification follow below. Full v1 remains incomplete: custom charge/discharge/thermal control, physical cutoff/lifecycle coverage and distribution acceptance are not supplied by native shortcut switching.
+
+Final local validation: build 7 release packaging and strict ad-hoc signature verification passed. Final full software suite passed 138 tests (69 XCTest + 69 Swift Testing). Replaced the running build 6 qualification process with the build 7 bundle in the primary checkout and confirmed its process path. CUA reads Apple Settings but repeatedly disconnects when binding StatBatt; no automated app screenshot/AX or accessibility pass is claimed. The owner tested **Set to 80%**, then **Set to 100%**, against Apple's Battery settings and explicitly reported: **“Both buttons work.”** This establishes live app-path switching in both directions. The direct shortcut round trip independently verified the mechanism. Restart/no-replay behavior is covered in software; a new live post-action restart comparison remains untested. Final rebuild only adjusts diagnostic evidence/copy and indentation, with no change to the tested button behavior.
+
+## Bundled installer and reopened temperature investigation
+
+Owner requested carrying v1 to completion and supplying shortcuts in the public installer. Owner has no Apple Developer membership yet. Exported the inspected80/100 workflows using Shortcuts' supported Anyone export; a transient Apple500 export error resolved on retry. Both genuine signed documents are bundled with SHA-256 pins. Both import previews opened and displayed one correct action; they were closed without Add to avoid duplicate user shortcuts. Added missing-only import/setup flow, preserving existing trust; fresh discovery and a synchronously reserved import prevent duplicate clicks. Independent review identified and resolved the duplicate-import race and inaccurate reinstall advice while busy. Added tests for setup ordering, unknown discovery, resource absence and state gates. First launch now opens Charging; normal subsequent launches remain quiet.
+
+Added reproducible local-preview/public DMG packaging. Local preview was built and verified; public mode rejects missing Developer ID/notary credentials before building. Public signing/notarization and clean-account import remain unrun. Final package must be rebuilt after the latest first-launch change. The first installer suite passed143 tests (69 XCTest +74 Swift Testing); subsequent focused changes await final integration check.
+
+Owner initially accepted native charging as v1 scope (decision0004), then reopened temperature-policy investigation and explicitly preferred adapter disconnection (decision0005). The public native app remains unchanged in its hardware capabilities. A separate CHIE restore-only lab is being prepared; no SMC writes have been executed. Independent source review checks its closed zero-only write and admission boundaries. A separate private PowerUI read-only probe succeeded outside the sandbox as a normal user: supported, available80/85/90/95/100, current/configured100, manual limit disabled, no errors. This is a research finding, not integrated getter support. Source investigation found Ampere's arbitrary targets instead use root preferences and require nontrivial restoration; no such mutation occurred here.
+
+### Latest verification and adapter experiment
+
+Build 8 local-preview DMG prepared with both verified signed shortcut exports; app bundle excludes the lab executable. Final software suite: 146 passing tests (69 XCTest, 77 Swift Testing). Public signing/notarization remains pending Apple Developer enrollment.
+
+Owner approved the single enabled-state CHIE test. Normal-user write returned IOKit 0xe00002c1; subsequent read-only inspection confirmed CHIE 00 and external supply at 99%. No disconnect or root retry. Build 8 reopened. See docs/research/V1_CONTROL_FEASIBILITY.md for evidence and limits.
+
+Administrator enabled-state experiment prepared at owner request: separate explicit root-only mode, four passing admission tests, fixed CHIE00 payload, and hash-pinned durable timeout supervisor. Normal-user invocation of admin mode rejects before hardware access. No elevated write executed; concrete test is ready for owner approval/authentication. See feasibility report for hash and boundaries.
+
+Administrator enabled-state test passed with owner authorization and macOS authentication (2026-10-03T04:07:51Z). CHIE00 write acknowledged, readback00, external supply before/after, battery92%, nominal thermal. First attempt stopped before write because Shortcuts was open; after closing it, exactly one hardware write completed. StatBatt reopened. No disconnect or persistent helper; actual inhibition/restoration remains unqualified. Evidence: docs/research/V1_CONTROL_FEASIBILITY.md.
+
+### Autonomous v1 completion follow-up
+
+Owner requested continuing without routine per-step confirmation. Saved native shortcut installer in 21cf4c8, dormant temperature-policy reducer in 9aae2b4, and fresh-bundle packaging in 46e37b2. The policy handles hysteresis, reserve, pause/session deadlines, cooldown, fresh control readback, telemetry failures, sleep/quit and concurrent native requests; it does not expose unqualified hardware. Corrected SOC admission to accept the public derived percentage while keeping estimated temperature unqualified. Diagnostic exports now use the app bundle version.
+
+Latest full Swift suite passed154 tests (69 XCTest +85 Swift Testing). Five additional mocked guardian tests passed. Independent review found and resolved three trial defects: journal failure bypassing restoration, dropped idle-sleep assertion before restore, and stale source acceptance. Guardian output is file-backed; baseline/hash/time/auth are journaled. New08/restore modes remain disabled in C, Swift and supervisor. No adapter disconnect or persistent helper installation occurred.
+
+Final local-preview build8 DMG rebuilt and read-only verified; both signed shortcuts, notices, strict app signature, Info.plist and Applications link pass; lab absent. SHA25671cef2f938d698c08cc27f05e15be9ecdc2e317d7089a1cbb724ec8c281d3535. Public release still requires Developer membership/signing/notarization and clean-account validation. Temperature extension remains blocked on first live inhibition/restoration and its explicit physical-recovery risk decision; the two-second restoration request is not a firmware guarantee.
+
+### Supervised adapter effect and restoration observed
+
+Owner accepted the disclosed residual risk and said “let's go.” Two bounded cycles ran: first key roundtrip00->08->00 passed but immediate source observation was inconclusive; second retained the same2s guardian deadline and added read-only tracing.30samples included11 battery-source/attachmentfalse readings. Guardian restored08->00 successfully; immediate power-source report lagged, so supervisorreturned1 honestly. Read-only follow-up15s later confirmed00 and adapter supply. No extra recovery write; StatBatt reopened. Full evidence and hashes in V1_CONTROL_FEASIBILITY.md.
+
+Disabled experiment gates again. Added bounded read-only post-restore polling and corrected dormant policy attachment semantics to match observed hardware. Swift suite155tests passed after changes. No persistent helper or live temperature policy installed. This Mac has0valid codesigning identities. Preparing narrow non-actuating signed-service bootstrap while requesting Apple Development identity setup; ad-hoc lab success is not reliable persistent-helper qualification.
+
+### Signed status-service bring-up
+
+Owner selected Personal Team in Xcode; a normal keychain read now confirms a valid Apple Development identity (sandboxed security tool incorrectly reports zero). Isolated signed app and daemon passed strict Apple-anchored signature checks. SMAppService registration returned operation-not-permitted but system logs confirm a pending background approval record, so registration is not treated as absent. User approval requested. The endpoint has no hardware commands. Initial status request exposed MainActor inference on an XPC error callback; changed the status method to nonisolated and rebuilding for verification. No automatic temperature actuation enabled. Prior complete suite passed165 Swift tests plus5 mocked guardian tests. See docs/research/THERMAL_SERVICE_BOOTSTRAP.md for commands and remaining acceptance.
+
+Owner granted background permission. The rebuilt client returned authenticated status with actuationDisabled=true. Unregister succeeded, launchd verified removal, re-registration returned enabled, and a fresh status call succeeded. The pending-approval error path also now returns a normal connection error rather than crashing. A normal-user launchctl signal attempt was denied (no daemon crash test occurred). Replaced static app copy claiming no helper is installed with accurate unavailable-control wording. Temperature actuation remains disabled while durable recovery and sensor evidence are prepared.
+
+Added fixed-root-path ownership journal and serialized ledger: intent is durable before permission, unresolved operations survive restart, and current-boot fresh key-zero plus adapter-source observations must precede durable recovery. Six tests cover disk roundtrip/exclusion, corruption/symlink, restart, stale proof and failed persistence. This module is not wired to hardware. Added fixed60-sample read-only temperature diagnostic; observed36.39→36.09°C, with an independently refreshed coconutBattery97.5°F display corroborating36.39°C at displayed precision. Three sampling tests preserve missing-data and timing limits; estimated quality unchanged. Full integrated suite passed174 tests (69 XCTest+105 Swift Testing). All lab write gates remain disabled; no additional hardware write occurred in this follow-up. Signed status-only service remains registered after the verified re-registration.
+
+### October3 owner-connection-loss qualification
+
+Owner requested further tests, authenticated and ran the prepared one-use wrapper. The reviewed separate labcopy exercised ownerEOF1.26668s after inhibition gate; guardian killed/reaped writer, restoredCHIE08→00 and observed adapter supply. Trace observed battery supply first; immediate andlaterreadonlychecks confirmed00/adapter/80%/nominal. Seven mocked guardian tests pass. No process-crash/sleep/physical-reset claim follows. Disabled temporary supervisor and removed executable permission from temporary lab afterward. Status-only helper was unregistered before trial; main native app reopened and process path verified(PID99979). Full evidence in LAB_PROTOCOL.md. Next preparation is a read-only sleep/wake callback observer, with no adapter write or automatic sleep.
+
+Read-only sleep/wake observer implemented with bounded buffering, immediate acknowledgment before output, and a non-actor-isolated C callback. Owner missed the first observation window, then explicitly requested a retry and performed sleep/wake. Second run observed willSleep14:10:28Z with acknowledgment0, willPowerOn/hasPoweredOn14:10:52Z, then fresh adapter-source telemetry and estimated30.19°C. No hardware write or restoration test occurred. See research/SLEEP_WAKE_OBSERVATION.md. Restore-before-sleep integration remains pending; callback delivery alone does not enable temperature control.
+
+Implemented dormant async restoration sequencing and prepared separate sleep lab on owner's “next” request. Ownership, writer reaping, post-restore freshness against trusted clock, durable recovery, duplicate/cancellation/wake behavior tested. Source review corrected unowned restore admission, stale reply validation and false positive sleep qualification before08.186 integrated Swift and12 Python tests pass. Temporary candidate built with pinned binaries; production gates remainoff. Main native app closed for test. Concrete sleep-and-restore test awaits owner invocation/authentication; details in research/THERMAL_SLEEP_RECOVERY.md. No sleep or hardware write executed in this preparation turn.
+
+Owner completed sleep trial: actual key00→08→00; guardian ownerEOF0.07777s aftergate, writerreaped, restorationverified beforeACK_RESTORED, no journalerrors. Read-only observer captured actualsleep/wake andfreshadapterafterwake; laterinspection14:28:36Zconfirmed00/adapter/80%/nominal. This rapid cycle did not observebattery-source transition and does not replace prior electrical-effectevidence. Temporarytestexecutables disabled again. Full result/limits in research/THERMAL_SLEEP_RECOVERY.md; productioncontrollerintegration and remaininglifecyclequalification stillpending.
+
+Connected ThermalAdapterReducer, ThermalOwnershipLedger and shared restoration sequencing through ThermalControlOrchestrator with an injected async backend. Actual execution ordering is tested: journal before inhibit, fresh readback, no rewrite while holding, cooling restoration with session retained, safety exits with authorization revoked. Stop/sleep/wake drain pending inhibition before writer reap and restoration; a missed sleep event is recovered on wake. Rechecks reject stale hot samples after slow journaling and late successful readback after session/pause expiry. Estimated/unqualified production-style input stays blocked. Seven new orchestrator tests and existing recovery regressions pass. No production hardware backend, periodic service scheduler or UI wiring added; no live hardware write in this increment. This is software integration, not an enabled temperature feature.
+
+## Separate landing comparison and completed foundation rollout
+
+Owner requested a development agent for one comparison page linked next to Questions, followed by committing/pushing all outstanding landing work. Delegated only comparison HTML/CSS and shared navigation to the comparison developer; root verified official publisher material, reviewed the final copy, updated landing/build/user documentation and the source ledger, and owns Git/PR operations. Added `apps/landing/dist/compare.html` with a semantic seven-row StatBatt/coconutBattery/Energiza table, StatBatt focus cards, competitor strengths, official links, checked date, and visible development/qualification boundaries. Unconfirmed published capabilities are not characterized as absent; the comparison does not claim measured superiority, benchmark results, or battery-life improvements. Project evidence links disclose private repository access.
+
+The new page is isolated on `codex/battery-comparison` at the completed foundation commit `bc1022f`. Foundation branch local and origin heads match; no outstanding foundation changes remain. During final verification, GitHub reported foundation PR #1 merged at17:13:29UTC on October2. Fetched main and confirmed it includes the foundation; the comparison PR therefore targets main directly. Main also has an existing GitHub Pages workflow publishing only `apps/landing/dist/`; the workflow completed successfully for `01178b9`. This task did not create/change that workflow or merge a PR. Build/landing docs now reflect the configured Pages URL, main checkout, and comparison review/deployment sequence.
+
+Browser checks passed at320px,390px,1068px and1280px: navigation stays visible, Compare and Questions route correctly, sources navigation resolves, and the table alone scrolls horizontally with keyboard arrows. Enlarged text at200% passed at320px and1280px after correcting a clipped long word in the fit cards; the temporary override was removed. Mobile headline spacing was corrected after visual inspection. HTML/asset/fragment checks passed25 local targets across both pages; Markdown checks passed113 local targets across36 files at the audit. No new native app changes occurred; prior102-test/build/signature evidence remains applicable without a redundant Swift run for static-page/docs edits. A comparison screenshot records the reviewed normal-text layout.

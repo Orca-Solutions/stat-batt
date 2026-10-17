@@ -1,0 +1,19 @@
+StatBatt
+
+Drag StatBatt to Applications and open it. In Charging, use the setup buttons
+to add the bundled 80% and 100% shortcuts. macOS opens each shortcut in Apple's
+Shortcuts app: review its single Set Charge Limit action and click Add Shortcut.
+Return to StatBatt to finish setup. No Terminal commands or manually authored
+shortcuts are required. Existing shortcuts can be reused.
+
+Shortcuts belong to your user account, so each macOS user approves their own
+imports. An installer cannot silently approve Apple's import prompts. Shortcut
+imports do not apply a charge limit; use Set to 80% or Set to 100% in StatBatt.
+Do not edit the installed StatBatt shortcuts: later edits change what they run.
+
+Charging controls require the supported native battery-limit action on your Mac
+and macOS version. Monitoring remains available when controls are unsupported.
+
+A file named LOCAL-PREVIEW is an unsigned-for-distribution development build,
+not a notarized public release. Public releases require Developer ID signing
+and Apple notarization.

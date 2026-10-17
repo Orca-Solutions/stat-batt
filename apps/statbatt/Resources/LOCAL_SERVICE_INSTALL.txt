@@ -1,0 +1,52 @@
+StatBatt 1.0 — local build 14
+
+This Apple Development-signed application is for this Mac's local testing. The
+Installer package is unsigned and not notarized for public distribution.
+
+1. Open StatBatt-LOCAL-DEVELOPMENT.pkg and approve macOS Installer's administrator
+   request. It installs into /Library/Application Support/StatBattLocal and adds
+   a separate StatBatt Local launcher in Applications. The existing StatBatt app
+   and Shortcuts are preserved. This package refuses to overwrite a prior local
+   service installation.
+2. Open StatBatt Local from Applications. Use Set up background service and allow
+   StatBatt in macOS Background Items when prompted. The app checks signed peers;
+   installing or registering the service never enables temperature control.
+3. Use Set to 80% / Set to 100% for Apple's native charge limits. If a shortcut is
+   missing, the app opens its bundled signed import; Apple requires Add Shortcut
+   confirmation. No manual shortcut authoring is required.
+
+Optional temperature control is available only when the service verifies the
+qualified Mac/OS and tested guardian. It uses estimated battery temperature,
+not a calibrated thermal-protection sensor. Apple's thermal protections remain
+in charge. Enable it in Charging to start a session; default thresholds are
+40°C to disconnect adapter input and 37°C to reconnect. While disconnected,
+the Mac uses battery power even with its charger attached.
+
+This local release uses a 50% battery reserve and a maximum two-minute pause.
+The session ends if that pause limit is reached, after one hour, or on sleep,
+quit, lost connection, or invalid readings. Enable again to start a new session;
+there is no automatic restart. Cooling below the reconnect threshold restores
+adapter input and continues watching, with a cooldown before another pause.
+Installation and background-service registration never enable a session.
+
+Use Stop & restore before removing the service. Do not delete or replace a service
+bundle while an operation or recovery is pending. A verified update/uninstall flow
+is required before replacing a previous local service installation.
+
+Local updates: stop and confirm adapter restoration, quit the app, then use the
+signed client’s protected service-unregister operation. The LOCAL-UPDATE package
+requires the service absent, the app stopped, trusted existing code, a resolved
+ownership journal and fresh zero/AC inspection. Do not reopen the app during
+installation. Register the updated service from the app afterward.
+
+Removal: service unregistration requires a safe-to-exit acknowledgement. Use the bundled removal guide when available; do not remove root-owned files or
+journals manually while recovery is unresolved. Shortcuts are user-owned and preserved.
+
+Guided removal: open
+Contents/Resources/Remove StatBatt Local.command from the installed application.
+The signed client must first obtain safeToExit and unregister the service. Quit
+StatBatt, confirm REMOVE in the guide, then approve the macOS administrator prompt.
+The privileged helper independently rechecks restoration, trusted installation and
+stopped processes before removing only the local bundle and its launcher. It does
+not delete user shortcuts, history, preferences or durable recovery evidence.
+If any check fails, removal stops; do not work around it with manual deletion.

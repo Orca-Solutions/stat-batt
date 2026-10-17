@@ -1,5 +1,10 @@
 # StatBatt user guide
 
+**Archived October 17, 2026.** These are historical usage instructions, not a
+supported installation guide. See [the archive record](../ARCHIVE.md) for final
+build-14 state and local-service recovery/removal references. Earlier claims
+below about helper absence apply to the original native-only build.
+
 StatBatt is a native Apple silicon MacBook battery utility in local development. There is no public download yet. Obtain and run the development build only through an authorized checkout; [build instructions](BUILD_GUIDE.md) cover that process. Advanced readings and charging capabilities depend on your exact Mac and macOS version.
 
 ## Open and read the app
@@ -26,23 +31,19 @@ In Settings, choose what the menu bar shows and your temperature unit. **Allow b
 
 To include the running app's native-workflow state, export from StatBatt. The standalone diagnostic command is a read-only probe and does not load the app's saved native setup or recovery journal.
 
-## Apple 80% workflow
+## Apple charge-limit buttons
 
-This is a target-specific development workflow. Its bounded setter/readback lab passed; end-to-end app, cutoff, and lifecycle acceptance remain pending. Monitoring does not require this setup, and setup alone does not change charging.
+Use **Set to 80%** for everyday use and **Set to 100%** for a full charge, in either the menu or Charging. Both fixed Apple shortcuts have been observed changing the displayed setting on **Mac16,13 / arm64 / macOS 27.0.1 / build 26A434 / firmware mBoot-20457.1.29**. Existing trusted setup carries over automatically; there is no trial to unlock or confirmation loop after each click.
 
-The current 80% setter qualification is **Mac16,13 / arm64 / macOS 27.0.1 / build 26A434 / firmware mBoot-20457.1.29**. A different fingerprint disables native setup and Apply; a successful build does not qualify another Mac.
+For a fresh setup, the first launch opens Charging. Click **Install 80% shortcut…**, approve **Add Shortcut** in Apple’s window, and return to StatBatt. Repeat for **Install 100% shortcut…**, then stop other charging apps/helpers and click **Enable charge buttons**. The inspected signed workflows are included in the app; you do not build or download them separately. Each contains one Apple **Set Battery Charge Limit** action at its named value, with **Set Until Tomorrow** off. Setup records trust without running either shortcut. Later edits can change what runs and cannot all be detected. If you cancel import, return and use **Check again** to retry. Existing installed shortcuts are not imported again.
 
-1. Open **Charging settings…**. If the device is unqualified or another controller is unresolved, applying the limit is unavailable.
-2. Choose **Open Shortcuts for setup** and inspect the shortcut named **StatBatt — Apple Limit 80**. If it is missing, create it with exactly one Apple **Set Battery Charge Limit** action set to **80%**, then return to StatBatt and refresh if needed. Later content edits cannot all be detected; trust only the workflow you inspected. StatBatt checks its identity and can reject missing, duplicate, or replaced shortcuts.
-3. Verify the visible **100%** return baseline in macOS Battery settings and stop other charge-management controllers, including Energiza and its helper when installed. Check the three declarations only when they are true, then choose **Record trusted setup**. This saves setup without applying the limit. The button stays disabled while a declaration or admission check is unresolved; StatBatt does not stop controllers for you.
-4. When you deliberately want to request a limit and the app permits it, use **Apply 80% limit**. You do not need to run the shortcut manually for the normal app flow.
-5. Check the displayed setting in macOS Battery settings. If it shows 80%, choose **I see an 80% limit in Battery settings** in StatBatt. A completed request or battery percentage alone is not proof of the setting. StatBatt records your last confirmation; it cannot read the current limit.
+Click either button and wait for its request to complete. StatBatt reports the requested value, not a live reading of Apple's setting. Opening Battery settings to check is optional during ordinary use. Monitoring needs no setup.
 
-To return to **100%**, first verify that the prior shortcut finished, or stop it in Shortcuts. Check **The shortcut has finished, or I stopped it in Shortcuts.** Restore 100% manually in macOS Battery settings, verify it is displayed, then choose **I restored 100% in Battery settings** in StatBatt. These declarations only record what you checked; they do not change the setting. An interrupted or timed-out request can remain unresolved and blocks another request until recovery is recorded. Startup does not retry a pending request. Killing a command-line process does not prove the underlying shortcut stopped.
+Uncertain execution disables both buttons. Check that the prior shortcut finished, or stop it in Shortcuts. Inspect the displayed80% or100% setting and record both facts in Charging to resume. A visible value or killing the CLI alone does not prove completion. Startup never repeats a request.
 
-If StatBatt cannot read or save its recovery record, new requests remain disabled. Check or stop the shortcut and restore 100% manually; preserve the recovery record, export diagnostics, and resolve local storage before restarting and recording recovery. **Forget shortcut setup**, when available, removes StatBatt's configuration without changing Apple's limit and cannot bypass unresolved recovery.
+If the recovery record cannot be read/saved, inspect Battery settings, check or stop the shortcut, preserve the record and resolve storage before restarting. Forgetting setup does not change Apple's limit or bypass unresolved execution. Apple retains its setting after exit. No lower threshold, automatic expiry, precise electrical cutoff or active custom/discharge/temperature control is provided yet.
 
-The Apple setting persists after StatBatt quits. There is no lower threshold, automatic expiry, automatic restoration, or guarantee of a precise electrical cutoff. Custom charge bands, intentional discharge cutoffs, and temperature-based charging controls are unavailable; no privileged helper is installed.
+Build 7 removes the one-use qualification screen. The old trial marker is retained only as historical data and no longer disables the 100% button.
 
 ## Close, quit, and troubleshoot
 
@@ -51,3 +52,12 @@ Closing the dashboard keeps monitoring in the menu bar. **Quit** stops monitorin
 ## Landing page
 
 The landing page introduces the app. **Explore StatBatt** leads to features, **See what’s available** leads to development status, and the Questions section expands answers. Its app panel and chart are labeled sample illustrations; they are not live readings. There is no download, account signup, or waitlist on the current page.
+
+Choose **Compare** in the header for a side-by-side view of StatBatt, coconutBattery, and Energiza. On a small screen, scroll within the labeled comparison table to view all products. Official source links and a checked date identify the basis for the comparison. Development and qualification notes distinguish StatBatt's currently available capabilities from work still pending.
+
+
+## Install and remove
+
+Open the StatBatt disk image and drag StatBatt to Applications. The app includes the two shortcuts and presents Apple's import approval during setup. A package labeled LOCAL-PREVIEW is a development artifact, not a notarized public release. Native buttons are qualified only on the documented target; monitoring remains available elsewhere.
+
+To update, quit StatBatt before replacing the application; keep its existing local data and shortcuts so trusted setup carries forward. To remove, choose Set to 100% first if you want to remove the Apple limit, wait for completion, then quit and move the app to Trash. A persisted Apple limit does not disappear when the app is deleted. The optional shortcuts remain in your Shortcuts library and can be removed there; local history/preferences are retained unless you choose to delete them separately. There is no privileged helper or scheduled custom-control service in v1.

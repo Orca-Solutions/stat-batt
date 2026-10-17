@@ -1,6 +1,6 @@
 # 0002 — Trust a configured user native shortcut
 
-Status: accepted by the Product Owner, October 2, 2026.
+Status: accepted by the Product Owner, October 2, 2026. The normal baseline/return loop is superseded by [decision0003](0003-two-target-native-limit.md); the decision below records its historical contract.
 
 ## Context
 

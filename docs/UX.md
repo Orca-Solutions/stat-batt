@@ -53,8 +53,12 @@ Settings groups General (launch on login, menu content), Charging (mode/band/def
 Native keyboard navigation and focus, VoiceOver labels for threshold controls and status, accessible contrast in light/dark appearance, localized percent/temperature formatting, and no color-only state. The first runnable mock must cover monitor, native limit, custom control unsupported, active discharge, and restore failure. Owner acceptance of those flows satisfies meaningful UX direction before broad UI implementation.
 
 
-## Implemented native80% flow
+## Two-button native flow
 
-One-time setup presents the existing expected shortcut or its creation instructions, discloses that later content edits cannot all be detected, and records inspection/trust, visible100% baseline, and other controllers stopped. Recording setup does not apply a limit. Qualified ready state offers **Apply80% limit** within StatBatt. Completed requests stay unconfirmed until visible Battery settings confirmation. Persisted confirmations identify their user source and are not a current getter.
+The owner requested **Set to 80%** and **Set to 100%** directly in the menu, with the same actions in Charging. One-time setup inspects each fixed one-action shortcut separately, discloses undetectable later edits and records its own trust plus other-controller declaration. Setup never applies a limit. Existing80% setup migrates without100% trust.
 
-Interrupted/unknown requests block Apply and keep recovery visible. The owner first checks/stops the prior shortcut, then restores100% in Battery settings and confirms both. Returning to100% is manual, and the app never describes a killed CLI as a stopped remote action. No lower threshold or expiring native override is offered. This flow follows the owner-approved trust exception and product design consultation.
+Normal completed requests show **80% request completed** (or100%) and **StatBatt cannot read the current limit.** Both qualified buttons remain available for deliberate clicks, without a mandatory review or manual return. Optional owner observations stay historical. Startup preserves receipts without replay. Busy requests disable both buttons and never queue.
+
+Genuine uncertainty shows **Check the prior request**. The owner checks or stops it in Shortcuts and records finished/stopped plus the visible80% or100% setting before resuming. A visible value alone cannot prove completion. No forced100% return is required. Missing/replaced/untrusted/unqualified targets stay disabled;100% requires its separate actual app proof. A compile-flag qualification action is clearly supervised and excluded from production capabilities.
+
+[Decision0003](decisions/0003-two-target-native-limit.md) supersedes the prior manual baseline/return loop. Original custom-control acceptance stays open. No lower threshold, native expiry, current-limit getter or precise electrical cutoff is promised.

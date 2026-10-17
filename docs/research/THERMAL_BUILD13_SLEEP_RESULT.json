@@ -1,0 +1,270 @@
+{
+  "qualified": true,
+  "errorType": null,
+  "events": [
+    {
+      "phase": "writerReady",
+      "holdSeconds": 120
+    },
+    {
+      "holdSeconds": 120,
+      "phase": "inhibited",
+      "adapter": true,
+      "sourceAt": 279985421681958,
+      "temperatureCelsius": 30.69,
+      "temperatureEstimated": true,
+      "sampledAt": 279985421667791,
+      "stateOfCharge": 80,
+      "baselineKey": 0,
+      "key": 8,
+      "battery": false,
+      "outcome": 0
+    },
+    {
+      "key": 8,
+      "adapter": true,
+      "phase": "inhibited",
+      "battery": false,
+      "temperatureEstimated": true,
+      "outcome": 0,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279985526349875,
+      "stateOfCharge": 80,
+      "sourceAt": 279985526356083,
+      "holdSeconds": 120
+    },
+    {
+      "holdSeconds": 120,
+      "phase": "inhibited",
+      "adapter": true,
+      "sourceAt": 279985631465875,
+      "temperatureCelsius": 30.69,
+      "temperatureEstimated": true,
+      "sampledAt": 279985631460166,
+      "stateOfCharge": 80,
+      "baselineKey": 0,
+      "key": 8,
+      "battery": false,
+      "outcome": 0
+    },
+    {
+      "key": 8,
+      "adapter": true,
+      "phase": "inhibited",
+      "battery": false,
+      "temperatureEstimated": true,
+      "outcome": 0,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279985737519291,
+      "stateOfCharge": 80,
+      "sourceAt": 279985737526500,
+      "holdSeconds": 120
+    },
+    {
+      "key": 8,
+      "adapter": true,
+      "phase": "inhibited",
+      "battery": false,
+      "temperatureEstimated": true,
+      "outcome": 0,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279985843368416,
+      "stateOfCharge": 80,
+      "sourceAt": 279985843374000,
+      "holdSeconds": 120
+    },
+    {
+      "key": 8,
+      "adapter": true,
+      "phase": "inhibited",
+      "battery": false,
+      "temperatureEstimated": true,
+      "outcome": 0,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279985947661833,
+      "stateOfCharge": 80,
+      "sourceAt": 279985947665666,
+      "holdSeconds": 120
+    },
+    {
+      "key": 8,
+      "adapter": true,
+      "phase": "inhibited",
+      "battery": false,
+      "temperatureEstimated": true,
+      "outcome": 0,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279986054456833,
+      "stateOfCharge": 80,
+      "sourceAt": 279986054460333,
+      "holdSeconds": 120
+    },
+    {
+      "key": 8,
+      "adapter": true,
+      "phase": "inhibited",
+      "battery": false,
+      "temperatureEstimated": true,
+      "outcome": 0,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279986159921250,
+      "stateOfCharge": 80,
+      "sourceAt": 279986159926583,
+      "holdSeconds": 120
+    },
+    {
+      "key": 8,
+      "adapter": true,
+      "phase": "inhibited",
+      "battery": false,
+      "temperatureEstimated": true,
+      "outcome": 0,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279986266444458,
+      "stateOfCharge": 80,
+      "sourceAt": 279986266450083,
+      "holdSeconds": 120
+    },
+    {
+      "key": 8,
+      "adapter": true,
+      "phase": "inhibited",
+      "battery": false,
+      "temperatureEstimated": true,
+      "outcome": 0,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279986372927791,
+      "stateOfCharge": 80,
+      "sourceAt": 279986372934625,
+      "holdSeconds": 120
+    },
+    {
+      "phase": "inhibited",
+      "sourceAt": 279986480656833,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279986480650416,
+      "key": 8,
+      "temperatureEstimated": true,
+      "stateOfCharge": 80,
+      "holdSeconds": 120,
+      "adapter": true,
+      "outcome": 0,
+      "battery": false
+    },
+    {
+      "phase": "inhibited",
+      "sourceAt": 279986587597000,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279986587590750,
+      "key": 8,
+      "temperatureEstimated": true,
+      "stateOfCharge": 80,
+      "holdSeconds": 120,
+      "adapter": false,
+      "outcome": 0,
+      "battery": true
+    },
+    {
+      "phase": "inhibited",
+      "sourceAt": 279986715417083,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279986707624708,
+      "key": 8,
+      "temperatureEstimated": true,
+      "stateOfCharge": 80,
+      "holdSeconds": 120,
+      "adapter": false,
+      "outcome": 0,
+      "battery": true
+    },
+    {
+      "recoveryCause": "ownerEOF",
+      "phase": "workerRestoring"
+    },
+    {
+      "phase": "restored",
+      "sourceAt": 279986751256875,
+      "baselineKey": 8,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279986751252833,
+      "key": 0,
+      "temperatureEstimated": true,
+      "stateOfCharge": 80,
+      "adapter": false,
+      "outcome": 0,
+      "battery": true
+    },
+    {
+      "phase": "restored",
+      "sourceAt": 279986863367708,
+      "baselineKey": 8,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279986751252833,
+      "key": 0,
+      "temperatureEstimated": true,
+      "stateOfCharge": 80,
+      "adapter": true,
+      "outcome": 0,
+      "battery": false
+    },
+    {
+      "reaped": true,
+      "phase": "writerReaped"
+    },
+    {
+      "phase": "restored",
+      "sourceAt": 279987028957041,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "sampledAt": 279987028531041,
+      "key": 0,
+      "temperatureEstimated": true,
+      "reaped": true,
+      "stateOfCharge": 80,
+      "adapter": true,
+      "outcome": 0,
+      "battery": false
+    }
+  ],
+  "sleepMarkers": [
+    "READY",
+    "SLEEP_REQUESTED",
+    "WILL_SLEEP",
+    "ACK_RESTORED"
+  ],
+  "recovery": {
+    "result": "independentRestorationVerified",
+    "fallbackUsed": false,
+    "inspection": {
+      "exit": 0,
+      "packets": [
+        {
+          "stateOfCharge": 80,
+          "adapter": true,
+          "sampledAt": 279987228507583,
+          "reaped": true,
+          "phase": "inspection",
+          "baselineKey": 0,
+          "temperatureEstimated": true,
+          "sourceAt": 279987228543375,
+          "outcome": 0,
+          "key": 0,
+          "battery": false,
+          "temperatureCelsius": 30.69
+        }
+      ]
+    }
+  },
+  "limitation": "Callback and acknowledgment evidence only; observer exits before wake. Post-wake inspection requires a separate read-only check."
+}

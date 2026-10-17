@@ -22,8 +22,11 @@ struct PreferencesView: View {
             Section("Notifications") {
                 Toggle("Allow battery notifications", isOn: Binding(get: { store.preferences.notificationsEnabled }, set: store.enableNotifications))
                 Text(store.notificationStatus).font(.caption).foregroundStyle(.secondary)
-                Toggle("Charging transitions", isOn: $store.preferences.notifyChargingTransitions).disabled(!store.preferences.notificationsEnabled)
+                Toggle("Charging and power-source transitions", isOn: $store.preferences.notifyChargingTransitions).disabled(!store.preferences.notificationsEnabled)
                 Toggle("Temperature threshold", isOn: $store.preferences.notifyTemperature).disabled(!store.preferences.notificationsEnabled)
+                Toggle("Charging setup and recovery failures", isOn: $store.preferences.notifyFailures).disabled(!store.preferences.notificationsEnabled)
+                Text("Failure alerts tell you when a native request needs attention or manual recovery. They do not restore the Apple charge limit.")
+                    .font(.caption).foregroundStyle(.secondary)
                 Stepper("Low battery: \(Int(store.preferences.lowBatteryThresholdPercent))%", value: $store.preferences.lowBatteryThresholdPercent, in: 1...50, step: 1)
                 Stepper("High temperature: \(Int(store.displayTemperature(store.preferences.highTemperatureThresholdCelsius).rounded())) \(store.temperatureSuffix)",
                         value: Binding(get: { store.displayTemperature(store.preferences.highTemperatureThresholdCelsius) },
@@ -39,10 +42,13 @@ struct PreferencesView: View {
                     Button("Export diagnostics…") { store.exportDiagnostics() }
                 }
             }
+            Section("Temperature control") {
+                ThermalControlView(model: store.thermalControl)
+            }
             Section("Control & recovery") {
-                Text("Quit stops monitoring. An Apple charge limit applied through the trusted shortcut remains active after StatBatt quits. Return to 100% manually in Battery settings, after checking that the shortcut finished or stopping it in Shortcuts.")
+                Text("Quit first asks the background service to restore any owned adapter override, then stops monitoring. An Apple charge limit applied through the trusted shortcut remains active after StatBatt quits. Use Set to 100% before quitting if you want to remove the limit. If a request was interrupted, check or stop it in Shortcuts and review Battery settings.")
                     .font(.callout).foregroundStyle(.secondary)
-                Text("Custom controls are unavailable, and no privileged helper is installed. Other battery controllers continue independently.")
+                Text("Temperature control stays off until the background service confirms it is qualified and accepts a new session. Other battery controllers must be stopped.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section("About StatBatt") {

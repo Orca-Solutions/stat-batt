@@ -1,5 +1,8 @@
 # Product and engineering specification
 
+> **Current v1 scope (owner direction October 2):** monitoring/history/alerts plus native Apple 80%/100% controls and bundled shortcut installation. The owner has also requested opt-in temperature control through adapter disconnection, subject to hardware and recovery qualification; that extension is in progress and not enabled. Custom charge bands and temporary overrides remain outside this release. See [native scope](decisions/0004-native-charging-v1.md) and [temperature extension](decisions/0005-investigate-thermal-adapter-control.md). The original requirements below remain historical context where they conflict.
+
+
 Version 0.1, 2026-10-01; implementation authorized 2026-10-02. Authoritative product requirements; architecture and transport details live in their own documents. Numbers below are proposed product settings, not Apple recommendations or demonstrated firmware behavior.
 
 ## Product sheet
@@ -79,3 +82,7 @@ Provisional acceptance targets to measure in release builds: idle aggregate CPU 
 ## Dependencies and open questions
 
 P0: exact model/firmware; permitted native targets and reliable state observation; independently writable charge gate versus adapter inhibit; sleep and crash restoration timing. P1: history usefulness/retention, menu display preference, ownership across Fast User Switching, signing entitlement availability. The initial UI proposal is [UX.md](UX.md); evidence and stopping conditions are [BUILD_PLAN.md](BUILD_PLAN.md) and [TEST_PLAN.md](TEST_PLAN.md).
+
+## Native UX clarification — October2
+
+Owner requested one-click Set to80% / Set to100% after separate one-time trusted setup. Ordinary acknowledged requests no longer require manual100% return before another deliberate request. Genuine unknown execution, qualification, trust, controller and storage gates remain. No current getter is claimed. See [decision0003](decisions/0003-two-target-native-limit.md); original full-v1 acceptance is unchanged.

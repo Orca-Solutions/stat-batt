@@ -1,0 +1,248 @@
+{
+  "guardianKilled": true,
+  "guardianExit": -9,
+  "errorType": null,
+  "events": [
+    {
+      "phase": "writerReady"
+    },
+    {
+      "sourceAt": 277167097009875,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.5,
+      "adapter": true,
+      "sampledAt": 277167096997708,
+      "key": 8,
+      "battery": false,
+      "temperatureEstimated": true,
+      "phase": "inhibited",
+      "outcome": 0,
+      "stateOfCharge": 80
+    },
+    {
+      "phase": "inhibited",
+      "outcome": 0,
+      "temperatureCelsius": 30.69,
+      "stateOfCharge": 80,
+      "sourceAt": 277167203250541,
+      "key": 8,
+      "adapter": true,
+      "sampledAt": 277167203246125,
+      "battery": false,
+      "temperatureEstimated": true,
+      "baselineKey": 0
+    },
+    {
+      "sourceAt": 277167307804833,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "adapter": true,
+      "sampledAt": 277167307797458,
+      "key": 8,
+      "battery": false,
+      "temperatureEstimated": true,
+      "phase": "inhibited",
+      "outcome": 0,
+      "stateOfCharge": 80
+    },
+    {
+      "phase": "inhibited",
+      "outcome": 0,
+      "temperatureCelsius": 30.69,
+      "stateOfCharge": 80,
+      "key": 8,
+      "sourceAt": 277167413097208,
+      "sampledAt": 277167413089208,
+      "adapter": true,
+      "battery": false,
+      "temperatureEstimated": true,
+      "baselineKey": 0
+    },
+    {
+      "sourceAt": 277167520560666,
+      "baselineKey": 0,
+      "temperatureCelsius": 30.69,
+      "adapter": true,
+      "sampledAt": 277167520553208,
+      "key": 8,
+      "battery": false,
+      "temperatureEstimated": true,
+      "phase": "inhibited",
+      "outcome": 0,
+      "stateOfCharge": 80
+    },
+    {
+      "phase": "inhibited",
+      "outcome": 0,
+      "temperatureCelsius": 30.69,
+      "stateOfCharge": 80,
+      "key": 8,
+      "sourceAt": 277167628807125,
+      "sampledAt": 277167628798666,
+      "adapter": true,
+      "battery": false,
+      "temperatureEstimated": true,
+      "baselineKey": 0
+    },
+    {
+      "key": 8,
+      "sampledAt": 277167735818458,
+      "battery": false,
+      "phase": "inhibited",
+      "temperatureEstimated": true,
+      "stateOfCharge": 80,
+      "sourceAt": 277167735826125,
+      "baselineKey": 0,
+      "outcome": 0,
+      "temperatureCelsius": 30.69,
+      "adapter": true
+    },
+    {
+      "key": 8,
+      "sampledAt": 277167844238375,
+      "battery": false,
+      "phase": "inhibited",
+      "temperatureEstimated": true,
+      "stateOfCharge": 80,
+      "sourceAt": 277167844246833,
+      "baselineKey": 0,
+      "outcome": 0,
+      "temperatureCelsius": 30.69,
+      "adapter": true
+    },
+    {
+      "key": 8,
+      "sampledAt": 277167952464791,
+      "battery": false,
+      "phase": "inhibited",
+      "temperatureEstimated": true,
+      "stateOfCharge": 80,
+      "sourceAt": 277167952472833,
+      "baselineKey": 0,
+      "outcome": 0,
+      "temperatureCelsius": 30.69,
+      "adapter": true
+    },
+    {
+      "key": 8,
+      "sampledAt": 277168059223625,
+      "battery": false,
+      "phase": "inhibited",
+      "temperatureEstimated": true,
+      "stateOfCharge": 80,
+      "sourceAt": 277168059231458,
+      "baselineKey": 0,
+      "outcome": 0,
+      "temperatureCelsius": 30.69,
+      "adapter": true
+    },
+    {
+      "key": 8,
+      "sampledAt": 277168166591666,
+      "battery": false,
+      "phase": "inhibited",
+      "temperatureEstimated": true,
+      "stateOfCharge": 80,
+      "sourceAt": 277168166599791,
+      "baselineKey": 0,
+      "outcome": 0,
+      "temperatureCelsius": 30.69,
+      "adapter": true
+    },
+    {
+      "key": 8,
+      "sampledAt": 277168274368583,
+      "battery": true,
+      "phase": "inhibited",
+      "temperatureEstimated": true,
+      "stateOfCharge": 80,
+      "sourceAt": 277168274382333,
+      "baselineKey": 0,
+      "outcome": 0,
+      "temperatureCelsius": 30.69,
+      "adapter": false
+    }
+  ],
+  "killAudit": {
+    "killRequestedAt": 277168286225250,
+    "acceptedPacket": {
+      "key": 8,
+      "sampledAt": 277168274368583,
+      "battery": true,
+      "phase": "inhibited",
+      "temperatureEstimated": true,
+      "stateOfCharge": 80,
+      "sourceAt": 277168274382333,
+      "baselineKey": 0,
+      "outcome": 0,
+      "temperatureCelsius": 30.69,
+      "adapter": false
+    },
+    "killCompletedAt": 277168286665958
+  },
+  "recovery": {
+    "result": "independentRestorationVerified",
+    "fallbackUsed": false,
+    "inspection": {
+      "exit": 0,
+      "packets": [
+        {
+          "sourceAt": 277168557450083,
+          "outcome": 0,
+          "temperatureEstimated": true,
+          "baselineKey": 0,
+          "key": 0,
+          "reaped": true,
+          "adapter": true,
+          "battery": false,
+          "stateOfCharge": 80,
+          "sampledAt": 277168557375708,
+          "temperatureCelsius": 30.5,
+          "phase": "inspection"
+        }
+      ]
+    }
+  },
+  "cleanup": {
+    "verified": true,
+    "recovery": {
+      "exit": 0,
+      "packets": [
+        {
+          "baselineKey": 0,
+          "outcome": 0,
+          "sourceAt": 277168596050375,
+          "phase": "restored",
+          "adapter": true,
+          "key": 0,
+          "temperatureCelsius": 30.5,
+          "stateOfCharge": 80,
+          "battery": false,
+          "sampledAt": 277168596004791,
+          "temperatureEstimated": true,
+          "reaped": true
+        }
+      ]
+    },
+    "finalInspection": {
+      "exit": 0,
+      "packets": [
+        {
+          "sampledAt": 277168636399583,
+          "sourceAt": 277168636428125,
+          "battery": false,
+          "reaped": true,
+          "stateOfCharge": 80,
+          "key": 0,
+          "outcome": 0,
+          "baselineKey": 0,
+          "temperatureEstimated": true,
+          "temperatureCelsius": 30.5,
+          "adapter": true,
+          "phase": "inspection"
+        }
+      ]
+    }
+  },
+  "qualified": true
+}
