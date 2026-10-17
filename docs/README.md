@@ -6,6 +6,7 @@ Foundation established October 1; owner authorized implementation October 2, 202
 |---|---|
 | [BUILD_GUIDE.md](BUILD_GUIDE.md) | Clone, build/test the app, preview the landing page, and prepare its static deployment |
 | [USER_GUIDE.md](USER_GUIDE.md) | Use monitoring, history, settings, native setup/recovery, and landing navigation |
+| [research/BATTERY_COMPARISON.md](research/BATTERY_COMPARISON.md) | Maintain the landing comparison's official evidence and qualification distinctions |
 | [../LICENSE](../LICENSE) | Proprietary terms selected by Orca Solutions |
 | [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) | Inspect implemented acceptance evidence and remaining gates |
 | [LAB_PROTOCOL.md](LAB_PROTOCOL.md) | Review the concrete supervised native-action and later provider experiments |

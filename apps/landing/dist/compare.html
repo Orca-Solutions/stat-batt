@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#143d30">
+  <meta name="description" content="Compare StatBatt, coconutBattery, and Energiza: battery monitoring, history, charging features, and the current state of StatBatt development.">
+  <title>Compare StatBatt, coconutBattery & Energiza — StatBatt</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23143d30'/%3E%3Crect x='7' y='10' width='17' height='12' rx='3' fill='none' stroke='%2375e3a7' stroke-width='2'/%3E%3Cpath d='M26 14v4M11 14v4m4-4v4m4-4v4' stroke='%2375e3a7' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="comparison.css">
+</head>
+<body class="comparison-page">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="site-shell">
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="StatBatt home">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="6" y="10" width="18" height="12" rx="3"/><path d="M27 14v4M10 14v4m5-4v4m5-4v4"/></svg></span>
+        <span>StatBatt<span class="brand-period">.</span></span>
+      </a>
+      <nav aria-label="Main navigation">
+        <a href="index.html#inside">The app</a>
+        <a href="index.html#questions">Questions</a>
+        <a href="compare.html" aria-current="page">Compare</a>
+        <a class="nav-status" href="index.html#status">In development</a>
+      </nav>
+    </header>
+    <main id="main">
+      <section class="comparison-hero" aria-labelledby="comparison-title">
+        <p class="eyebrow">THREE APPS. DIFFERENT PRIORITIES.</p>
+        <h1 id="comparison-title">Find your kind <br>of <span>battery insight.</span></h1>
+        <p class="comparison-lede">StatBatt is being built around clear readings, useful local history, and a native Mac experience. Here’s how that focus sits alongside coconutBattery and Energiza.</p>
+        <div class="comparison-actions"><a class="button button-primary" href="#side-by-side">Compare the details</a><a class="text-link" href="#sources">Sources & method</a></div>
+        <p class="comparison-meta">Checked <time datetime="2026-10-02">October 2, 2026</time> <span aria-hidden="true">·</span> Official documentation comparison; no live vendor testing</p>
+      </section>
+
+      <section class="comparison-focus" aria-labelledby="focus-title">
+        <div class="comparison-section-heading"><p class="eyebrow">WHY WE’RE BUILDING STATBATT</p><h2 id="focus-title">Clarity is the feature.</h2></div>
+        <div class="focus-grid">
+          <article><span class="feature-number">01</span><h3>Know what a reading means</h3><p>Estimates carry a <strong>~</strong>. Unsupported readings say <strong>Unavailable</strong>. Missing measurements stay missing, including in exports.</p></article>
+          <article><span class="feature-number">02</span><h3>Keep the story together</h3><p>Seven days of local, one-minute charge, temperature, and net-power summaries, visible sleep gaps, CSV exports, and optional alerts live together in one app. Readings depend on availability.</p></article>
+          <article><span class="feature-number">03</span><h3>Feel at home on your Mac</h3><p>A native SwiftUI menu bar app with Battery, Charging, History, and Settings views. No cloud account is needed in the current build.</p></article>
+        </div>
+      </section>
+
+      <section class="comparison-details" id="side-by-side" aria-labelledby="details-title">
+        <div class="comparison-section-heading"><p class="eyebrow">SIDE BY SIDE</p><h2 id="details-title">The details that matter.</h2><p>StatBatt’s column describes its local development build. Competitor columns distinguish the base app from paid features where the publisher does.</p></div>
+        <p class="scroll-hint" id="scroll-hint"><span aria-hidden="true">↔</span> On smaller screens, scroll the table sideways to compare all three apps. Keyboard: focus the table area, then use the arrow keys.</p>
+        <div class="comparison-table-wrap" role="region" aria-label="Scrollable battery app comparison" aria-describedby="scroll-hint" tabindex="0">
+          <table class="comparison-table">
+            <caption>Battery monitoring, history, and charging features as documented on October 2, 2026</caption>
+            <colgroup><col class="feature-column"><col><col><col></colgroup>
+            <thead><tr><th scope="col">What matters to you</th><th scope="col" class="statbatt-cell"><span class="product-name">StatBatt</span><span class="product-edition">Local build 0.1.0 (2)</span><a href="#statbatt-source">Project evidence</a></th><th scope="col"><span class="product-name">coconutBattery</span><span class="product-edition">Free / Plus</span><a href="https://www.coconut-flavour.com/coconutbattery/">Official features ↗</a></th><th scope="col"><span class="product-name">Energiza</span><span class="product-edition">Monitor / Pro</span><a href="https://appgineers.de/energiza/">Official features ↗</a></th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Everyday monitoring</th><td class="statbatt-cell">Charge, power source, charging state, and a Details view. Advanced readings depend on the Mac and macOS version.</td><td data-vendor="coconut-monitor">Battery health and diagnostics for Mac, iPhone, and iPad.</td><td data-vendor="energiza-monitor">Free menu bar battery monitoring.</td></tr>
+              <tr><th scope="row">Reading confidence</th><td class="statbatt-cell">Estimates marked <strong>~</strong>; unsupported values marked <strong>Unavailable</strong>. Estimated health is a capacity ratio, not a diagnosis.</td><td data-vendor="coconut-confidence">Publisher describes battery health and diagnostic readings. We have not assessed estimate or missing-value presentation.</td><td data-vendor="energiza-confidence">We have not assessed estimate or missing-value presentation.</td></tr>
+              <tr><th scope="row">History & export</th><td class="statbatt-cell">Seven days of local one-minute charge, temperature, and net-power summaries when available. CSV export, pause, clear, visible sleep gaps; missing values export as empty cells.</td><td data-vendor="coconut-history">Saved battery health history; Plus adds a lifetime analyzer. A seven-day minute-summary CSV workflow is not documented.</td><td data-vendor="energiza-history">A seven-day minute-summary timeline with visible sleep gaps and CSV export is not documented in the linked feature overview.</td></tr>
+              <tr><th scope="row">Alerts</th><td class="statbatt-cell">Opt-in low-battery, charging-transition, and temperature alerts. Temperature requires a reading; macOS delivery qualification is pending.</td><td data-vendor="coconut-alerts">Plus includes notifications.</td><td data-vendor="energiza-alerts">Free monitoring includes notifications.</td></tr>
+              <tr><th scope="row">Charging control</th><td class="statbatt-cell"><span class="cell-label">Being qualified</span>Trusted Apple 80% shortcut flow, without a privileged helper, on one exact target. Manual confirmation and return to 100%; app, cutoff, and lifecycle checks pending.</td><td data-vendor="coconut-charging">Charging control is not documented in the linked feature overview.</td><td data-vendor="energiza-charging"><strong>Pro:</strong> lower and upper charge limits, charge/discharge actions, automatic discharge, and thermal charge protection. Discharge requires Apple M1 or later.</td></tr>
+              <tr><th scope="row">Other devices</th><td class="statbatt-cell">Built for Apple silicon MacBooks. No iPhone or iPad monitoring; other Mac and macOS combinations remain unqualified.</td><td data-vendor="coconut-devices">Mac, iPhone, and iPad. Publisher lists macOS 12+ and explicit macOS/iOS/iPadOS 27 support in version 4.4.</td><td data-vendor="energiza-devices">Mac only; publisher lists macOS 10.13+. The <a href="https://appgineers.de/energiza/files/Energiza.html">1.3.5 changelog</a> names M5 models and macOS 26. No explicit macOS 27 statement was found; compatibility is unconfirmed here.</td></tr>
+              <tr><th scope="row">Available today</th><td class="statbatt-cell"><span class="cell-label">In development</span>Local build only. No signed, notarized public release or public download. Proprietary to Orca Solutions.</td><td data-vendor="coconut-availability">Public download; free app with a paid Plus upgrade.</td><td data-vendor="energiza-availability">Public download; monitoring is free, with a paid Pro upgrade.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="comparison-table-note">“Not documented” means we did not confirm the feature in the linked publisher material. It does not establish that the app lacks it.</p>
+      </section>
+
+      <section class="qualification-note" aria-labelledby="qualification-title">
+        <p class="eyebrow">A CLEAR DEVELOPMENT BOUNDARY</p>
+        <h2 id="qualification-title">Monitoring first.<br>Charging still in qualification.</h2>
+        <p>StatBatt’s monitoring, history, exports, settings, and optional alerts are implemented locally. Its Apple 80% setting lab passed on one exact Mac and macOS target; end-to-end app, electrical cutoff, and lifecycle checks remain pending.</p>
+        <p>The limit persists after quitting. Confirmation and restoring 100% are manual. Custom charge bands, intentional discharge cutoffs, and temperature-based charging controls are unavailable.</p>
+        <a class="text-link" href="index.html#status">Read the current development status</a>
+      </section>
+
+      <section class="comparison-fit" aria-labelledby="fit-title">
+        <div class="comparison-section-heading"><p class="eyebrow">CHOOSE BY YOUR PRIORITIES</p><h2 id="fit-title">A good fit is personal.</h2></div>
+        <div class="fit-grid">
+          <article><p class="fit-label">Follow StatBatt if…</p><h3>You want clear readings and local context.</h3><p>Our focus is an integrated Mac experience: explicit estimates, honest missing values, seven-day history, CSV, and optional alerts. A public release is still ahead.</p></article>
+          <article><p class="fit-label">Consider coconutBattery if…</p><h3 data-vendor="coconut-fit-heading">You want broader device diagnostics.</h3><p data-vendor="coconut-fit">Mac, iPhone, and iPad battery insight, with saved health history. Plus adds lifetime analysis, advanced device and SSD details, custom printing, notifications, and Wi-Fi support. <a href="https://www.coconut-flavour.com/coconutbattery/">Official features ↗</a></p></article>
+          <article><p class="fit-label">Consider Energiza if…</p><h3 data-vendor="energiza-fit-heading">You want more charging control today.</h3><p data-vendor="energiza-fit">Energiza Pro documents configurable charge limits, immediate charge/discharge, automatic discharge, and thermal charge protection. Its monitoring and notifications are free. <a href="https://appgineers.de/energiza/">Official features ↗</a></p></article>
+        </div>
+      </section>
+
+      <section class="comparison-sources" id="sources" aria-labelledby="sources-title">
+        <div class="comparison-section-heading"><p class="eyebrow">SOURCES & METHOD</p><h2 id="sources-title">Make the comparison traceable.</h2><p>This page compares documented features, not measured performance, accuracy, power use, or battery-life improvements. We have not run a live comparison of the vendor apps. Edition labels matter; features may depend on hardware and macOS. The native interface and local workflow are StatBatt design choices, not claims that competitor apps lack them.</p></div>
+        <ol class="source-list">
+          <li id="statbatt-source"><h3>StatBatt project evidence</h3><p>Local app README, Implementation Status, and User Guide, checked against build 0.1.0 (2). The current hardware qualification is one Apple silicon Mac on macOS 27.0.1; the deployment minimum alone does not establish compatibility.</p><p class="source-links" data-source="statbatt"><a href="https://github.com/Orca-Solutions/stat-batt/blob/bc1022f11dbc83a769f76df2657fc08480a5a92e/apps/statbatt/README.md">App README</a><a href="https://github.com/Orca-Solutions/stat-batt/blob/bc1022f11dbc83a769f76df2657fc08480a5a92e/docs/IMPLEMENTATION_STATUS.md">Implementation Status</a><a href="https://github.com/Orca-Solutions/stat-batt/blob/bc1022f11dbc83a769f76df2657fc08480a5a92e/docs/USER_GUIDE.md">User Guide</a><span>Private project repository; access required.</span></p></li>
+          <li id="coconut-source"><h3>coconutBattery publisher documentation</h3><p class="source-links" data-source="coconut"><a href="https://www.coconut-flavour.com/coconutbattery/">Official features, Plus & version history</a></p></li>
+          <li id="energiza-source"><h3>Energiza publisher documentation</h3><p class="source-links" data-source="energiza"><a href="https://appgineers.de/energiza/">Official monitoring & Pro features</a><a href="https://appgineers.de/energiza/files/Energiza.html">Official changelog</a></p></li>
+        </ol>
+        <p class="source-disclosure">Prepared by StatBatt’s developer. Competitor names identify their respective products; no affiliation or endorsement is implied. Documentation checked October 2, 2026.</p>
+      </section>
+    </main>
+    <footer class="site-footer"><a class="brand footer-brand" href="index.html">StatBatt<span class="brand-period">.</span></a><p>Made for Mac. Built with care.</p><span>© 2026 Orca Solutions</span></footer>
+  </div>
+</body>
+</html>
