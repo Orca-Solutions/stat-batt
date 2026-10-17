@@ -134,10 +134,28 @@ public actor ThermalControlOrchestrator {
         guard await backend.inhibitAdapter(operationID: id) else { self.session = nil; return await restore() }
         let floor = clock()
         guard generation == epoch else { return .superseded }
-        guard let observed = await backend.observeInhibition(operationID: id), generation == epoch,
-              observed.bootID == bootID, observed.operationID == id, observed.inhibited,
-              observed.batterySupplyingPower, observed.observedAt >= floor, observed.observedAt <= clock(),
-              clock() - observed.observedAt <= 2_000_000_000 else {
+        // Initial physical source telemetry can lag the acknowledged key write.
+        // This grace observes only; it never rewrites or renews the worker lease.
+        let settlingEnd = ContinuousClock.now + .seconds(2)
+        var confirmed = false
+        repeat {
+            guard generation == epoch else { return .superseded }
+            let now = clock()
+            guard now >= floor, now - floor <= 2_000_000_000, now < session.deadline,
+                  now >= started, Double(now - started) / 1_000_000_000 < supplied.policy.maximumPauseSeconds,
+                  ContinuousClock.now < settlingEnd else { break }
+            let observed = await backend.observeInhibition(operationID: id)
+            guard generation == epoch else { return .superseded }
+            let received = clock()
+            guard let observed, observed.bootID == bootID, observed.operationID == id, observed.inhibited,
+                  observed.observedAt >= floor, observed.observedAt <= received,
+                  received >= floor, received - floor <= 2_000_000_000,
+                  received - observed.observedAt <= 2_000_000_000,
+                  received < session.deadline, ContinuousClock.now < settlingEnd else { break }
+            if observed.batterySupplyingPower { confirmed = true; break }
+            try? await Task.sleep(for: .milliseconds(20))
+        } while true
+        guard confirmed else {
             self.session = nil; return await restore()
         }
         let completedAt = clock()

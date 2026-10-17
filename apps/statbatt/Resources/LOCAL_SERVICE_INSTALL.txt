@@ -1,4 +1,4 @@
-StatBatt local development build 10
+StatBatt 1.0 — local build 14
 
 This Apple Development-signed application is for this Mac's local testing. The
 Installer package is unsigned and not notarized for public distribution.
@@ -15,10 +15,19 @@ Installer package is unsigned and not notarized for public distribution.
    missing, the app opens its bundled signed import; Apple requires Add Shortcut
    confirmation. No manual shortcut authoring is required.
 
-Automatic temperature control remains unavailable until qualified. An explicitly
-enabled qualification build may offer one two-second adapter test. That test uses battery
-power briefly, restores adapter input, and does not enable an automatic policy.
-Estimated temperature is labeled as such. Control sessions never auto-restart.
+Optional temperature control is available only when the service verifies the
+qualified Mac/OS and tested guardian. It uses estimated battery temperature,
+not a calibrated thermal-protection sensor. Apple's thermal protections remain
+in charge. Enable it in Charging to start a session; default thresholds are
+40°C to disconnect adapter input and 37°C to reconnect. While disconnected,
+the Mac uses battery power even with its charger attached.
+
+This local release uses a 50% battery reserve and a maximum two-minute pause.
+The session ends if that pause limit is reached, after one hour, or on sleep,
+quit, lost connection, or invalid readings. Enable again to start a new session;
+there is no automatic restart. Cooling below the reconnect threshold restores
+adapter input and continues watching, with a cooldown before another pause.
+Installation and background-service registration never enable a session.
 
 Use Stop & restore before removing the service. Do not delete or replace a service
 bundle while an operation or recovery is pending. A verified update/uninstall flow
@@ -33,7 +42,7 @@ installation. Register the updated service from the app afterward.
 Removal: service unregistration requires a safe-to-exit acknowledgement. Use the bundled removal guide when available; do not remove root-owned files or
 journals manually while recovery is unresolved. Shortcuts are user-owned and preserved.
 
-Guided removal (available in the next bundle built from current source): open
+Guided removal: open
 Contents/Resources/Remove StatBatt Local.command from the installed application.
 The signed client must first obtain safeToExit and unregister the service. Quit
 StatBatt, confirm REMOVE in the guide, then approve the macOS administrator prompt.

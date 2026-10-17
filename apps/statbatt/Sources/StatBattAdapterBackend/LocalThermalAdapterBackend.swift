@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 import Darwin
 import StatBattControlProtocol
 import StatBattDomain
@@ -11,6 +12,7 @@ public actor LocalThermalAdapterBackend: ThermalControlBackend {
     public static let qualificationEnabled = false
     public static let recoveryEnabled = false
     public static let longPauseQualificationEnabled = false
+    private let guardianSHA256: String?
     private let pauseMode: AdapterPauseMode
     private let ledger: ThermalOwnershipLedger
     private let bootID: UUID
@@ -33,14 +35,25 @@ public actor LocalThermalAdapterBackend: ThermalControlBackend {
         diagnosticHistory.append(AdapterDiagnostic(event: event, at: SampleClock.nowNanoseconds(), packet: packet, failure: failure, exitCode: exitCode))
     }
 
-    public init(ledger: ThermalOwnershipLedger, bootID: UUID, pauseMode: AdapterPauseMode = .twoSeconds) {
+    public init(ledger: ThermalOwnershipLedger, bootID: UUID, pauseMode: AdapterPauseMode = .twoSeconds, guardianSHA256: String? = nil) {
+        self.guardianSHA256 = guardianSHA256
         self.pauseMode = pauseMode
         self.ledger = ledger; self.bootID = bootID; inspectionOverride = nil
     }
     // Internal read-only injection; never an XPC or production initialization option.
     init(ledger: ThermalOwnershipLedger, bootID: UUID, inspection: @escaping @Sendable () async -> AdapterPacket?) {
+        self.guardianSHA256 = nil
         self.pauseMode = .twoSeconds
         self.ledger = ledger; self.bootID = bootID; inspectionOverride = inspection
+    }
+    public nonisolated static func guardianMatches(_ expected: String, at url: URL) -> Bool {
+        expected.count == 64 && guardianDigest(at: url) == expected
+    }
+    public nonisolated static func guardianDigest(at url: URL) -> String? {
+        guard let values = try? url.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey]),
+              values.isRegularFile == true, let size = values.fileSize, size > 0, size <= 64 * 1024 * 1024,
+              let data = try? Data(contentsOf: url, options: .mappedIfSafe) else { return nil }
+        return SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
     }
     private func start(_ mode: String) throws {
         guard (mode == "--cycle-120" ? (Self.longPauseQualificationEnabled && Self.qualificationEnabled && Self.recoveryEnabled) : mode == "--cycle" ? (Self.qualificationEnabled && Self.recoveryEnabled) : mode == "--recover" ? Self.recoveryEnabled : mode == "--inspect"), getuid() == 0, geteuid() == 0 else {
@@ -51,6 +64,9 @@ public actor LocalThermalAdapterBackend: ThermalControlBackend {
         if recordPackets { note(mode == "--recover" ? "restoreLaunch" : "launch") }
         let executable = Bundle.main.executableURL!.deletingLastPathComponent().appendingPathComponent("StatBattAdapterGuardian")
         try AdapterExecutableIdentity.verify(url: executable, ownIdentifier: ThermalServiceContract.daemonIdentifier)
+        if let guardianSHA256 {
+            guard Self.guardianMatches(guardianSHA256, at: executable) else { throw ThermalSigningError.untrustedCode }
+        } else if mode == "--cycle-120" { throw ThermalSigningError.untrustedCode }
         let process = Process(), input = Pipe(), output = Pipe()
         process.executableURL = executable; process.arguments = [mode]
         process.environment = ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "HOME": "/var/root"]

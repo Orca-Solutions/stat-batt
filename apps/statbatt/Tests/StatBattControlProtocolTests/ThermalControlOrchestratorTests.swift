@@ -25,6 +25,8 @@ private actor ControlBackend: ThermalControlBackend {
     var gate: CheckedContinuation<Void, Never>?
     var failObservation = false
     var observationDelay: UInt64 = 0
+    var settlingReads = 0
+    func settleForReads(_ count: Int) { settlingReads = count }
     init(boot: UUID, clock: ControlClock) { self.boot = boot; self.clock = clock }
     func blockInhibit() { waitForInhibit = true }
     func releaseInhibit() { waitForInhibit = false; gate?.resume(); gate = nil }
@@ -40,7 +42,9 @@ private actor ControlBackend: ThermalControlBackend {
         calls.append("read08")
         clock.advance(observationDelay)
         if failObservation { return nil }
-        return .init(bootID: boot, operationID: operationID, inhibited: true, batterySupplyingPower: true, observedAt: clock.now())
+        let supplying = settlingReads == 0
+        if settlingReads > 0 { settlingReads -= 1 }
+        return .init(bootID: boot, operationID: operationID, inhibited: true, batterySupplyingPower: supplying, observedAt: clock.now())
     }
     func stopAndReapWriter() async -> Bool { calls.append("reap"); return true }
     func restoreAdapter() async -> UInt64? { calls.append("write00"); return clock.now() }
@@ -209,4 +213,34 @@ private func controlInput(boot: UUID, now: UInt64, hot: Bool = true, inhibited: 
         #expect(await backend.calls.isEmpty)
         #expect(!(await control.sessionAuthorized))
     }
+}
+
+@Test func thermalInitialSettlingAcceptsDelayedSourceButHoldingRemainsStrict() async throws {
+    let boot = UUID(), clock = ControlClock(), storage = ControlJournal()
+    let ledger = try ThermalOwnershipLedger(storage: storage, bootID: boot)
+    let backend = ControlBackend(boot: boot, clock: clock)
+    await backend.settleForReads(3)
+    await backend.delayObservation(300_000_000)
+    let control = ThermalControlOrchestrator(ledger: ledger, backend: backend, bootID: boot, clock: { clock.now() })
+    #expect(await control.authorize(sessionID: UUID(), deadline: clock.now() + 600_000_000_000))
+    #expect(await control.evaluate(controlInput(boot: boot, now: clock.now())) == .inhibited)
+    #expect(await backend.calls.filter { $0 == "write08" }.count == 1)
+    await backend.settleForReads(1)
+    #expect(await control.evaluate(controlInput(boot: boot, now: clock.now(), inhibited: true)) == .stopped)
+    #expect(storage.record?.phase == .restored)
+}
+
+@Test func thermalStopDuringInitialSettlingRevokesWithoutAnotherWrite() async throws {
+    let boot = UUID(), clock = ControlClock(), storage = ControlJournal()
+    let ledger = try ThermalOwnershipLedger(storage: storage, bootID: boot)
+    let backend = ControlBackend(boot: boot, clock: clock)
+    await backend.settleForReads(100)
+    let control = ThermalControlOrchestrator(ledger: ledger, backend: backend, bootID: boot, clock: { clock.now() })
+    #expect(await control.authorize(sessionID: UUID(), deadline: clock.now() + 600_000_000_000))
+    let tick = Task { await control.evaluate(controlInput(boot: boot, now: clock.now())) }
+    while !(await backend.calls.contains("read08")) { await Task.yield() }
+    #expect(await control.stop() == .stopped)
+    #expect(await tick.value == .superseded)
+    #expect(await backend.calls.filter { $0 == "write08" }.count == 1)
+    #expect(storage.record?.phase == .restored)
 }

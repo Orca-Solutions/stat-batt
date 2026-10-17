@@ -46,7 +46,7 @@ actor ThermalRuntime {
         // Only a reviewed source admission can select the longer fixed worker mode.
         // XPC clients never choose a guardian mode or extend its lease.
         let pauseMode: AdapterPauseMode = ThermalAutomaticQualification.current?.maximumPauseSeconds == 120 ? .oneHundredTwentySeconds : .twoSeconds
-        let backend = LocalThermalAdapterBackend(ledger: ledger, bootID: boot, pauseMode: pauseMode)
+        let backend = LocalThermalAdapterBackend(ledger: ledger, bootID: boot, pauseMode: pauseMode, guardianSHA256: ThermalAutomaticQualification.current?.guardianSHA256)
         self.backend = backend
         let controller = ThermalControlOrchestrator(ledger: ledger, backend: backend, bootID: boot,
                                               clock: { SampleClock.nowNanoseconds() })
@@ -150,12 +150,21 @@ actor ThermalRuntime {
     }
     func woke() async { await controller?.woke() }
 
+    private func installedAutomaticAdmission() async -> ThermalAutomaticQualification? {
+        guard let admission = ThermalAutomaticQualification.current,
+              LocalThermalAdapterBackend.qualificationEnabled, LocalThermalAdapterBackend.recoveryEnabled,
+              LocalThermalAdapterBackend.longPauseQualificationEnabled,
+              let executable = Bundle.main.executableURL else { return nil }
+        let platform = await MainActor.run { PlatformProbe.readOnly() }
+        guard let digest = LocalThermalAdapterBackend.guardianDigest(at: executable.deletingLastPathComponent().appendingPathComponent("StatBattAdapterGuardian")),
+              admission.permits(platform: platform, guardianDigest: digest, backendGatesEnabled: true) else { return nil }
+        return admission
+    }
+
     private func startPolicy(_ policy: ThermalAdapterPolicy?, connection: UUID, uid: uid_t) async -> ThermalControlStatus {
         // Hardware and sensor admission are independent of a one-shot test gate.
-        let platform = await MainActor.run { PlatformProbe.readOnly() }
-        guard let admission = ThermalAutomaticQualification.current,
+        guard let admission = await installedAutomaticAdmission(),
               admission.capabilities.supportsBoundedAdapterInhibition,
-              admission.capabilities.platform == platform,
               let policy, policy.enabled, policy.isValid,
               policy.maximumPauseSeconds <= admission.maximumPauseSeconds,
               policy.reservePercent >= admission.minimumReservePercent,
@@ -304,6 +313,7 @@ actor ThermalRuntime {
     }
 
     private func status(nativeMayProceed: Bool = false, nativeConnection: UUID? = nil, nativeUID: uid_t? = nil, message: String? = nil) async -> ThermalControlStatus {
+        let admission = await installedAutomaticAdmission()
         guard let ledger else {
             return .init(phase: .recoveryRequired, controlAvailable: false,
                          message: "The ownership journal is unavailable. Temperature control and native changes are blocked until recovery can be checked.")
@@ -320,16 +330,16 @@ actor ThermalRuntime {
         let nativeReady = nativeMayProceed && safe && nativeConnection != nil && nativeOwner == nativeConnection &&
             !nativeNeedsReconciliation && !connectionHistoryFull && !invalidatedConnections.contains(nativeConnection!) &&
             nativeUID != nil && Self.activeConsoleUser() == nativeUID
-        let admitted = ThermalAutomaticQualification.current != nil
+        let admitted = admission != nil
         return .init(phase: qualificationRunning ? .qualifying : (blocked && activePolicy == nil ? .recoveryRequired : (recovering ? .restoring : (admitted ? policyPhase : .unavailable))),
-                     controlAvailable: admitted, qualificationAvailable: LocalThermalAdapterBackend.qualificationEnabled && !uninstallRequested && !qualificationConsumed && safe && nativeOwner == nil && activePolicy == nil,
+                     controlAvailable: admitted, qualificationAvailable: !admitted && LocalThermalAdapterBackend.qualificationEnabled && !uninstallRequested && !qualificationConsumed && safe && nativeOwner == nil && activePolicy == nil,
                      nativeMayProceed: nativeReady,
                      adapterRestored: restored, safeToExit: safe && nativeOwner == nil,
-                     message: message ?? (activePolicy != nil ? policyMessage : nil) ?? (blocked ? "Adapter restoration is not verified. Keep the app open for recovery." : "Temperature control is not yet qualified for automatic operation. The 80% and 100% controls remain available."),
+                     message: message ?? (activePolicy != nil ? policyMessage : nil) ?? (blocked ? "Adapter restoration is not verified. Keep the app open for recovery." : (admitted ? "Temperature control is ready. Enable it to start an estimated-temperature convenience session." : "Temperature control is not yet qualified for automatic operation. The 80% and 100% controls remain available.")),
                      temperatureCelsius: observation?.temperatureCelsius ?? (activePolicy != nil ? policyTemperature?.value : nil),
                      estimatedTemperature: observation?.temperatureEstimated ?? true, policy: activePolicy, qualificationResult: qualificationResult,
                      nativeReconciliationRequired: nativeNeedsReconciliation,
-                     maximumPauseSeconds: ThermalAutomaticQualification.current?.maximumPauseSeconds,
-                     minimumReservePercent: ThermalAutomaticQualification.current?.minimumReservePercent)
+                     maximumPauseSeconds: admission?.maximumPauseSeconds,
+                     minimumReservePercent: admission?.minimumReservePercent)
     }
 }

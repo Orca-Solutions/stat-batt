@@ -24,3 +24,9 @@ Pinned directory: `/private/tmp/statbatt-recovery13-ready-22d8w_35`.
   "run-once.command": "dec522e152479f50fe58331659a80f8e03c3c4aee2224f2b7e53ff38fe131b60"
 }
 ```
+
+Owner approved this prepared sequence by replying “proceed. you have my consent to keep pushing through to v1.” Fresh service status confirmed adapterRestored/safeToExit true; service unregistered successfully and controllers were absent. The one-use launcher was opened once and is awaiting administrator authentication. No result has been accepted yet.
+
+## Executed result
+
+Both authorized trials passed with sequence exit0 and no fallback. Long-mode guardian loss: killed after3.082s of observed inhibition; fresh00+adapter independent restoration observed 312.2ms after kill request, before separate journal cleanup. Root stage `/private/tmp/statbatt-guardian-loss-06ox5j9p`. Sleep: READY→SLEEP_REQUESTED→WILL_SLEEP→ACK_RESTORED; worker reported ownerEOF, then00 and adapter before writer reaping. Root stage `/private/tmp/statbatt-long-sleep-smfbkewi`. This proves restoration coordinated with the sleep callback, not an isolated worker sleep-cause branch. Owner explicitly confirmed actual sleep and wake/unlock. After wake, re-registered service returned adapterRestoredtrue, safeToExittrue, automatic control unavailable, estimated30.39°C. Saved result JSON files accompany this document. No automatic session was enabled.
