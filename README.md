@@ -41,3 +41,7 @@ Open `http://127.0.0.1:4187/`. No install or build step is required. Only `apps/
 - [Working record](WORKING_RECORD.md): dated progress, verification, and handoffs.
 
 The Git repository remains at this root. App bundle identity and the existing `~/Library/Application Support/StatBatt` data location are preserved. Historical ignored root `.build/` evidence and the previously running root `dist/StatBatt.app` are retained; new builds use `apps/statbatt/`. Commit the source folders, not generated native artifacts or personal data.
+
+## Delivery workflow
+
+See [the delivery workflow](docs/WORKFLOW.md) for author verification, focused review of high-risk changes and scoped release authority. Existing project behavior and setup commands above remain authoritative.

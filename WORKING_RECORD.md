@@ -1,5 +1,9 @@
 # Working record
 
+## Workflow adoption — October 9, 2026
+
+Practical workflow v3.0: one delivery owner, proportionate author verification, focused review for high-risk behavior/concrete concerns and delta-based evidence reuse. Existing product requirements, configured signing, recorded permissions and repository protections are preserved. Dated verification/history below retains its original scope; it does not impose a blanket review gate on new routine work. No application merge, deployment or provider acceptance is established by this documentation update.
+
 Date: 2026-10-02. Stage: local implementation checkpoint, not completed v1/release candidate.
 
 ## Authority and state
