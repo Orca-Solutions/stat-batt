@@ -1,6 +1,6 @@
-# StatBatt landing page
+# StatBatt archive landing page
 
-A dependency-free static landing page for the current local StatBatt build. Source and delivery files live in `dist/`; the native app's `apps/statbatt/dist/` is separate.
+A dependency-free static archive of StatBatt, discontinued October 17, 2026. The original design and artwork remain, with an archive notice and final status. Source and delivery files live in `dist/`; the native app's `apps/statbatt/dist/` is separate. See [the archive record](../../ARCHIVE.md).
 
 ## Preview
 
@@ -19,12 +19,12 @@ Open `http://127.0.0.1:4187/`. No package installation or build step is required
 - `dist/compare.html` and `dist/comparison.css`: side-by-side StatBatt, coconutBattery, and Energiza comparison, official evidence links, and mobile table layout.
 - `dist/assets/battery-sculpture.jpg`: original AI-generated hero artwork; see `ART_DIRECTION.md` for provenance and the generation prompt.
 - App panel and chart values are synthetic and visibly labeled. They are website illustrations, not app screenshots or live telemetry.
-- Claims reflect the current development build. The Apple 80% path remains subject to the documented exact-target qualification and pending end-to-end checks; no public download is implied.
+- The home page summarizes the final saved build-14 checkpoint. The comparison table preserves the October 2 build and vendor claims, with a visible historical notice. No public download or future release is offered.
 
-The owner authorized the private [Orca-Solutions/stat-batt](https://github.com/Orca-Solutions/stat-batt) remote and a setup/landing PR. Source and original project assets are [proprietary to Orca Solutions](../../LICENSE). The foundation PR is merged. GitHub Pages is configured at [the project site](https://orca-solutions.github.io/stat-batt/), using the existing main-branch static deployment workflow; no native app release has been published. Static hosting must serve only `apps/landing/dist/`, never the repository root or native app distribution folder. No install or build command is needed for this page.
+The [Orca-Solutions/stat-batt](https://github.com/Orca-Solutions/stat-batt) repository is public; source and original project assets remain [proprietary to Orca Solutions](../../LICENSE). GitHub Pages is configured with the custom domain `statbatt.orcasolutions.dev`, using the existing main-branch static deployment workflow. Preserve that hosting and DNS for the archive. Static hosting must serve only `apps/landing/dist/`, never the repository root or native app distribution folder. No install or build command is needed.
 
 See the [build and deployment guide](../../docs/BUILD_GUIDE.md) and [user guide](../../docs/USER_GUIDE.md).
 
-Before publishing, recheck the copy against the app's latest implementation and distribution status.
+Before setting the GitHub repository read-only, merge the archive candidate and verify its completed Pages deployment. No deployment or repository archive setting is changed by local preparation.
 
-The comparison is a separate change from the foundation PR. Vendor documentation is checked October 2, 2026; it does not constitute live competitor tests. Maintain its claims using the [comparison source notes](../../docs/research/BATTERY_COMPARISON.md). Verify `compare.html` alongside the home route before deployment.
+Vendor documentation was checked October 2, 2026; it does not constitute live competitor tests or current purchasing guidance. Preserve the date and [comparison source notes](../../docs/research/BATTERY_COMPARISON.md). Verify `compare.html` alongside the home route before deployment. `archive-preview.jpg` records the archive notice; the older preview JPGs record the original design.

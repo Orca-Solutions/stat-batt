@@ -1,5 +1,10 @@
 # StatBatt user guide
 
+**Archived October 17, 2026.** These are historical usage instructions, not a
+supported installation guide. See [the archive record](../ARCHIVE.md) for final
+build-14 state and local-service recovery/removal references. Earlier claims
+below about helper absence apply to the original native-only build.
+
 StatBatt is a native Apple silicon MacBook battery utility in local development. There is no public download yet. Obtain and run the development build only through an authorized checkout; [build instructions](BUILD_GUIDE.md) cover that process. Advanced readings and charging capabilities depend on your exact Mac and macOS version.
 
 ## Open and read the app

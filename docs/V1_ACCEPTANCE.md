@@ -1,5 +1,9 @@
 # V1 candidate acceptance — October 3, 2026
 
+**Archived October 17, 2026.** The open checks below remain unfinished historical
+acceptance items. No further development or public release is planned. See
+[the archive record](../ARCHIVE.md).
+
 The native charging baseline follows [decision 0004](decisions/0004-native-charging-v1.md): working Apple 80% / 100% buttons plus monitoring. The owner subsequently requested optional temperature control by disconnecting adapter input in [decision 0005](decisions/0005-investigate-thermal-adapter-control.md).
 
 **Current checkpoint: build 14 is installed locally.** Exact-target normal 120-second,

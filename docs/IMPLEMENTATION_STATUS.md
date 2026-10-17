@@ -1,5 +1,10 @@
 # Implementation checkpoint — October 3, 2026
 
+**Archived October 17, 2026.** This page contains earlier checkpoints. Final
+status is in [the archive record](../ARCHIVE.md) and
+[build-14 acceptance](research/THERMAL_BUILD14_LOCAL_ACCEPTANCE.md). Development
+has ended; remaining gates are not scheduled work.
+
 **Current work: local thermal integration, not yet a completed temperature-control release.** The local app/service protocol, temperature UI, protected local installer, concrete two-second guardian backend and one-shot qualification path are implemented. Hardware writes remain gated off in the normal package; automatic temperature sessions remain unavailable pending end-to-end qualification and an honest estimated-sensor policy. Public signing/notarization are explicitly deferred. See [local integration](research/THERMAL_LOCAL_INTEGRATION.md). The historical build 8 summary below describes the previously running app.
 
 **Previous follow-up: build 8 local v1 candidate.** Both 80% / 100% buttons were verified by the owner. The package includes both inspected signed shortcuts and missing-only guided setup. The rebuilt DMG passed read-only contents/signature checks; public signing awaits Developer enrollment. Two supervised adapter trials have now run; the second observed battery supply after inhibition and adapter supply after restoration. This establishes the mechanism on this Mac, not unattended lifecycle recovery. A separate Apple Development-signed, status-only helper passed authenticated connection, removal and re-registration after owner background approval. The tested temperature reducer is still not wired into live hardware. See [service evidence](research/THERMAL_SERVICE_BOOTSTRAP.md), [current acceptance](V1_ACCEPTANCE.md) and [control evidence](research/V1_CONTROL_FEASIBILITY.md). Historical checkpoints below apply to their original builds.

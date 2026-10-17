@@ -1,5 +1,11 @@
 # StatBatt
 
+**Archived October 17, 2026.** Development and support have ended. The final saved
+checkpoint is build 14; see [the archive record](../../ARCHIVE.md) and
+[build-14 acceptance](../../docs/research/THERMAL_BUILD14_LOCAL_ACCEPTANCE.md).
+The build instructions and earlier milestones below are retained as historical
+development records. There is no signed/notarized public release.
+
 V1 local candidate: native Apple 80%/100% charge-limit buttons, monitoring, history/CSV, diagnostics, preferences and opt-in alerts. The owner accepted native charging as the v1 scope; custom discharge, charge bands and temperature actuation are not required or claimed. See [scope decision](../../docs/decisions/0004-native-charging-v1.md).
 
 ## Build and run

@@ -1,5 +1,44 @@
 # Working record
 
+## Project archive — October 17, 2026
+
+The owner discontinued development and requested preserving all work, bringing
+the checkout up to date, and retaining the landing page as an archive.
+[ARCHIVE.md](ARCHIVE.md) now owns final status; earlier next steps and authority
+records below retain their original historical scope.
+
+Fetched origin: the local app history was 34 commits ahead of `origin/main`,
+with no remote-main divergence. Preserved all 15 modified/untracked build-14
+files in signed commit `045995e` on `codex/archive-statbatt`. Merged the comparison
+branch (`fedef75`) and workflow branch (`16c6e8a`), preserving both histories and
+resolving overlapping documentation by keeping app evidence and comparison notes.
+All previously outstanding remote branch heads are ancestors of the archive
+candidate. Original branches and ignored local artifacts are retained.
+
+Updated the root/app/landing READMEs and document entry points to identify the
+project as discontinued. Added visible archive notices, final build-14 status,
+and no-release wording to the landing page. The comparison retains its dated
+October 2 table, explicitly labeled historical. Original layout/artwork remain;
+[archive preview](apps/landing/archive-preview.jpg) records the new notice.
+No new runtime edits, helper operations, charging changes, release packages,
+hosting settings, CI changes, or hardware trials were performed for the archive.
+The pre-existing code is preserved as unfinished source, not qualified for release.
+
+Verification: 230 Swift tests (69 XCTest + 161 Swift Testing), 37 mocked Python
+tests across six scripts, and installer preflight/native-request fixtures passed.
+Both HTML pages passed local asset/fragment checks (27 targets); Markdown links
+were checked across the complete tracked documentation. Browser checks verified
+the archive notice, final-status navigation, download FAQ, comparison navigation,
+loaded artwork, and mobile reflow at a 390px viewport. Neither page overflows
+the viewport; only the comparison table scrolls horizontally. Whitespace checks
+passed. No hardware behavior or new installed-app acceptance is claimed.
+
+GitHub reports the repository public and not read-only, with Pages configured for
+`statbatt.orcasolutions.dev`. The existing `main` workflow serves only
+`apps/landing/dist/`. The consolidated source-archive PR supersedes #2, #3, and #4.
+Owner merge remains pending; that merge triggers the Pages deployment. Verify the
+deployed notices/routes before enabling GitHub read-only archive status.
+
 ## Workflow adoption — October 9, 2026
 
 Practical workflow v3.0: one delivery owner, proportionate author verification, focused review for high-risk behavior/concrete concerns and delta-based evidence reuse. Existing product requirements, configured signing, recorded permissions and repository protections are preserved. Dated verification/history below retains its original scope; it does not impose a blanket review gate on new routine work. No application merge, deployment or provider acceptance is established by this documentation update.

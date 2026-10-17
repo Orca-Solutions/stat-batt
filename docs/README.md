@@ -1,5 +1,8 @@
 # Foundation document index
 
+**Project discontinued October 17, 2026.** [The archive record](../ARCHIVE.md)
+owns final status. Plans, next steps, and acceptance gates below are historical.
+
 Foundation established October 1; owner authorized implementation October 2, 2026. Software evidence remains separate from hardware qualification.
 
 | Document | Read when |

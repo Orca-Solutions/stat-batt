@@ -1,6 +1,8 @@
 # Build and deployment guide
 
-StatBatt has two independent projects. The app uses SwiftPM and the macOS SDK; the landing page is static HTML/CSS with local assets. The repository is private and [proprietary](../LICENSE).
+**Discontinued October 17, 2026.** See [the archive record](../ARCHIVE.md) for final app status and the hosting handoff. The native commands and qualification sections below preserve historical development procedures; they are not a supported installation or release path.
+
+StatBatt has two independent projects. The app uses SwiftPM and the macOS SDK; the landing page is static HTML/CSS with local assets. The repository is public and [proprietary](../LICENSE).
 
 ## Checkout
 
@@ -11,7 +13,7 @@ gh repo clone Orca-Solutions/stat-batt
 cd stat-batt
 ```
 
-The foundation PR is merged; use `main` for the landing foundation. To review the resumed app candidate, use `git switch codex/app-v1-completion` after fetching that branch. All commands below run from the monorepo root.
+The consolidated archive candidate is on `codex/archive-statbatt` pending owner merge into `main`. It includes the later build-14 app work, the comparison page, and outstanding workflow documentation. All commands below run from the monorepo root.
 
 ## Native app
 
@@ -50,13 +52,13 @@ python3 -m http.server 4187 --bind 127.0.0.1 --directory apps/landing/dist
 
 Open `http://127.0.0.1:4187/`. If that port already hosts this preview, reuse it. Reload after HTML/CSS changes. Check the hero image, internal navigation, FAQs, and narrow-screen layout. See the [landing README](../apps/landing/README.md) for files and artwork provenance.
 
-For the comparison change, check out `codex/battery-comparison` and open `http://127.0.0.1:4187/compare.html`. Verify the home/Compare header links, all three product columns, source links, mobile table scrolling, and keyboard focus. Its separate PR targets `main`; after it merges, the comparison is available from the default branch.
+The comparison is included in the consolidated archive candidate. Open `http://127.0.0.1:4187/compare.html` and verify its historical notice, home/Compare header links, all three product columns, source links, mobile table scrolling, and keyboard focus.
 
 ## Landing deployment
 
 Merge the reviewed PR before production rollout. Configure a static host to publish **only `apps/landing/dist/`**. No install or build command is required. If a host asks for a project directory, use `apps/landing/` and its `dist/` output directory.
 
-Never publish the monorepo root, native app bundles, `.build/`, repository guidance, or local user data. The website does not require runtime secrets or a database. GitHub Pages is configured at [the project site](https://orca-solutions.github.io/stat-batt/). The existing `.github/workflows/static.yml` workflow uploads only `apps/landing/dist/` and deploys on pushes to `main` or a manual workflow dispatch. The foundation deployment workflow succeeded on October 2, 2026. Comparison previews remain local until their PR is merged and that deployment succeeds. Recheck product-status copy before rollout. Publishing the landing page does not publish or release the native app.
+Never publish the monorepo root, native app bundles, `.build/`, repository guidance, or local user data. The website does not require runtime secrets or a database. GitHub Pages is configured with custom domain `statbatt.orcasolutions.dev`. The existing `.github/workflows/static.yml` workflow uploads only `apps/landing/dist/` and deploys on pushes to `main` or a manual workflow dispatch. The archive candidate remains local to its branch until owner merge and successful deployment. Verify both routes and the archive notices before setting the repository read-only. Publishing the landing page does not publish or release the native app.
 
 For everyday app use, see the [user guide](USER_GUIDE.md). For layout and preserved paths, see [monorepo notes](MONOREPO.md).
 
