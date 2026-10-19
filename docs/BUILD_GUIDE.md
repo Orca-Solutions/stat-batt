@@ -13,7 +13,7 @@ gh repo clone Orca-Solutions/stat-batt
 cd stat-batt
 ```
 
-The consolidated archive candidate is on `codex/archive-statbatt` pending owner merge into `main`. It includes the later build-14 app work, the comparison page, and outstanding workflow documentation. All commands below run from the monorepo root.
+The consolidated archive merged into `main` through PR #5 (`3434509`); its preserved source candidate is `030063b` on `codex/archive-statbatt`. It includes the later build-14 app work, the comparison page, and outstanding workflow documentation. All commands below run from the monorepo root.
 
 ## Native app
 
@@ -58,7 +58,7 @@ The comparison is included in the consolidated archive candidate. Open `http://1
 
 Merge the reviewed PR before production rollout. Configure a static host to publish **only `apps/landing/dist/`**. No install or build command is required. If a host asks for a project directory, use `apps/landing/` and its `dist/` output directory.
 
-Never publish the monorepo root, native app bundles, `.build/`, repository guidance, or local user data. The website does not require runtime secrets or a database. GitHub Pages is configured with custom domain `statbatt.orcasolutions.dev`. The existing `.github/workflows/static.yml` workflow uploads only `apps/landing/dist/` and deploys on pushes to `main` or a manual workflow dispatch. The archive candidate remains local to its branch until owner merge and successful deployment. Verify both routes and the archive notices before setting the repository read-only. Publishing the landing page does not publish or release the native app.
+Never publish the monorepo root, native app bundles, `.build/`, repository guidance, or local user data. The website does not require runtime secrets or a database. GitHub Pages is configured with custom domain `statbatt.orcasolutions.dev`. The existing `.github/workflows/static.yml` workflow uploads only `apps/landing/dist/` and deploys on pushes to `main` or a manual workflow dispatch. The archive source is merged; successful Pages deployment and HTTPS acceptance must be verified separately. Verify both routes and the archive notices before setting the repository read-only. Publishing the landing page does not publish or release the native app.
 
 For everyday app use, see the [user guide](USER_GUIDE.md). For layout and preserved paths, see [monorepo notes](MONOREPO.md).
 
