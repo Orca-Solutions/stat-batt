@@ -25,6 +25,6 @@ The [Orca-Solutions/stat-batt](https://github.com/Orca-Solutions/stat-batt) repo
 
 See the [build and deployment guide](../../docs/BUILD_GUIDE.md) and [user guide](../../docs/USER_GUIDE.md).
 
-Before setting the GitHub repository read-only, merge the archive candidate and verify its completed Pages deployment. No deployment or repository archive setting is changed by local preparation.
+The archive source merged through PR #5 (`3434509`). Before setting the GitHub repository read-only, verify its completed Pages deployment, HTTPS, and both archive routes. Source merge alone does not establish hosted acceptance; this documentation does not change deployment or repository archive settings.
 
 Vendor documentation was checked October 2, 2026; it does not constitute live competitor tests or current purchasing guidance. Preserve the date and [comparison source notes](../../docs/research/BATTERY_COMPARISON.md). Verify `compare.html` alongside the home route before deployment. `archive-preview.jpg` records the archive notice; the older preview JPGs record the original design.

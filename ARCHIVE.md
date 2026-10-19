@@ -58,12 +58,14 @@ The archive candidate adds a discontinued-project notice and final status to the
 home page. The separate comparison page keeps its original dated claims and
 explicitly identifies them as historical. Existing artwork and layout remain.
 
-The consolidation PR supersedes the content of open PRs #2, #3, and #4. Merge
-the archive PR first, allow its existing Pages deployment to finish, and verify
-the home page, archive notice, comparison route, and artwork at the custom domain.
-Then close any superseded PRs still open and, if desired, set the GitHub repository
-to read-only archive status. Do not archive it before the final Pages deployment.
-The archive preparation itself does not change GitHub settings or deploy the site.
+The consolidation merged through PR #5 in commit `3434509`, preserving the archive
+candidate `030063b` on `main` and superseding the content of PRs #2, #3, and #4.
+The existing Pages workflow deploys pushes to `main`; a source merge alone does
+not establish that deployment or HTTPS acceptance succeeded. Verify the completed
+deployment, home page, archive notice, comparison route, and artwork at the custom
+domain. Then close any superseded PRs still open and, if desired, set the GitHub
+repository to read-only archive status. Do not archive it before that acceptance.
+This documentation correction does not change GitHub settings or deploy the site.
 
 ## Verification on October 17, 2026
 
