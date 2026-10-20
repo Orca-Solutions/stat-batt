@@ -47,3 +47,7 @@ The Git repository remains at this root. App bundle identity and the existing `~
 ## Delivery workflow
 
 The [delivery workflow](docs/WORKFLOW.md) is retained with the other project records. It does not imply ongoing maintenance.
+
+## Shared agent instructions
+
+`AGENTS.md` and `CLAUDE.md` are shared project instructions and stay tracked in this repository so local and cloud agents can read them. Keep personal overrides in ignored `CLAUDE.local.md`; credentials and session state stay private. Existing project-specific instructions and permissions continue to apply.
